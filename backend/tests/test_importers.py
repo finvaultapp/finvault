@@ -11,12 +11,17 @@ def p(name, text, **kw):
 
 
 def minimal_pdf(text: str) -> bytes:
+    entries = [(50, 750 - i * 16, line) for i, line in enumerate(text.splitlines())]
+    return positioned_pdf(entries)
+
+
+def positioned_pdf(entries: list[tuple[int, int, str]]) -> bytes:
     def pdf_escape(value: str) -> str:
         return value.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
 
     content = "\n".join(
-        f"BT /F1 12 Tf 50 {750 - i * 16} Td ({pdf_escape(line)}) Tj ET"
-        for i, line in enumerate(text.splitlines())
+        f"BT /F1 12 Tf {x} {y} Td ({pdf_escape(line)}) Tj ET"
+        for x, y, line in entries
     )
     objects = [
         b"<< /Type /Catalog /Pages 2 0 R >>",
@@ -211,3 +216,59 @@ def test_td_with_all_empty_debit_column():
     text = "09/10/2026,PAYROLL,,2500.00,3500.00\n09/24/2026,PAYROLL,,2500.00,6000.00\n"
     r = p("td.csv", text)
     assert [t.amount for t in r.transactions] == [Decimal("2500.00"), Decimal("2500.00")]
+
+
+def word_by_word_pdf(lines: list[str]) -> bytes:
+    """Like some card issuers' PDFs: every word is its own text object on the same baseline."""
+    entries = []
+    for row, line in enumerate(lines):
+        x = 40
+        for word in line.split(" "):
+            entries.append((x, 760 - row * 18, word))
+            x += 7 * len(word) + 8
+    return positioned_pdf(entries)
+
+
+CARD_HEADER = [
+    "Statement Period Aug 22, 2026 - Sep 21, 2026",
+    "Payment due date Oct 13, 2026 Payments & credits $6.28",
+    "Credit limit $5,000.00 New purchases & debits $131.87",
+    "Minimum payment $10.00 Available credit $4,868.13",
+    "Trans Post Description Amount",
+]
+
+
+def test_pdf_card_statement_word_by_word_layout():
+    raw = word_by_word_pdf(CARD_HEADER + [
+        "Sep 3 Sep 4 ROGERS 1283 TORONTO ON 48.25",
+        "Sep 10 Sep 11 ROGERS 5706 TORONTO ON 56.50",
+        "Sep 11 Sep 11 AUTO PAYMENT-THANK-YOU -6.28",
+        "Sep 14 Sep 15 FIDO MOBILE 6769 TORONTO ON 27.12",
+    ])
+    r = parse_file("card.pdf", raw)  # no account type given: the card cues decide the sign convention
+    got = [(t.date, t.amount) for t in r.transactions]
+    assert got == [(date(2026, 9, 3), Decimal("-48.25")), (date(2026, 9, 10), Decimal("-56.50")),
+                   (date(2026, 9, 11), Decimal("6.28")), (date(2026, 9, 14), Decimal("-27.12"))]
+    assert not any("Payments" in t.description for t in r.transactions)  # summary line is not a transaction
+    assert any("match the statement" in w for w in r.warnings)
+
+
+def test_pdf_card_statement_across_new_year():
+    raw = word_by_word_pdf([
+        "Statement Period Dec 22, 2026 - Jan 21, 2027",
+        "Credit limit $5,000.00 New purchases & debits $30.00",
+        "Dec 28 Dec 29 COFFEE SHOP 10.00",
+        "Jan 3 Jan 4 BOOK STORE 20.00",
+    ])
+    r = parse_file("card.pdf", raw, account_type="credit_card")
+    assert [t.date for t in r.transactions] == [date(2026, 12, 28), date(2027, 1, 3)]
+
+
+def test_pdf_card_statement_totals_mismatch_is_flagged():
+    raw = word_by_word_pdf([
+        "Statement Period Aug 22, 2026 - Sep 21, 2026",
+        "Credit limit $5,000.00 New purchases & debits $99.00",
+        "Sep 3 Sep 4 GROCER 48.25",
+    ])
+    r = parse_file("card.pdf", raw)
+    assert any("add up to 48.25" in w for w in r.warnings)

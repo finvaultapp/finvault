@@ -50,7 +50,10 @@ def migrate_schema() -> None:
         from alembic import command
         from alembic.config import Config
 
-        command.upgrade(Config(str(ini)), "head")
+        cfg = Config(str(ini))
+        # alembic.ini's script_location is relative; anchor it to the backend folder, not the current directory.
+        cfg.set_main_option("script_location", str(ini.parent / "migrations"))
+        command.upgrade(cfg, "head")
         add_missing_columns()
         return
     Base.metadata.create_all(engine)
