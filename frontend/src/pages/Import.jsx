@@ -94,7 +94,7 @@ export default function Import() {
         <ShieldCheck />
         <div className="banner-body">
           <strong>{t('Your bank password stays with you.')}</strong> {t('For Canadian banks FinVault never connects to the bank.')}
-          {' '}{t('The standard export files (QFX/OFX, QBO, QIF or CSV) are the only way in. Prefer')} <strong>QFX/OFX</strong>{t(": it's an open standard with stable transaction IDs, so re-imports never double-count.")}
+          {' '}{t('The standard export files (QFX/OFX, QBO, QIF or CSV) are safest. Text-based PDFs can be imported too, but prefer')} <strong>QFX/OFX</strong>{t(": it's an open standard with stable transaction IDs, so re-imports never double-count.")}
         </div>
       </div>
 
@@ -138,8 +138,8 @@ export default function Import() {
                     onDrop={(e) => { e.preventDefault(); setOver(false); if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]) }}>
                     <FileUp size={28} style={{ marginBottom: 8 }} />
                     <div><strong>{file ? file.name : t('Drop your statement file here')}</strong></div>
-                    <div className="small">{file ? t('Reading…') : t('or click to choose · QFX, OFX, QBO, QIF, CSV')}</div>
-                    <input ref={inputRef} type="file" hidden accept=".qfx,.ofx,.qbo,.qif,.csv,.txt,.tsv" onChange={(e) => e.target.files[0] && setFile(e.target.files[0])} />
+                    <div className="small">{file ? t('Reading…') : t('or click to choose · QFX, OFX, QBO, QIF, CSV, PDF')}</div>
+                    <input ref={inputRef} type="file" hidden accept=".qfx,.ofx,.qbo,.qif,.csv,.txt,.tsv,.pdf,application/pdf" onChange={(e) => e.target.files[0] && setFile(e.target.files[0])} />
                   </div>
                   {!accountId && file && <p className="error-text">{t('Choose which account this file belongs to.')}</p>}
                 </>
@@ -164,7 +164,7 @@ export default function Import() {
                 </>
               ) : <p className="muted">{t('Pick an account with its bank set to see bank-specific notes.')}</p>}
               <ol className="howto">{(presetList[0]?.steps ?? []).map((s) => <li key={s}>{t(s)}</li>)}</ol>
-              <p className="small muted"><Info size={13} style={{ verticalAlign: -2 }} /> {t("PDF statements can't be imported. Menu names differ between banks and change over time.")}</p>
+              <p className="small muted"><Info size={13} style={{ verticalAlign: -2 }} /> {t('PDF imports are best-effort and work only when the statement contains selectable text. Menu names differ between banks and change over time.')}</p>
             </div>
           </section>
         )}

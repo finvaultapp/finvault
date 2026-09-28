@@ -10,6 +10,35 @@ def p(name, text, **kw):
     return parse_file(name, text.encode("utf-8"), **kw)
 
 
+def minimal_pdf(text: str) -> bytes:
+    def pdf_escape(value: str) -> str:
+        return value.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+    content = "\n".join(
+        f"BT /F1 12 Tf 50 {750 - i * 16} Td ({pdf_escape(line)}) Tj ET"
+        for i, line in enumerate(text.splitlines())
+    )
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    stream = content.encode("latin1")
+    objects.append(b"<< /Length " + str(len(stream)).encode() + b" >>\nstream\n" + stream + b"\nendstream")
+    out = bytearray(b"%PDF-1.4\n")
+    offsets = [0]
+    for i, obj in enumerate(objects, start=1):
+        offsets.append(len(out))
+        out += f"{i} 0 obj\n".encode() + obj + b"\nendobj\n"
+    xref = len(out)
+    out += f"xref\n0 {len(objects) + 1}\n0000000000 65535 f \n".encode()
+    for offset in offsets[1:]:
+        out += f"{offset:010d} 00000 n \n".encode()
+    out += f"trailer << /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n".encode()
+    return bytes(out)
+
+
 def test_parse_amount_variants():
     assert parse_amount("$1,234.56") == Decimal("1234.56")
     assert parse_amount("(12.00)") == Decimal("-12.00")
@@ -47,6 +76,33 @@ def test_ofx_sgml_without_closing_tags():
     assert t.date == date(2026, 1, 5) and t.amount == Decimal("-54.23") and t.external_id == "90001"
     assert "LOBLAWS" in t.description and "POS PURCHASE" in t.description
     assert r.statement_balance == Decimal("3120.55")
+
+
+def test_pdf_statement_full_dates():
+    raw = minimal_pdf(
+        "Statement\n"
+        "Date Description Withdrawals Deposits Balance\n"
+        "01/03/2026 LOBLAWS #123 54.23 945.77\n"
+        "01/15/2026 PAYROLL ACME 2500.00 3445.77\n"
+    )
+    r = parse_file("statement.pdf", raw)
+    assert r.format == "pdf"
+    assert [t.date for t in r.transactions] == [date(2026, 1, 3), date(2026, 1, 15)]
+    assert [t.amount for t in r.transactions] == [Decimal("-54.23"), Decimal("2500.00")]
+    assert r.transactions[0].description == "LOBLAWS #123"
+    assert any("best-effort" in w for w in r.warnings)
+
+
+def test_pdf_statement_short_month_dates_use_statement_year():
+    raw = minimal_pdf(
+        "Statement period Jan 1, 2026 to Jan 31, 2026\n"
+        "Jan 03 Jan 04 SOBEYS 64.20\n"
+        "Jan 20 Jan 20 PAYMENT THANK YOU 200.00\n"
+    )
+    r = parse_file("card.pdf", raw, account_type="credit_card")
+    assert [t.date for t in r.transactions] == [date(2026, 1, 3), date(2026, 1, 20)]
+    assert [t.amount for t in r.transactions] == [Decimal("-64.20"), Decimal("200.00")]
+    assert r.transactions[0].description == "SOBEYS"
 
 
 def test_rbc_csv_with_usd_column():

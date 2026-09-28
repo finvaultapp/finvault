@@ -274,7 +274,7 @@ function FlowTip({ active, payload, label, currency, month }) {
 function Welcome() {
   const steps = [
     { t: t('Add your accounts'), d: t('Chequing, savings, credit cards. Pick the bank so imports know the file layout.'), to: '/accounts', a: t('Add an account') },
-    { t: t('Import a statement'), d: t('Download QFX/OFX (best) or CSV from online banking. Your bank password never touches FinVault.'), to: '/import', a: t('Import a file') },
+    { t: t('Import a statement'), d: t('Download QFX/OFX (best), CSV or a text-based PDF from online banking. Your bank password never touches FinVault.'), to: '/import', a: t('Import a file') },
     { t: t('Sort what arrives'), d: t('Give each new line a category. Rules and remembered merchants sort repeat purchases for you after that.'), to: '/rules', a: t('Set up rules') },
   ]
   return (

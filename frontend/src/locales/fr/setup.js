@@ -270,7 +270,7 @@ export default {
   "Synced {n} new transactions": "{n} nouvelles transactions synchronisées",
   "Connect {name}": "Connecter {name}",
   "Canadian banks are never connected.": "Les banques canadiennes ne sont jamais connectées.",
-  "Direct bank connections are turned off for Canadian accounts. Download a QFX/OFX or CSV export from your bank's website and import it instead. Your banking password never leaves you.": "Les connexions bancaires directes sont désactivées pour les comptes canadiens. Téléchargez plutôt une exportation QFX/OFX ou CSV depuis le site de votre banque et importez-la. Votre mot de passe bancaire reste avec vous.",
+  "Direct bank connections are turned off for Canadian accounts. Download a QFX/OFX, CSV or text-based PDF export from your bank's website and import it instead. Your banking password never leaves you.": "Les connexions bancaires directes sont désactivées pour les comptes canadiens. Téléchargez plutôt une exportation QFX/OFX, CSV ou PDF texte depuis le site de votre banque et importez-la. Votre mot de passe bancaire reste avec vous.",
   "Go to import": "Aller à l’importation",
   "Bank sync is turned off": "La synchronisation bancaire est désactivée",
   "An admin can enable it in Admin → Optional features, after adding provider credentials to the server's .env file.": "Un administrateur peut l’activer dans Administration → Fonctionnalités facultatives, après avoir ajouté les identifiants du fournisseur au fichier .env du serveur.",

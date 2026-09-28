@@ -2,7 +2,7 @@
 
 Private household finance, sorted on your own hardware.
 
-FinVault is a self-hosted personal finance app for households that want clean budgets, statement imports, shared-cost tracking, and reports without handing bank credentials or transaction history to a cloud company. It is file-first for Canadian banks: download the QFX/OFX/QBO/QIF/CSV statement your bank already provides, preview it, import it, and sort the new lines.
+FinVault is a self-hosted personal finance app for households that want clean budgets, statement imports, shared-cost tracking, and reports without handing bank credentials or transaction history to a cloud company. It is file-first for Canadian banks: download the QFX/OFX/QBO/QIF/CSV export or text-based PDF statement your bank already provides, preview it, import it, and sort the new lines.
 
 ![FinVault dashboard](docs/screenshots/dashboard.png)
 
@@ -26,7 +26,7 @@ Imported lines without a category land in an amber tray. Rules and remembered me
 
 ### Import Statements
 
-FinVault handles OFX/QFX/QBO, QIF, and CSV exports, including Canadian bank presets and a generic mapper for unusual files. Duplicates are skipped, overlapping date ranges are fine, and imports can be undone.
+FinVault handles OFX/QFX/QBO, QIF, CSV exports, and text-based PDF statements, including Canadian bank presets and a generic mapper for unusual files. Duplicates are skipped, overlapping date ranges are fine, and imports can be undone.
 
 ![Statement import](docs/screenshots/import.png)
 
@@ -45,7 +45,7 @@ Reports show income vs expenses, net worth, category breakdowns, budgets, goals,
 ## Feature Highlights
 
 - Multiple account types: chequing, savings, credit cards, cash, loans, investments, and assets.
-- Statement imports for QFX/OFX/QBO, QIF, CSV, TXT, and TSV.
+- Statement imports for QFX/OFX/QBO, QIF, CSV, TXT, TSV, and text-based PDF.
 - Built-in CSV presets for RBC, TD, CIBC, BMO, Scotiabank, Tangerine, Simplii, Wealthsimple, Rogers Bank, PC Financial, American Express Canada, and more.
 - Categorization rules, remembered merchants, bulk editing, and one-click sorting.
 - Budgets, recurring bills, bill reminders, goals, assets, debts, and net worth.
@@ -65,7 +65,7 @@ For Canadian accounts, FinVault is import-only by design. Canada does not yet ha
 The flow is:
 
 1. Sign in to your bank's website.
-2. Download transactions as QFX, OFX, QBO, QIF, or CSV.
+2. Download transactions as QFX, OFX, QBO, QIF, CSV, or a text-based PDF statement.
 3. Upload the file in FinVault.
 4. Review the preview, confirm column mapping if needed, and import.
 5. Sort any uncategorized lines.
@@ -136,6 +136,7 @@ Keep `/data/secret.key` or your `SECRET_KEY` with the backup. TOTP secrets, AI k
 - Security headers include no-sniff, frame denial, referrer policy, permissions policy, and CSP for the SPA.
 - Uploaded receipts are sniffed by file bytes, stored under random names, and capped at 10 MB.
 - Statement imports are capped at 15 MB before parsing.
+- PDF statement import is best-effort and works only when the statement contains selectable text. Prefer QFX/OFX or CSV when available.
 - User-configured outbound URLs are guarded against localhost/private-network SSRF by default.
 - Alembic migrations run at startup, with a compatibility path for older local databases.
 

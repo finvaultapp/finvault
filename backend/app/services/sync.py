@@ -21,7 +21,7 @@ from .ledger import commit_import
 from .net import validate_outbound_url
 
 CANADA_BLOCK_MESSAGE = (
-    "Direct bank connections are turned off for Canadian accounts. Download a QFX/OFX or CSV "
+    "Direct bank connections are turned off for Canadian accounts. Download a QFX/OFX, CSV or text-based PDF "
     "export from your bank's website and import it instead. Your banking password never leaves you."
 )
 

@@ -201,7 +201,7 @@ export default function Transactions() {
             ? <Empty title={t('Add an account first')} action={<Link className="btn primary" to="/accounts">{t('Add an account')}</Link>}>{t('Transactions belong to an account, like your chequing or a credit card.')}</Empty>
             : <Empty icon={Search} title={activeFilters.length || filters.q ? t('No transactions match') : t('No transactions yet')}
                 action={!(activeFilters.length || filters.q) && <Link className="btn primary" to="/import"><Upload />{t('Import a statement')}</Link>}>
-                {activeFilters.length || filters.q ? t('Try a different search or clear the filters.') : t('Import a QFX, OFX or CSV file from your bank, or add one by hand.')}
+                {activeFilters.length || filters.q ? t('Try a different search or clear the filters.') : t('Import a QFX, OFX, CSV or PDF file from your bank, or add one by hand.')}
               </Empty>
         ) : (
           <div className="table-wrap">

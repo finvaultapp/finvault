@@ -105,7 +105,7 @@ export default function Auth({ mode }) {
         </div>
         <ul>
           <li><HardDrive /><div><strong>{t('Stays on this server')}</strong><br /><span>{t('Accounts, transactions and reports live in your own database.')}</span></div></li>
-          <li><FileDown /><div><strong>{t('No bank passwords, ever')}</strong><br /><span>{t('Import the QFX, OFX or CSV file your bank already gives you. Canadian accounts never connect directly.')}</span></div></li>
+          <li><FileDown /><div><strong>{t('No bank passwords, ever')}</strong><br /><span>{t('Import the QFX, OFX, CSV or PDF file your bank already gives you. Canadian accounts never connect directly.')}</span></div></li>
           <li><ShieldCheck /><div><strong>{t('Separate logins')}</strong><br /><span>{t('Each member has their own data, with optional two-factor sign-in.')}</span></div></li>
           <li><KeyRound /><div><strong>{t('Extras stay off')}</strong><br /><span>{t('Bank sync and AI chat are off until an admin turns them on.')}</span></div></li>
         </ul>

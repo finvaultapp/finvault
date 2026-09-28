@@ -2,7 +2,7 @@
 
 Layout, one folder per account that has "watch folder" turned on:
 
-    <IMPORT_WATCH_DIR>/<member>/<account>/            <- put QFX/OFX/QBO/QIF/CSV files here
+    <IMPORT_WATCH_DIR>/<member>/<account>/            <- put QFX/OFX/QBO/QIF/CSV/PDF files here
     <IMPORT_WATCH_DIR>/<member>/<account>/imported/   <- moved here after a successful import
     <IMPORT_WATCH_DIR>/<member>/<account>/failed/     <- moved here, with a .txt explaining why
 
@@ -25,7 +25,7 @@ from . import transfers
 from .ledger import commit_import
 
 log = logging.getLogger("finvault.inbox")
-ALLOWED = {".qfx", ".ofx", ".qbo", ".qif", ".csv", ".txt", ".tsv"}
+ALLOWED = {".qfx", ".ofx", ".qbo", ".qif", ".csv", ".txt", ".tsv", ".pdf"}
 MAX_BYTES = 15 * 1024 * 1024
 
 

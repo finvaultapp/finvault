@@ -16,7 +16,7 @@ GENERIC_STEPS = [
     "Sign in to online banking on the bank's own website or app.",
     "Open the account, then look for Download, Export, or Download transactions (often near the activity list or under Statements).",
     "Pick the date range. Overlapping ranges are fine; duplicates are skipped.",
-    "Choose Quicken (QFX), Money (OFX) or QuickBooks (QBO) if offered. Otherwise choose CSV or Spreadsheet.",
+    "Choose Quicken (QFX), Money (OFX) or QuickBooks (QBO) if offered. Otherwise choose CSV, Spreadsheet, or a text-based PDF statement.",
     "Upload the file here and check the preview before importing.",
 ]
 
@@ -167,7 +167,14 @@ PRESETS_BY_ID = {p["id"]: p for p in PRESETS}
 
 
 def public_presets() -> list[dict]:
-    return [
-        {k: v for k, v in p.items() if k != "csv"} | {"has_csv_layout": bool(p.get("csv")), "steps": GENERIC_STEPS}
-        for p in PRESETS
-    ]
+    out = []
+    for p in PRESETS:
+        item = {k: v for k, v in p.items() if k != "csv"}
+        formats = list(item.get("formats") or [])
+        if "PDF" not in formats:
+            formats.append("PDF")
+        item["formats"] = formats
+        item["has_csv_layout"] = bool(p.get("csv"))
+        item["steps"] = GENERIC_STEPS
+        out.append(item)
+    return out
