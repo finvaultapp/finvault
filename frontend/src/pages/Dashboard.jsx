@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Area, AreaChart, CartesianGrid, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { ArrowRight, Check, Clock, Inbox, Upload } from 'lucide-react'
+import { ArrowRight, Check, Clock, Inbox, Sparkles, Upload } from 'lucide-react'
 import { api, qs } from '../api'
 import { useApp } from '../context'
 import { t } from '../i18n'
 import { Empty, ErrorNote, Loading, Money, Progress, useData, useToast, Warnings } from '../components/ui'
 import { CategorySelect } from '../components/TxDialog'
 import Postmark from '../components/Postmark'
+import { AiChip, useAiReady, useAiSuggestions } from '../components/AiTools'
 import { addMonths, date, money, monthLabel, shortMonth, todayISO } from '../lib/format'
 
 const thisMonth = () => todayISO().slice(0, 7)
@@ -151,6 +152,8 @@ function MonthTotals({ data, currency, month }) {
 function Tray({ items, total, cats, onSorted }) {
   const toast = useToast()
   const [leaving, setLeaving] = useState(new Set())
+  const aiReady = useAiReady()
+  const ai = useAiSuggestions(items.map((tx) => tx.id), aiReady)
   const byId = useMemo(() => Object.fromEntries(cats.map((c) => [c.id, c])), [cats])
   const fallback = useMemo(() => {
     const top = (k) => cats.filter((c) => c.kind === k).sort((a, b) => b.transaction_count - a.transaction_count).map((c) => c.id)
@@ -176,13 +179,21 @@ function Tray({ items, total, cats, onSorted }) {
         <div className="tray-empty"><Check size={22} style={{ color: 'var(--green)' }} /><div className="strong" style={{ color: 'var(--ink)', marginTop: 6 }}>{t('All sorted')}</div><div className="small">{t('Every transaction has a category.')}</div></div>
       ) : (
         <div className="tray-body">
+          {aiReady && (ai.missing > 0 || ai.error) && (
+            <div className="ai-tray-ask">
+              <button className="btn ghost sm" onClick={ai.ask} disabled={ai.busy}><Sparkles />{ai.busy ? t('Asking…') : t('Suggest with AI')}</button>
+              {ai.error && <span className="small expense">{ai.error.message}</span>}
+            </div>
+          )}
           {items.map((tx) => {
-            const picks = [...new Set([...(tx.suggestions ?? []), ...(tx.amount < 0 ? fallback.expense : fallback.income)])].filter((id) => byId[id]).slice(0, 2)
+            const aiPick = ai.map[tx.id]
+            const picks = [...new Set([...(tx.suggestions ?? []), ...(tx.amount < 0 ? fallback.expense : fallback.income)])].filter((id) => byId[id] && id !== aiPick?.category_id).slice(0, aiPick ? 1 : 2)
             return (
               <div key={tx.id} className={`tray-item ${leaving.has(tx.id) ? 'sorted' : ''}`}>
                 <div className="top"><span className="desc" title={tx.description}>{tx.description}</span><Money value={tx.amount} currency={tx.currency} sign colored className="strong" /></div>
                 <div className="when">{date(tx.date, { month: 'short', day: 'numeric' })} · {tx.account_name}</div>
                 <div className="sort-row">
+                  {aiPick && <AiChip s={aiPick} onAccept={() => sort(tx, aiPick.category_id)} onReject={() => ai.reject(aiPick)} />}
                   {picks.map((id, i) => {
                     const likely = i === 0 && tx.suggestions?.[0] === id
                     return <button key={id} className={`sort-chip ${likely ? 'likely' : ''}`} onClick={() => sort(tx, id)} style={{ '--c': byId[id].color }} title={likely ? t('Where this merchant usually goes') : undefined}><i />{byId[id].name}</button>

@@ -325,3 +325,5 @@ class Attachment(Base):
     ocr_status: Mapped[str] = mapped_column(String(12), default="none")  # none | pending | done | failed
     ocr_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+from .models_ai import *  # noqa: E402,F401,F403
