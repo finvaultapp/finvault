@@ -159,6 +159,7 @@ class SettingsIn(BaseModel):
     bank_sync_enabled: bool | None = None
     simplefin_enabled: bool | None = None
     fx_fetch_enabled: bool | None = None
+    prices_fetch_enabled: bool | None = None
 
 
 @router.patch("/settings")

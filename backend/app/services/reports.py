@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from ..models import Account, Asset, Budget, Category, Goal, Share, Transaction, TransactionSplit, User
 from .currency import Converter
+from .invest import Portfolio
 from .ledger import account_balances
 
 
@@ -140,16 +141,19 @@ def net_worth(db: Session, user: User, months: int = 12) -> dict:
     conv = Converter(db, user.base_currency)
     accounts = list(db.scalars(select(Account).where(Account.user_id == user.id)))
     assets = list(db.scalars(select(Asset).where(Asset.user_id == user.id)))
+    portfolio = Portfolio(db, user)  # investment holdings; empty for most accounts
     series = []
     today = date.today()
-    for y, m in last_months(months):
+    periods = last_months(months)
+    for y, m in periods:
         on = min(month_end(y, m), today)
         balances = account_balances(db, user.id, on)
+        holdings = portfolio.account_values(on, conv, record=(y, m) == periods[-1]) if not portfolio.empty else {}
         pos = neg = Decimal(0)
         for a in accounts:
-            if a.opening_date and a.opening_date > on and balances.get(a.id, 0) == 0:
+            if a.opening_date and a.opening_date > on and balances.get(a.id, 0) == 0 and a.id not in holdings:
                 continue
-            v = conv.convert(balances.get(a.id, Decimal(0)), a.currency, on)
+            v = conv.convert(balances.get(a.id, Decimal(0)) + holdings.get(a.id, Decimal(0)), a.currency, on)
             if v is None:
                 continue
             if v >= 0:
@@ -172,7 +176,7 @@ def net_worth(db: Session, user: User, months: int = 12) -> dict:
     previous = series[-2] if len(series) > 1 else None
     return {"currency": user.base_currency, "series": series, "current": current,
             "change": f2(Decimal(str(current["net"])) - Decimal(str(previous["net"]))) if previous else None,
-            "warnings": conv.warnings()}
+            "warnings": conv.warnings(), "price_warnings": portfolio.price_warnings()}
 
 
 def budgets_for_month(db: Session, user: User, y: int, m: int) -> dict:

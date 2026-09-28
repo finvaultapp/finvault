@@ -19,6 +19,7 @@ DEFAULTS = {
     "fx_fetch_enabled": config.FX_FETCH_ENABLED,
     "folder_import_enabled": config.FOLDER_IMPORT_ENABLED,
     "ocr_enabled": config.OCR_ENABLED,
+    "prices_fetch_enabled": config._bool("PRICES_FETCH_ENABLED", False),  # daily security prices from Stooq
 }
 # Stored encrypted and never returned to the browser.
 SECRET_KEYS = {"ai_api_key"}

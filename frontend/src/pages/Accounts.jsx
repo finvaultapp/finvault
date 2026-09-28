@@ -62,6 +62,9 @@ export default function Accounts() {
                       {a.currency !== base_currency && (
                         <div className="meta">{a.balance_converted == null ? t('no rate') : <Money value={a.balance_converted} currency={base_currency} />}</div>
                       )}
+                      {a.holdings_value != null && (
+                        <div className="meta"><Link to="/investments" style={{ color: 'inherit' }}>{t('cash')} <Money value={a.cash_balance} currency={a.currency} /> · {t('holdings')} <Money value={a.holdings_value} currency={a.currency} /></Link></div>
+                      )}
                     </div>
                     <div className="actions">
                       <Link className="icon-btn" to={`/import?account=${a.id}`} aria-label={t('Import')} title={t('Import a statement')}><Upload /></Link>
@@ -166,7 +169,8 @@ function ReconcileDialog({ account, onClose, onSaved }) {
         <Field label={t('Statement balance')}><input className="input" type="number" step="0.01" value={balance} onChange={(e) => setBalance(e.target.value)} /></Field>
         <Field label={t('On date')}><input className="input" type="date" value={on} onChange={(e) => setOn(e.target.value)} /></Field>
       </div>
-      <p className="small muted" style={{ marginTop: 12 }}>{t('FinVault currently shows')} <Money value={account.balance} currency={account.currency} /> {t('as of today.')}</p>
+      <p className="small muted" style={{ marginTop: 12 }}>{t('FinVault currently shows')} <Money value={account.cash_balance ?? account.balance} currency={account.currency} /> {t('as of today.')}</p>
+      {account.holdings_value != null && <p className="small muted">{t('This matches the cash balance only; holdings are valued on the Investments page.')}</p>}
     </Dialog>
   )
 }
