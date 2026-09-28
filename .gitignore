@@ -12,3 +12,6 @@ frontend/dist/
 .impeccable/*.log
 .impeccable/config.local.json
 inbox/
+frontend/test-results/
+frontend/playwright-report/
+frontend/e2e/.auth/
