@@ -59,6 +59,13 @@ Reports show income vs expenses, net worth, category breakdowns, budgets, goals,
 - Canadian French interface and French default categories.
 - Optional non-Canadian bank sync via GoCardless, Pluggy, or SimpleFIN.
 - Optional AI chat over your own data, with a preview of exactly what will be sent before using it.
+- Optional AI category suggestions for unfamiliar merchants and plain-language search ("restaurants over $50 last spring"), both off until you opt in.
+- Investment holdings from Wealthsimple and Questrade exports, with optional price updates, gains, allocation, and ACB for non-registered accounts.
+- Cash-flow forecast with low-balance warnings, a debt payoff planner (avalanche vs snowball, Canadian mortgage compounding), and price-change / new-subscription alerts.
+- Year in review, ready to print.
+- Automatic transfer matching, split transactions, and a watched import folder for NAS drops.
+- Encrypted nightly backups to a folder or S3-compatible storage, single sign-on (OIDC), and an audit log.
+- Installable phone app (PWA) with offline viewing that is wiped on sign-out.
 
 ## Canadian Banks
 
@@ -117,10 +124,14 @@ See [.env.example](.env.example) for the full list.
 | `FX_FETCH_ENABLED` | `false` | Enables fetching ECB exchange rates. |
 | `FOLDER_IMPORT_ENABLED` | `false` | Enables watched-folder imports. |
 | `OCR_ENABLED` | `false` | Enables local receipt OCR. |
+| `BACKUP_DIR` / `BACKUP_KEEP` | `/data/backups` / `14` | Where encrypted backups go and how many to keep (the passphrase is set in Admin). |
+| `BACKUP_S3_*` | empty | Optional S3-compatible copy of each backup. |
+| `OIDC_ENABLED` | `false` | Single sign-on; see below for the other `OIDC_*` settings. |
+| `LOCAL_AUTH_ENABLED` | `true` | Set to `false` to allow only single sign-on. |
+| `AUDIT_RETENTION_DAYS` | `365` | How long audit events are kept. |
 
 ## Backups
 
-Everything important is in the data volume. For SQLite:
 Everything is in the data volume. FinVault can also make **encrypted backups** for you (off by default):
 
 1. In **Admin → Encrypted backups**, set a backup passphrase (at least 12 characters; write it down, it can't be recovered) and turn on **Nightly backup**. **Back up now** makes one right away.
@@ -144,14 +155,13 @@ docker compose run --rm finvault python -m scripts.restore_backup /data/backups/
 docker compose start finvault
 ```
 
-Keep `/data/secret.key` or your `SECRET_KEY` with the backup. TOTP secrets, AI keys, and provider credentials are encrypted with it.
 Without Docker: `cd backend && .venv/Scripts/python -m scripts.restore_backup FILE --data-dir ../data` (use `.venv/bin` on macOS/Linux).
 
 - The current database, receipts folder and `secret.key` are kept next to them as `*.before-restore-<time>` (for Postgres, take a `pg_dump` first: rows are replaced in one transaction).
 - If FinVault crashed and left `finvault.db-wal` behind, the script thinks the database is still open. Make sure the server is stopped, then add `--force`.
 - For scripted restores, set `FINVAULT_BACKUP_PASSPHRASE` instead of typing it. A SQLite backup restores into SQLite; a Postgres (JSON) backup restores into Postgres or SQLite.
 
-### Single sign-on (OIDC)
+## Single Sign-On (OIDC)
 
 FinVault can sign people in with Authentik, Pocket ID, Keycloak or any standard OpenID Connect provider. Create a confidential client at the provider with the redirect URI `https://<your FinVault>/api/auth/oidc/callback`, then set `OIDC_ENABLED=true`, `OIDC_PROVIDER_NAME`, `OIDC_DISCOVERY_URL`, `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` in `.env`. The sign-in page then shows "Sign in with <provider>".
 
@@ -160,7 +170,7 @@ FinVault can sign people in with Authentik, Pocket ID, Keycloak or any standard 
 - **Two-factor:** when a member who has FinVault TOTP turned on signs in through the provider, FinVault doesn't ask for their code again. The provider is trusted to do its own multi-factor check, so turn on MFA there. Password sign-in still asks for the code.
 - `LOCAL_AUTH_ENABLED=false` hides the password form and refuses password sign-in and registration. Keep at least one admin who can sign in through the provider before turning it off.
 
-### Audit log
+## Audit Log
 
 **Admin → Audit log** lists security events: sign-ins and failed sign-ins (email and IP address, never passwords), 2FA on/off/reset, password changes, sign out everywhere, admin setting changes (which keys, never secret values), members created/deleted/changed, invites, backups, bank sync connect/disconnect and AI keys added/removed. Filter by event or member and export to CSV. Events older than `AUDIT_RETENTION_DAYS` (default 365) are deleted nightly. Behind a reverse proxy, the IP is taken from `X-Forwarded-For` (the Docker image runs uvicorn with `--proxy-headers`), so don't expose the container port directly if you rely on it.
 
@@ -224,12 +234,7 @@ All demo transactions and balances are fake.
 
 ## CI
 
-GitHub Actions runs:
-
-- backend dependency install and `pytest`
-- frontend `npm ci`
-- frontend production build
-- production dependency audit
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push: backend tests, the frontend build and a production dependency audit, Playwright browser tests against the built app with demo data, and a Docker image build with a health-check smoke test.
 
 ## Running the tests
 

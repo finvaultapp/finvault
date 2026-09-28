@@ -41,7 +41,7 @@ export default function Goals() {
               const s = status(g)
               return (
                 <div className="list-row" key={g.id} style={{ alignItems: 'flex-start' }}>
-                  <CategoryTile name={g.name.match(/trip|travel|vacation/i) ? 'travel' : g.name.match(/car/i) ? 'car' : g.name.match(/home|house/i) ? 'home' : 'saving'} color="#6366F1" />
+                  <CategoryTile name={g.name.match(/trip|travel|vacation/i) ? 'travel' : g.name.match(/car/i) ? 'car' : g.name.match(/home|house/i) ? 'home' : 'saving'} color="#4f8a96" />
                   <div className="grow">
                     <div className="row" style={{ gap: 8 }}>
                       <span className="title">{g.name}</span>
@@ -50,7 +50,7 @@ export default function Goals() {
                       {g.missing_rate && <span className="pill amber">{t('Needs exchange rate')}</span>}
                     </div>
                     <div className="row" style={{ marginTop: 9 }}>
-                      <div style={{ flex: 1 }}><Progress thick value={g.percent} color={g.percent >= 100 ? 'var(--income)' : 'var(--warn-strong)'} /></div>
+                      <div style={{ flex: 1 }}><Progress thick value={g.percent} color={g.percent >= 100 ? 'var(--income)' : 'var(--post)'} /></div>
                       <span className="strong small num" style={{ width: 44, textAlign: 'right' }}>{Math.round(g.percent ?? 0)}%</span>
                     </div>
                     <div className="meta" style={{ marginTop: 6 }}>

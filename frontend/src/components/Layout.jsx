@@ -17,15 +17,18 @@ import CommandPalette from './CommandPalette'
 import OfflineBanner from './OfflineBanner'
 import { clearOfflineData } from '../lib/offline'
 
+// `hidden` items stay out of the sidebar but can still be found from the command palette.
 export const NAV = [
   { group: null, items: [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: '/transactions', label: 'Transactions', icon: ArrowLeftRight, badge: 'uncategorized' },
   ] },
-  { group: 'Bring money in', items: [
+  { group: 'Bring in and sort', items: [
     { to: '/accounts', label: 'Accounts', icon: Wallet },
     { to: '/import', label: 'Import', icon: Upload },
     { to: '/sync', label: 'Bank sync', icon: Plug, needsSync: true },
+    { to: '/categories', label: 'Categories', icon: Tag },
+    { to: '/rules', label: 'Rules', icon: SlidersHorizontal },
   ] },
   { group: 'Look back', items: [
     { to: '/reports', label: 'Reports', icon: BarChart3 },
@@ -38,13 +41,11 @@ export const NAV = [
   { group: 'Plan ahead', items: [
     { to: '/budgets', label: 'Budgets', icon: PiggyBank },
     { to: '/goals', label: 'Goals', icon: Target },
-    { to: '/plans', label: 'TFSA, RRSP & FHSA', icon: BadgeDollarSign },
+    { to: '/plans', label: 'Registered accounts', icon: BadgeDollarSign },
     { to: '/forecast', label: 'Forecast', icon: TrendingUp },
     { to: '/debts', label: 'Debt payoff', icon: CreditCard },
     { to: '/bills', label: 'Bills', icon: CalendarDays },
-    { to: '/recurring', label: 'Recurring', icon: Repeat },
-    { to: '/categories', label: 'Categories', icon: Tag },
-    { to: '/rules', label: 'Rules', icon: SlidersHorizontal },
+    { to: '/recurring', label: 'Recurring', icon: Repeat, hidden: true },
   ] },
 ]
 
@@ -101,7 +102,7 @@ export default function Layout() {
           {NAV.map((g) => (
             <div className="nav-group" key={g.group ?? 'top'}>
               {g.group && <div className="nav-label">{t(g.group)}</div>}
-              {g.items.filter((i) => (!i.needsAi || aiOn) && (!i.needsSync || syncOn)).map((i) => (
+              {g.items.filter((i) => !i.hidden && (!i.needsAi || aiOn) && (!i.needsSync || syncOn)).map((i) => (
                 <NavLink key={i.to} to={i.to} end={i.end}>
                   <i.icon />{t(i.label)}
                   {i.badge === 'uncategorized' && uncategorized > 0 && <span className="count" title={t('Need a category')}>{uncategorized}</span>}
@@ -109,12 +110,6 @@ export default function Layout() {
               ))}
             </div>
           ))}
-          <div className="nav-group">
-            <div className="nav-label">{t('Household')}</div>
-            <NavLink to="/people"><Users />{t('Shared costs')}</NavLink>
-            <NavLink to="/settings"><Settings />{t('Settings')}</NavLink>
-            {user.is_admin && <NavLink to="/admin"><Shield />{t('Admin')}</NavLink>}
-          </div>
         </nav>
 
         {items.length > 0 && (
@@ -136,6 +131,16 @@ export default function Layout() {
             )}
           </div>
         )}
+
+        {/* Household sits by the member at the foot, so the account list starts inside a laptop-height window. */}
+        <nav className="nav nav-household" aria-label={t('Household')}>
+          <div className="nav-group">
+            <div className="nav-label">{t('Household')}</div>
+            <NavLink to="/people"><Users />{t('Shared costs')}</NavLink>
+            <NavLink to="/settings"><Settings />{t('Settings')}</NavLink>
+            {user.is_admin && <NavLink to="/admin"><Shield />{t('Admin')}</NavLink>}
+          </div>
+        </nav>
 
         <div className="sidebar-foot">
           <span className="avatar">{(user.name || user.email)[0].toUpperCase()}</span>

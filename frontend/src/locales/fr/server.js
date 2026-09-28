@@ -90,6 +90,58 @@ export default {
   "No transactions found in this OFX/QFX file.": "Aucune transaction trouvée dans ce fichier OFX/QFX.",
   "Could not recognise the date format in this QIF file.": "Format de date non reconnu dans ce fichier QIF.",
 
+  // Single sign-on (routers/auth.py)
+  "Password sign-in is turned off on this server. Use single sign-on.": "La connexion par mot de passe est désactivée sur ce serveur. Utilisez l'authentification unique.",
+
+  // AI tools: categorizing and searching (routers/ai_tools.py, services/ai_tools.py)
+  "AI isn't set up for your account. Choose a model in Settings.": "L'IA n'est pas configurée pour votre compte. Choisissez un modèle dans les paramètres.",
+  "Turn on the AI assistant in Settings first. It's off until you choose to share data with the model.": "Activez d'abord l'assistant IA dans les paramètres. Il reste désactivé tant que vous n'acceptez pas de partager des données avec le modèle.",
+  "Add some categories first.": "Ajoutez d'abord quelques catégories.",
+  "That's a lot of AI requests in a short time. Try again in a few minutes.": "Cela fait beaucoup de requêtes à l'IA en peu de temps. Réessayez dans quelques minutes.",
+  "That's a lot of AI searches in a short time. Try again in a few minutes.": "Cela fait beaucoup de recherches par IA en peu de temps. Réessayez dans quelques minutes.",
+  "The model couldn't turn that into filters. Try naming a category, an amount or a time.": "Le modèle n'a pas pu transformer cela en filtres. Essayez de nommer une catégorie, un montant ou une période.",
+  "The model's reply had an unexpected shape.": "La réponse du modèle avait une forme inattendue.",
+  "The model server didn't return JSON.": "Le serveur du modèle n'a pas renvoyé de JSON.",
+  "The model's answer wasn't valid JSON.": "La réponse du modèle n'était pas du JSON valide.",
+  "The model's answer didn't contain a list of suggestions.": "La réponse du modèle ne contenait pas de liste de suggestions.",
+  "The model's answer wasn't a set of filters.": "La réponse du modèle n'était pas un ensemble de filtres.",
+
+  // Backups (routers/backups.py, services/backup.py)
+  "Set a backup passphrase before turning backups on.": "Définissez une phrase de passe de sauvegarde avant d'activer les sauvegardes.",
+  "Set a backup passphrase first.": "Définissez d'abord une phrase de passe de sauvegarde.",
+  "A backup is already running.": "Une sauvegarde est déjà en cours.",
+  "Backup not found": "Sauvegarde introuvable",
+
+  // Investments (routers/investments.py, importers/holdings.py)
+  "You already have this security.": "Vous avez déjà ce titre.",
+  "Price not found": "Cours introuvable",
+  "Fetching prices is turned off. An admin can enable it in Admin → Settings.": "La récupération des cours est désactivée. Un administrateur peut l'activer dans Administration → Paramètres.",
+  "Pick a security or type its symbol.": "Choisissez un titre ou tapez son symbole.",
+  "A buy or sell needs a quantity and a price or amount.": "Un achat ou une vente exige une quantité et un prix ou un montant.",
+  "A split needs a ratio, e.g. 2 for a 2-for-1 split.": "Un fractionnement exige un ratio, par exemple 2 pour un fractionnement de 2 pour 1.",
+  "Enter the amount.": "Entrez le montant.",
+  "This file lists several accounts. Pick which one to import into this account.": "Ce fichier contient plusieurs comptes. Choisissez celui à importer dans ce compte.",
+  "Use a CSV export. Excel files can be saved as CSV first.": "Utilisez une exportation CSV. Les fichiers Excel peuvent d'abord être enregistrés en CSV.",
+  "Couldn't find a header row with Symbol and Quantity (holdings) or Date and Type (activity).": "Impossible de trouver une ligne d'en-tête avec Symbole et Quantité (titres) ou Date et Type (opérations).",
+  "No positions found. The file needs Symbol and Quantity columns.": "Aucune position trouvée. Le fichier doit contenir les colonnes Symbole et Quantité.",
+  "Could not find the date and type columns.": "Impossible de trouver les colonnes de date et de type.",
+  "Could not recognise the date format.": "Format de date non reconnu.",
+
+  // Debt planner (routers/planahead.py)
+  "Only credit card and loan accounts are debts.": "Seuls les comptes de carte de crédit et de prêt sont des dettes.",
+  "Only debts (liabilities) can be planned.": "Seules les dettes (passifs) peuvent être planifiées.",
+  "Unknown debt": "Dette inconnue",
+
+  // PDF statements (importers/__init__.py, importers/pdf.py); the checks with amounts are in lib/serverText.js
+  "Unsupported file. Use OFX, QFX, QBO, QIF, CSV or a text-based PDF statement.": "Fichier non pris en charge. Utilisez OFX, QFX, QBO, QIF, CSV ou un relevé PDF contenant du texte.",
+  "Could not read this PDF statement. QFX/OFX or CSV exports from your bank are safer when they are available.": "Impossible de lire ce relevé PDF. Les exportations QFX/OFX ou CSV de votre banque sont plus sûres lorsqu'elles sont offertes.",
+  "No selectable text was found. Scanned/image-only PDF statements need OCR and cannot be imported yet. Download a CSV or QFX/OFX file from your bank instead.": "Aucun texte sélectionnable n'a été trouvé. Les relevés PDF numérisés (images seulement) exigent une reconnaissance de caractères et ne peuvent pas encore être importés. Téléchargez plutôt un fichier CSV ou QFX/OFX depuis le site de votre banque.",
+  "FinVault could not make sense of this PDF's layout (PDF import is best-effort). Download a CSV or QFX/OFX export from your bank's website and import that instead.": "FinVault n'a pas pu interpréter la mise en page de ce PDF (l'importation PDF est approximative). Téléchargez plutôt une exportation CSV ou QFX/OFX depuis le site de votre banque et importez-la.",
+  "No transactions were found in this PDF; its layout was not recognised (PDF import is best-effort). Try a QFX/OFX or CSV export from your bank instead, or a text-based statement PDF.": "Aucune transaction n'a été trouvée dans ce PDF; sa mise en page n'a pas été reconnue (l'importation PDF est approximative). Essayez plutôt une exportation QFX/OFX ou CSV de votre banque, ou un relevé PDF contenant du texte.",
+
+  // Safe outbound addresses (services/sync.py); "<label> must …" is in lib/serverText.js
+  "The return address must start with http:// or https://.": "L'adresse de retour doit commencer par http:// ou https://.",
+
   // Generic validation (pydantic)
   "Field required": "Champ obligatoire",
 }

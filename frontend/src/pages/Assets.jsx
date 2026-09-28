@@ -2,16 +2,17 @@ import { useState } from 'react'
 import { Car, Gem, Home, Landmark, LineChart, Pencil, PiggyBank, Plus, Trash2, Wallet, Package, HandCoins } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
-import { Confirm, Dialog, Empty, Field, Loading, Money, PageHead, useData, useToast, Warnings } from '../components/ui'
+import { CategoryTile, Confirm, Dialog, Empty, Field, Loading, Money, PageHead, useData, useToast, Warnings } from '../components/ui'
 import { CURRENCIES, date, todayISO } from '../lib/format'
 import { t } from '../i18n'
 
 // Labels stay English here (AssetDialog matches on them); they are translated at render.
+// Colours come from the household category palette (services/ledger.py), never indigo or violet.
 const KINDS = {
-  real_estate: ['Home or property', Home, '#6366F1'], vehicle: ['Vehicle', Car, '#0EA5E9'], investment: ['Investments', LineChart, '#8B5CF6'],
-  retirement: ['RRSP / TFSA / pension', PiggyBank, '#10B981'], cash: ['Cash', Wallet, '#F59E0B'], valuables: ['Valuables', Gem, '#EC4899'],
-  other: ['Other asset', Package, '#64748B'], mortgage: ['Mortgage', Landmark, '#F43F5E'], loan: ['Loan / line of credit', HandCoins, '#F97316'],
-  other_debt: ['Other debt', HandCoins, '#E11D48'],
+  real_estate: ['Home or property', Home, '#8a5a44'], vehicle: ['Vehicle', Car, '#3f7580'], investment: ['Investments', LineChart, '#4f8a96'],
+  retirement: ['RRSP / TFSA / pension', PiggyBank, '#3f8f5f'], cash: ['Cash', Wallet, '#b08a3f'], valuables: ['Valuables', Gem, '#c26a8a'],
+  other: ['Other asset', Package, '#7c8a96'], mortgage: ['Mortgage', Landmark, '#d2553f'], loan: ['Loan / line of credit', HandCoins, '#c77d3a'],
+  other_debt: ['Other debt', HandCoins, '#8a4a4a'],
 }
 
 export default function Assets() {
@@ -36,7 +37,7 @@ export default function Assets() {
               const prev = a.history.length > 1 ? a.history[a.history.length - 2].value : null
               return (
                 <div className="list-row" key={a.id}>
-                  <span className="tile" style={{ '--tile': color }}><Icon /></span>
+                  <CategoryTile color={color} icon={Icon} name={t(label)} />
                   <div className="grow">
                     <div className="title">{a.name}</div>
                     <div className="meta">{t(label)}{a.as_of ? ` · ${t('valued {date}', { date: date(a.as_of) })}` : ''}{a.notes ? ` · ${a.notes}` : ''}</div>

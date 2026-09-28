@@ -223,7 +223,7 @@ function Receipts({ tx, onSaved }) {
           <div className="list-row" style={{ alignItems: 'flex-start' }}>
             {a.content_type.startsWith('image/') && a.content_type !== 'image/heic'
               ? <a href={a.url} target="_blank" rel="noreferrer"><img src={a.url} alt={a.filename} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--rule)' }} /></a>
-              : <span className="tile"><FileText /></span>}
+              : <FileText className="row-icon" aria-hidden="true" />}
             <div className="grow">
               <a href={a.url} target="_blank" rel="noreferrer" className="title">{a.filename}</a>
               <div className="meta">{(a.size / 1024).toFixed(0)} KB · {a.ocr_status === 'done' ? t('text read') : a.ocr_status === 'pending' ? t('reading text…') : a.ocr_status === 'failed' ? t('couldn\'t read text') : t('text reading off')}</div>

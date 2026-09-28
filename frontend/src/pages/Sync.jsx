@@ -54,7 +54,7 @@ export default function Sync() {
             <div className="list">
               {s.providers.map((p) => (
                 <div className="list-row" key={p.id}>
-                  <span className="tile sm" style={{ '--tile': p.available ? 'var(--primary)' : 'var(--subtle-fg)' }}><Plug /></span>
+                  <Plug className="row-icon" aria-hidden="true" />
                   <div className="grow"><div className="title">{p.name}</div><div className="meta">{t(p.region)} · {p.available ? t('ready') : t('needs {what}', { what: t(p.needs) })}</div></div>
                   {p.available ? <span className="pill green">{t('Available')}</span> : <span className="pill">{t('Not set up')}</span>}
                 </div>
@@ -68,7 +68,7 @@ export default function Sync() {
             <div className="list">
               {s.connections.map((c) => (
                 <div className="list-row" key={c.id}>
-                  <span className="tile sm" style={{ '--tile': c.status === 'error' ? 'var(--expense)' : 'var(--income)' }}><Link2 /></span>
+                  <Link2 className="row-icon" aria-hidden="true" />
                   <div className="grow">
                     <div className="row" style={{ gap: 8 }}><span className="title">{c.name}</span><span className={`pill ${c.status === 'active' ? 'green' : c.status === 'error' ? 'red' : 'amber'}`}>{t(c.status)}</span></div>
                     <div className="meta">{c.provider} · {c.accounts.length ? c.accounts.map((a) => a.name).join(', ') : t('no accounts linked')} · {c.last_synced_at ? t('synced {date}', { date: date(c.last_synced_at) }) : t('never synced')}</div>

@@ -9,12 +9,13 @@ import { CURRENCIES, date, money, todayISO } from '../lib/format'
 import { t } from '../i18n'
 
 // English labels are the i18n keys; they translate at render.
+// Allocation is neither money in nor out, so the donuts use the neutral data palette (styles.css --data-*), not the lamps.
+// Slices take the palette in order, so neighbouring slices never share a colour.
 const CLASSES = {
-  equity: ['Equities', 'var(--frame)'], fixed_income: ['Bonds and fixed income', 'var(--post)'], cash: ['Cash', 'var(--tray)'],
-  balanced: ['Balanced funds', '#4F8A96'], real_estate: ['Real estate', '#8A5A44'], commodity: ['Commodities', '#B08A3F'],
-  crypto: ['Crypto', '#C26A8A'], other: ['Other', 'var(--ink-3)'],
+  equity: 'Equities', fixed_income: 'Bonds and fixed income', cash: 'Cash', balanced: 'Balanced funds',
+  real_estate: 'Real estate', commodity: 'Commodities', crypto: 'Crypto', other: 'Other',
 }
-const CURRENCY_COLORS = ['var(--frame)', 'var(--post)', 'var(--tray)', '#4F8A96', '#C26A8A', 'var(--ink-3)']
+const DATA_COLORS = ['var(--data-1)', 'var(--data-2)', 'var(--data-3)', 'var(--data-4)', 'var(--data-5)']
 const REGISTRATIONS = {
   non_registered: 'Non-registered', tfsa: 'TFSA', rrsp: 'RRSP', fhsa: 'FHSA', resp: 'RESP', rrif: 'RRIF', lira: 'LIRA', other: 'Other registered',
 }
@@ -103,8 +104,8 @@ export default function Investments() {
 
           {hasPositions && (
             <div className="grid-2">
-              <Allocation title={t('By asset class')} items={d.allocation.by_class.map((x) => ({ ...x, name: t((CLASSES[x.key] ?? CLASSES.other)[0]), color: (CLASSES[x.key] ?? CLASSES.other)[1] }))} currency={c} />
-              <Allocation title={t('By currency')} items={d.allocation.by_currency.map((x, i) => ({ ...x, name: x.key, color: CURRENCY_COLORS[i % CURRENCY_COLORS.length] }))} currency={c} />
+              <Allocation title={t('By asset class')} items={d.allocation.by_class.map((x, i) => ({ ...x, name: t(CLASSES[x.key] ?? CLASSES.other), color: DATA_COLORS[i % DATA_COLORS.length] }))} currency={c} />
+              <Allocation title={t('By currency')} items={d.allocation.by_currency.map((x, i) => ({ ...x, name: x.key, color: DATA_COLORS[i % DATA_COLORS.length] }))} currency={c} />
             </div>
           )}
 
@@ -180,7 +181,7 @@ function AccountCard({ a, onPrice, onSecurity, onHolding, onChanged }) {
         </select>
         <div className="invest-head-total">
           <strong><Money value={a.total} currency={cur} /></strong>
-          {a.gain !== null && <div className="small"><Money value={a.gain} currency={cur} sign colored /> <span className="muted">{pct(a.gain_pct)}</span></div>}
+          {a.gain !== null && a.gain_pct !== null && <div className="small"><Money value={a.gain} currency={cur} sign colored /> <span className="muted">{pct(a.gain_pct)}</span></div>}
         </div>
       </div>
       {!a.positions.length ? (
@@ -201,7 +202,7 @@ function AccountCard({ a, onPrice, onSecurity, onHolding, onChanged }) {
                 <tr key={p.security_id}>
                   <td className="desc">
                     <div><button className="link-btn" onClick={() => onSecurity(p)}>{p.symbol}</button>{p.exchange && <span className="muted small"> · {p.exchange}</span>}</div>
-                    <small>{p.name || t((CLASSES[p.asset_class] ?? CLASSES.other)[0])}</small>
+                    <small>{p.name || t(CLASSES[p.asset_class] ?? CLASSES.other)}</small>
                   </td>
                   <td className="amount num">{Number(p.quantity).toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
                   <td className="amount"><Money value={p.avg_cost} currency={cur} /></td>
@@ -344,7 +345,7 @@ function Imports({ version, onChanged }) {
       <div className="list">
         {r.data.slice(0, 8).map((b) => (
           <div key={b.id} className="list-row">
-            <span className="tile sm"><Upload /></span>
+            <Upload className="row-icon" aria-hidden="true" />
             <div className="grow"><div className="title">{b.filename}</div>
               <div className="meta">{b.account_name} · {t(SOURCES[b.source] ?? b.source)} · {t('{n} added', { n: b.imported })}{b.skipped ? ` · ${t('{n} skipped', { n: b.skipped })}` : ''} · {date(b.created_at)}</div></div>
             <button className="btn sm ghost" onClick={() => setConfirm({ title: t('Undo this import?'), body: t('Removes the activity and positions that came from this file. Prices are kept.'), action: t('Undo import'), onConfirm: async () => { await api.del(`/invest/imports/${b.id}`); onChanged() } })}><Undo2 />{t('Undo')}</button>
@@ -578,7 +579,7 @@ function SecurityDialog({ s, onClose, onSaved }) {
     <Dialog title={s.symbol} onClose={onClose} footer={<><button className="btn" onClick={onClose}>{t('Cancel')}</button><button className="btn primary" onClick={save}>{t('Save')}</button></>}>
       <div className="form-grid">
         <Field label={t('Name')} className="full"><input className="input" value={f.name} onChange={set('name')} /></Field>
-        <Field label={t('Asset class')}><select className="input" value={f.asset_class} onChange={set('asset_class')}>{Object.entries(CLASSES).map(([k, [l]]) => <option key={k} value={k}>{t(l)}</option>)}</select></Field>
+        <Field label={t('Asset class')}><select className="input" value={f.asset_class} onChange={set('asset_class')}>{Object.entries(CLASSES).map(([k, l]) => <option key={k} value={k}>{t(l)}</option>)}</select></Field>
         <Field label={t('Trades in')}><select className="input" value={f.currency} onChange={set('currency')}>{CURRENCIES.map((x) => <option key={x}>{x}</option>)}</select></Field>
         <Field label={t('Exchange')}><input className="input" value={f.exchange} onChange={(e) => setF({ ...f, exchange: e.target.value.toUpperCase() })} /></Field>
         <Field label={t('Price lookup symbol')} hint={t('Only if automatic prices use the wrong ticker, e.g. xeqt.ca')}><input className="input" value={priceSymbol} onChange={(e) => setPs(e.target.value)} /></Field>

@@ -130,7 +130,7 @@ function Security() {
     <Section id="security" title={t('Sign-in and security')}>
       <div className="stack" style={{ gap: 22 }}>
         <div className="row wrap" style={{ gap: 16 }}>
-          <span className="tile" style={{ '--tile': user.totp_enabled ? 'var(--income)' : 'var(--subtle-fg)' }}><ShieldCheck /></span>
+          <ShieldCheck className="row-icon" aria-hidden="true" />
           <div className="grow">
             <div className="strong">{user.totp_enabled ? t('Two-factor login is on') : t('Two-factor login is off')}</div>
             <div className="small muted">{t('Ask for a code from an authenticator app (Aegis, 2FAS, 1Password, Google Authenticator) at sign-in.')}</div>

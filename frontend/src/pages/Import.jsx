@@ -179,7 +179,7 @@ export default function Import() {
           <div className="list">
             {batches.data.slice(0, 12).map((b) => (
               <div className="list-row" key={b.id}>
-                <span className="tile sm" style={{ '--tile': 'var(--primary)' }}><FileUp /></span>
+                <FileUp className="row-icon" aria-hidden="true" />
                 <div className="grow">
                   <div className="title">{b.filename}</div>
                   <div className="meta">{b.account_name} · {b.format.toUpperCase()} · {date(b.created_at)} · {t('{n} added', { n: b.imported })}{b.skipped ? t(', {n} skipped', { n: b.skipped }) : ''}</div>

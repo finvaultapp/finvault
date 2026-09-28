@@ -97,9 +97,15 @@ export function Switch({ checked, onChange, label }) {
   )
 }
 
-export function CategoryTile({ name, color, size }) {
-  const Icon = categoryIcon(name)
-  return <span className={`tile ${size === 'sm' ? 'sm' : ''}`} style={{ '--tile': color || '#94A3B8' }}><Icon /></span>
+// The pigeonhole tab label in miniature: a full-round pill in the category's tint with a dot and a small icon.
+// `label` (optional) prints text inside the pill; `icon` (optional) overrides the icon guessed from the name.
+export function CategoryTile({ name, color, size, label, icon }) {
+  const Icon = icon ?? categoryIcon(name)
+  return (
+    <span className={`cat-tab ${size === 'sm' ? 'sm' : ''}`} style={color ? { '--c': color } : undefined} title={label ? undefined : name || undefined}>
+      <i aria-hidden="true" /><Icon aria-hidden="true" />{label && <b>{label}</b>}
+    </span>
+  )
 }
 
 export function Progress({ value, color, thick }) {
@@ -110,7 +116,7 @@ export function Progress({ value, color, thick }) {
 export function Empty({ icon: Icon = Info, title, children, action }) {
   return (
     <div className="empty">
-      <span className="tile"><Icon /></span>
+      <Icon className="empty-icon" aria-hidden="true" />
       <h3>{title}</h3>
       {children && <p>{children}</p>}
       {action}

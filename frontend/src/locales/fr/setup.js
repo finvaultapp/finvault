@@ -427,6 +427,7 @@ export default {
   "Next month": "Mois suivant",
   "Manage recurring": "Gérer les éléments récurrents",
   "Bills this month": "Factures ce mois-ci",
+  "No bills due this month": "Aucune facture à payer ce mois-ci",
   "Reminders": "Rappels",
   "How early to be told about each bill.": "Combien de temps à l’avance être avisé de chaque facture.",
   "Nothing recurring yet.": "Rien de récurrent pour l’instant.",

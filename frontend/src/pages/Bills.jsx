@@ -8,7 +8,7 @@ import { Field, Loading, Money, PageHead, Switch, useData, useToast } from '../c
 import { addMonths, currentLocale, monthLabel, todayISO } from '../lib/format'
 
 export default function Bills() {
-  const { version, bump } = useApp()
+  const { version, bump, user } = useApp()
   const [month, setMonth] = useState(todayISO().slice(0, 7))
   const cal = useData(() => api.get(`/bills/calendar${qs({ month })}`), [month, version])
   const rec = useData(() => api.get('/recurring'), [version])
@@ -23,6 +23,8 @@ export default function Bills() {
   const today = todayISO()
   const weekdays = Array.from({ length: 7 }, (_, i) => new Date(2024, 0, 1 + i).toLocaleDateString(currentLocale(), { weekday: 'short' }))
   const total = cal.data.items.filter((i) => i.amount < 0).reduce((s, i) => s + i.amount, 0)
+  const trail = (7 - ((lead + days) % 7)) % 7 // fill out the last week row
+  const base = user?.base_currency ?? 'CAD'
 
   return (
     <>
@@ -34,7 +36,9 @@ export default function Bills() {
       </PageHead>
       <div className="stack">
         <section className="card">
-          <div className="card-head"><h2>{monthLabel(month)}</h2><span className="small muted">{t('Bills this month')}: <Money value={-total} currency="CAD" className="strong expense" /></span></div>
+          <div className="card-head"><h2>{monthLabel(month)}</h2>{total < 0
+            ? <span className="small muted">{t('Bills this month')}: <Money value={-total} currency={base} className="strong expense" /></span>
+            : <span className="small muted">{t('No bills due this month')}</span>}</div>
           <div className="calendar">
             {weekdays.map((w) => <div key={w} className="cal-wd">{w}</div>)}
             {Array.from({ length: lead }, (_, i) => <div key={`l${i}`} className="cal-day empty" />)}
@@ -54,6 +58,7 @@ export default function Bills() {
                 </div>
               )
             })}
+            {Array.from({ length: trail }, (_, i) => <div key={`t${i}`} className="cal-day empty" />)}
           </div>
         </section>
         <div className="grid-2">

@@ -196,6 +196,26 @@ def test_bill_reminders(client, monkeypatch):
     assert client.post("/api/notifications/test").json()["sent"] == ["ntfy"]
 
 
+def test_bill_calendar_months(client):
+    chq, _, _ = setup_basic(client)
+    today = date.today()
+    first_next = date(today.year + (today.month == 12), today.month % 12 + 1, 1)
+    # Rent already posted this month, so next_date sits in the next month.
+    client.post("/api/recurring", json={"name": "Rent", "amount": -2150, "account_id": chq["id"], "frequency": "monthly",
+                                        "next_date": first_next.isoformat()})
+    client.post("/api/recurring", json={"name": "Daycare", "amount": -90, "account_id": chq["id"], "frequency": "weekly",
+                                        "next_date": today.isoformat()})
+    cal = client.get("/api/bills/calendar", params={"month": today.strftime("%Y-%m")}).json()
+    assert [i["date"] for i in cal["items"] if i["name"] == "Rent"] == [today.replace(day=1).isoformat()]
+    # Far ahead, a weekly item still shows every week (the old walk stopped after 40 dates).
+    later = date(today.year + 2, today.month, 1)
+    cal = client.get("/api/bills/calendar", params={"month": later.strftime("%Y-%m")}).json()
+    weekly = [i for i in cal["items"] if i["name"] == "Daycare"]
+    assert 4 <= len(weekly) <= 5
+    assert all(i["date"].startswith(later.strftime("%Y-%m")) for i in cal["items"])
+    assert any(i["name"] == "Rent" for i in cal["items"])
+
+
 def test_locale_preference(client):
     register(client)
     assert client.patch("/api/auth/me", json={"locale": "fr"}).json()["locale"] == "fr"

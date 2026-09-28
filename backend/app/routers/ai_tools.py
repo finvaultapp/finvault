@@ -52,7 +52,7 @@ def _uncategorized(db: Session, user: User, ids: list[int] | None, limit: int) -
                                   Transaction.transfer_id.is_(None))
     if ids:
         q = q.where(Transaction.id.in_(ids[:200]))
-    return list(db.scalars(q.order_by(Transaction.date.desc()).limit(limit)).unique())
+    return list(db.scalars(q.order_by(Transaction.date.desc(), Transaction.id).limit(limit)).unique())
 
 
 def _unfamiliar(db: Session, user: User, txs: list[Transaction]) -> dict[str, Transaction]:

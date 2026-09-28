@@ -46,7 +46,7 @@ export default function Chat() {
         <div className="chat-log" ref={logRef}>
           {messages.length === 0 && (
             <div className="empty" style={{ margin: 'auto' }}>
-              <span className="tile"><Bot /></span>
+              <Bot className="empty-icon" aria-hidden="true" />
               <h3>{t('Ask about your money')}</h3>
               <div className="row wrap" style={{ justifyContent: 'center', gap: 8, marginTop: 8 }}>
                 {STARTERS.map((s) => <button key={s} className="btn sm" onClick={() => send(t(s))}>{t(s)}</button>)}

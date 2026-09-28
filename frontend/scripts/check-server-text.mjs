@@ -33,7 +33,15 @@ try {
     new RegExp(String.raw`JSONResponse\(\{"detail":\s*${STR}`, 'g'),
   ]
   // Not shown in the app: written into the watched folder's "failed" note for the person who dropped the file.
-  const NOT_IN_APP = new Set(['No transactions found. '])
+  const NOT_IN_APP = new Set(['No transactions found. ',
+    // services/oidc.py: OidcError(code, detail). Only the code reaches the browser, as /login?sso_error=<code>,
+    // and pages/Auth.jsx turns it into its own (translated) text; the detail only goes to the server log.
+    'bad_nonce', 'invalid_token', 'provider_misconfigured', 'provider_unreachable', 'token_exchange_failed',
+    // services/oidc.py: PyJWKClientConnectionError, caught as invalid_token above; logged only.
+    "Couldn't fetch the provider's keys: 12",
+    // services/backup.py: json.dumps default= hook failing on an unexpected column type, a programming error.
+    "can't serialise 12",
+  ])
   const sample = (s) => s
     .replace(/\{[^{}]*:\.2f\}/g, '12.00')
     .replace(/\{[^{}]*\}/g, '12')

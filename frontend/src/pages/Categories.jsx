@@ -7,7 +7,8 @@ import { CategoryTile, Confirm, Dialog, Field, Loading, PageHead, useData, useTo
 import { t } from '../i18n'
 
 const KINDS = { expense: 'Expenses', income: 'Income', transfer: 'Transfers (not counted as income or spending)' }
-const SWATCHES = ['#6366F1', '#8B5CF6', '#EC4899', '#F43F5E', '#F97316', '#F59E0B', '#10B981', '#14B8A6', '#0EA5E9', '#3B82F6', '#64748B', '#A16207']
+// The household palette the default categories use (services/ledger.py): earthy, softened, no indigo or violet.
+const SWATCHES = ['#c77d3a', '#d2553f', '#8a5a44', '#b08a3f', '#6E8B3D', '#3f8f5f', '#4f8a96', '#3f7580', '#3f8fa8', '#5a7aa6', '#c26a8a', '#7c8a96']
 
 export default function Categories() {
   const { version, bump } = useApp()
@@ -74,7 +75,7 @@ function CategoryDialog({ cat, all, onClose, onSaved }) {
       <button className="btn primary" onClick={save} disabled={!f.name}>{t('Save')}</button>
     </>}>
       <div className="stack" style={{ gap: 14 }}>
-        <div className="row"><CategoryTile name={f.name} color={f.color} /><Field label={t('Name')} className="grow" ><input className="input" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field></div>
+        <div className="row"><CategoryTile name={f.name} color={f.color} label={f.name || t('Name')} /><Field label={t('Name')} className="grow" ><input className="input" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field></div>
         <Field label={t('Type')}><select className="input" value={f.kind} onChange={(e) => setF({ ...f, kind: e.target.value })}>
           <option value="expense">{t('Expense')}</option><option value="income">{t('Income')}</option><option value="transfer">{t('Transfer')}</option></select></Field>
         <Field label={t('Inside another category')} hint={t('Optional. Budgets on the parent include its sub-categories.')}>

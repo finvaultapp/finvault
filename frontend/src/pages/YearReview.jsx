@@ -22,7 +22,6 @@ export default function YearReview() {
     <div className="yir">
       <header className="yir-hero">
         <div>
-          <div className="yir-kicker">{t('Year in review')}</div>
           <h1>{t('Your {year}, in money', { year })}</h1>
           {r.data && <p className="sub">{r.data.partial ? t('So far this year, through {date}.', { date: date(r.data.through) }) : t('January 1 to December 31, {year}.', { year })}</p>}
         </div>
@@ -96,7 +95,7 @@ function Review({ d }) {
 
       <section className="card yir-block">
         <div className="card-head"><div><h2>{t('Where it went')}</h2><div className="sub">{t('Spending by category, this year against last year.')}</div></div>
-          <div className="legend"><span><i className="dot" style={{ '--dot': 'var(--frame)' }} />{d.year}</span><span><i className="dot" style={{ '--dot': 'var(--rule-2)' }} />{d.year - 1}</span></div>
+          <div className="legend"><span><i className="dot" style={{ '--dot': 'var(--ink-3)' }} />{d.year}</span><span><i className="dot" style={{ '--dot': 'var(--rule-2)' }} />{d.year - 1}</span></div>
         </div>
         {!cats.length ? <Empty title={t('No spending recorded')} /> : (
           <div className="list">
@@ -144,7 +143,7 @@ function Review({ d }) {
         <section className="card yir-block">
           <div className="card-head"><h2 className="row" style={{ gap: 8 }}><Landmark size={16} />{t('Saved in registered accounts')}</h2></div>
           <div className="card-body">
-            {!registered.length ? <p className="muted small">{t('No TFSA, RRSP or FHSA contributions recorded for {year}. Add them on the TFSA, RRSP & FHSA page.', { year: d.year })}</p> : (
+            {!registered.length ? <p className="muted small">{t('No TFSA, RRSP or FHSA contributions recorded for {year}. Add them on the Registered accounts page.', { year: d.year })}</p> : (
               <div className="figures">
                 {registered.map((p) => (
                   <div className="figure" key={p.kind}>

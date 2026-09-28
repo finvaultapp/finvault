@@ -116,12 +116,12 @@ function DebtRow({ d, onSaved }) {
   }
   return (
     <tr>
-      <td className="desc"><div>{d.name}</div>{!d.configured && <small className="tray-note">{t('Needs a rate')}</small>}</td>
-      <td><select className="input sm" value={f.kind} onChange={(e) => setF({ ...f, kind: e.target.value })} aria-label={t('Type')}>{Object.entries(KINDS).map(([k, v]) => <option key={k} value={k}>{t(v)}</option>)}</select></td>
-      <td className="amount"><Money value={d.balance} currency={d.currency} /></td>
-      <td><div className="unit-input"><input className="input sm" type="number" min="0" max="100" step="0.01" value={f.apr} onChange={(e) => setF({ ...f, apr: e.target.value })} aria-label={t('APR for {name}', { name: d.name })} /><span>%</span></div></td>
-      <td><input className="input sm" type="number" min="0" step="1" value={f.min_payment} onChange={(e) => setF({ ...f, min_payment: e.target.value })} aria-label={t('Minimum payment for {name}', { name: d.name })} style={{ width: 120 }} /></td>
-      <td style={{ textAlign: 'right' }}>{dirty && <button className="btn sm primary" onClick={save} disabled={f.apr === '' || f.min_payment === ''}>{t('Save')}</button>}</td>
+      <td className="desc debt-name"><div>{d.name}</div>{!d.configured && <small className="tray-note">{t('Needs a rate')}</small>}</td>
+      <td className="debt-field" data-label={t('Type')}><select className="input sm" value={f.kind} onChange={(e) => setF({ ...f, kind: e.target.value })} aria-label={t('Type')}>{Object.entries(KINDS).map(([k, v]) => <option key={k} value={k}>{t(v)}</option>)}</select></td>
+      <td className="amount debt-balance"><Money value={d.balance} currency={d.currency} /></td>
+      <td className="debt-field" data-label={t('APR')}><div className="unit-input"><input className="input sm" type="number" min="0" max="100" step="0.01" value={f.apr} onChange={(e) => setF({ ...f, apr: e.target.value })} aria-label={t('APR for {name}', { name: d.name })} /><span>%</span></div></td>
+      <td className="debt-field" data-label={t('Minimum payment')}><input className="input sm debt-min" type="number" min="0" step="1" value={f.min_payment} onChange={(e) => setF({ ...f, min_payment: e.target.value })} aria-label={t('Minimum payment for {name}', { name: d.name })} /></td>
+      <td className={`debt-save ${dirty ? '' : 'idle'}`} style={{ textAlign: 'right' }}>{dirty && <button className="btn sm primary" onClick={save} disabled={f.apr === '' || f.min_payment === ''}>{t('Save')}</button>}</td>
     </tr>
   )
 }
@@ -224,7 +224,7 @@ function Strategy({ icon: Icon, title, blurb, r, withExtra, extra, names, curren
   return (
     <section className={`card strategy ${best ? 'best' : ''}`}>
       <div className="card-head">
-        <div className="row" style={{ gap: 10 }}><span className="strategy-mark"><Icon /></span><div><h2>{title}</h2><div className="sub">{blurb}</div></div></div>
+        <div><h2 className="row" style={{ gap: 8 }}><Icon size={16} className="strategy-icon" aria-hidden="true" />{title}</h2><div className="sub">{blurb}</div></div>
         {best && <span className="pill green">{t('Least interest')}</span>}
       </div>
       <div className="card-body">

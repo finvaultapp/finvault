@@ -263,7 +263,7 @@ function BalanceFlow({ flow, currency, month }) {
             <YAxis tickLine={false} axisLine={false} width={62} domain={[(min) => Math.floor(min - Math.abs(min) * 0.03), (max) => Math.ceil(max + Math.abs(max) * 0.02)]} tickFormatter={(v) => money(v, currency, { compact: true })} />
             <Tooltip content={<FlowTip currency={currency} month={month} />} cursor={{ stroke: 'var(--rule-2)' }} />
             <Line dataKey="previous" stroke="var(--post)" strokeDasharray="3 4" dot={false} strokeWidth={1.5} isAnimationActive={false} />
-            <Area dataKey="current" stroke="var(--frame)" fill="var(--frame)" fillOpacity={0.1} strokeWidth={2.2} dot={false} />
+            <Area dataKey="current" stroke="var(--ink-2)" fill="var(--ink-3)" fillOpacity={0.12} strokeWidth={2.2} dot={false} />
           </AreaChart>
         </ResponsiveContainer>
       </div>

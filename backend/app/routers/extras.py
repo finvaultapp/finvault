@@ -12,7 +12,7 @@ from ..db import get_db
 from ..deps import current_user, owned
 from ..models import Account, Attachment, Recurring, Transaction, User
 from ..services import inbox, net, notify, receipts
-from ..services.recurring import occurrences
+from ..services.recurring import _add_months, advance
 from ..services.reports import f2
 
 router = APIRouter(prefix="/api", tags=["extras"])
@@ -112,6 +112,33 @@ def test_notification(user: User = Depends(current_user)):
     return {"sent": sent}
 
 
+def _step_back(d: date, r: Recurring) -> date:
+    if r.frequency == "weekly":
+        return d - timedelta(days=7)
+    if r.frequency == "biweekly":
+        return d - timedelta(days=14)
+    months = {"quarterly": 3, "yearly": 12}.get(r.frequency, 1)
+    return _add_months(d, -months, r.anchor_day)
+
+
+def _dates_in(r: Recurring, start: date, end: date) -> list[date]:
+    """Dates a recurring item falls on within [start, end]. Walks forward from next_date for later months, and
+    back from it for a month that next_date has already moved past (this month's rent, once it has posted)."""
+    out, d, guard = [], r.next_date, 0
+    while d <= end and guard < 3000 and (r.end_date is None or d <= r.end_date):
+        if d >= start:
+            out.append(d)
+        d = advance(d, r.frequency, r.anchor_day)
+        guard += 1
+    d, guard = _step_back(r.next_date, r), 0
+    while d >= start and guard < 3000:
+        if d <= end:
+            out.append(d)
+        d = _step_back(d, r)
+        guard += 1
+    return sorted(out)
+
+
 @router.get("/bills/calendar")
 def bill_calendar(month: str, user: User = Depends(current_user), db: Session = Depends(get_db)):
     """Every recurring item due in the month, for the calendar view."""
@@ -121,12 +148,11 @@ def bill_calendar(month: str, user: User = Depends(current_user), db: Session = 
     accounts = {a.id: a for a in db.scalars(select(Account).where(Account.user_id == user.id))}
     items = []
     for r in db.scalars(select(Recurring).where(Recurring.user_id == user.id, Recurring.is_active.is_(True))):
-        for d in occurrences(r, end, limit=40):
-            if d >= start:
-                acct = accounts.get(r.account_id)
-                items.append({"recurring_id": r.id, "name": r.name, "date": d.isoformat(), "amount": f2(r.amount),
-                              "currency": acct.currency if acct else None, "account_name": acct.name if acct else None,
-                              "auto_post": r.auto_post, "remind_days": r.remind_days})
+        for d in _dates_in(r, start, end):
+            acct = accounts.get(r.account_id)
+            items.append({"recurring_id": r.id, "name": r.name, "date": d.isoformat(), "amount": f2(r.amount),
+                          "currency": acct.currency if acct else None, "account_name": acct.name if acct else None,
+                          "auto_post": r.auto_post, "remind_days": r.remind_days})
     items.sort(key=lambda i: i["date"])
     return {"month": month, "items": items}
 

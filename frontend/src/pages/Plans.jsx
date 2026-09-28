@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AlertTriangle, Info, Landmark, Plus, Trash2 } from 'lucide-react'
+import { AlertTriangle, ChevronDown, Info, Landmark, Plus, Trash2 } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
 import { t } from '../i18n'
@@ -65,7 +65,7 @@ export default function Plans() {
                     <div style={{ fontSize: 24, fontWeight: 700 }} className={p.remaining < 0 ? 'expense' : ''}><Money value={p.remaining} currency="CAD" /></div>
                     <span className="muted small">{p.remaining < 0 ? t('over your room') : t('room left')}</span>
                   </div>
-                  <Progress thick value={p.percent} color={p.remaining < 0 ? 'var(--red)' : p.percent > 90 ? 'var(--tray)' : 'var(--frame)'} />
+                  <Progress thick value={p.percent} color={p.remaining < 0 ? 'var(--red)' : p.percent >= 90 ? 'var(--ink-2)' : 'var(--green)'} />
                   <div className="row small muted" style={{ justifyContent: 'space-between' }}>
                     <span>{t('Room')} <Money value={p.room} currency="CAD" /></span>
                     <span>{t('In')} <Money value={p.contributed} currency="CAD" /></span>
@@ -76,8 +76,8 @@ export default function Plans() {
                       <AlertTriangle /><div className="banner-body small">{warningText(w)}</div>
                     </div>
                   ))}
-                  <details>
-                    <summary className="small strong" style={{ cursor: 'pointer' }}>{t(p.entries.length === 1 ? '{n} entry' : '{n} entries', { n: p.entries.length })}</summary>
+                  <details className="entries">
+                    <summary className="small strong">{t(p.entries.length === 1 ? '{n} entry' : '{n} entries', { n: p.entries.length })}<ChevronDown aria-hidden="true" /></summary>
                     <div className="list" style={{ marginTop: 8 }}>
                       {p.entries.map((e) => (
                         <div key={e.id} className="row small" style={{ padding: '6px 0' }}>

@@ -4,6 +4,7 @@ import { api } from '../../api'
 import { Field, Switch, useData, useToast } from '../ui'
 import { currentLocale } from '../../lib/format'
 import { t } from '../../i18n'
+import { serverText } from '../../lib/serverText'
 
 export function dateTime(iso) {
   if (!iso) return '—'
@@ -83,7 +84,7 @@ export default function Backups() {
         <div className="backup-dest">
           <HardDrive />
           <div className="grow"><div className="strong">{t('Folder on this server')}</div><code className="small">{s.local.path}</code></div>
-          {s.local.ok ? <span className="pill green">{t('Writable')}</span> : <span className="pill red" title={s.local.error}>{t('Not writable')}</span>}
+          {s.local.ok ? <span className="pill green">{t('Writable')}</span> : <span className="pill red" title={serverText(s.local.error)}>{t('Not writable')}</span>}
         </div>
         <div className="backup-dest">
           <Cloud />
@@ -95,7 +96,7 @@ export default function Backups() {
         </div>
         {last && !s.running && (last.status === 'ok'
           ? <div className="banner info"><CheckCircle2 /><div className="banner-body">{t('Last backup: {date}', { date: dateTime(last.finished_at) })}</div></div>
-          : <div className="banner warn"><AlertTriangle /><div className="banner-body"><strong>{t('The last backup failed.')}</strong> {last.error}</div></div>)}
+          : <div className="banner warn"><AlertTriangle /><div className="banner-body"><strong>{t('The last backup failed.')}</strong> {serverText(last.error)}</div></div>)}
       </div>
 
       <div className="card-head" style={{ borderTop: '1px solid var(--rule)' }}><h3>{t('Saved backups')}</h3><span className="small muted">{t('Restore with backend/scripts/restore_backup.py (see README).')}</span></div>

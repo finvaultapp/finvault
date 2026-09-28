@@ -36,7 +36,7 @@ export default function Tax() {
         <div className="banner info"><Info /><div className="banner-body">{t('FinVault doesn\'t decide what CRA accepts. Keep your receipts and confirm eligibility with your accountant or the CRA guides.')}</div></div>
         <Warnings items={s.warnings} />
         <div className="grid-2" style={{ gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)' }}>
-          <section className="card">
+          <section className="card" style={{ alignSelf: 'start' }}>
             <div className="card-head"><h2>{t('{year} summary', { year })}</h2><strong><Money value={s.total} currency={s.currency} /></strong></div>
             {s.groups.length === 0 ? (
               <Empty icon={FileText} title={t('Nothing tagged for {year}', { year })}>{t('Tag categories on the right (for example Health as medical), or tag single transactions from the transaction editor.')}</Empty>
@@ -68,8 +68,8 @@ export default function Tax() {
               {cats.data.filter((c) => c.kind === 'expense').map((c) => (
                 <div className="list-row" key={c.id} style={{ padding: '9px 18px' }}>
                   <CategoryTile size="sm" name={c.name} color={c.color} />
-                  <span className="grow title">{c.name}</span>
-                  <select className="input sm" style={{ width: 190 }} value={c.tax_tag ?? ''} onChange={(e) => tagCategory(c, e.target.value)} aria-label={t('Tax tag for {name}', { name: c.name })}>
+                  <span className="grow title" style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{c.name}</span>
+                  <select className="input sm" style={{ width: 170, flexShrink: 0 }} value={c.tax_tag ?? ''} onChange={(e) => tagCategory(c, e.target.value)} aria-label={t('Tax tag for {name}', { name: c.name })}>
                     <option value="">{t('Not tagged')}</option>
                     {Object.entries(tags).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </select>

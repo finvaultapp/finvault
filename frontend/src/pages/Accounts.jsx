@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Archive, ArchiveRestore, Building2, CreditCard, Landmark, Pencil, PiggyBank, Plus, Scale, Trash2, TrendingUp, Upload, Wallet } from 'lucide-react'
+import { Archive, ArchiveRestore, Pencil, Plus, Scale, Trash2, Upload, Wallet } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
+import Postmark from '../components/Postmark'
 import { Confirm, Dialog, Empty, Field, Loading, Money, PageHead, useData, useToast, Warnings } from '../components/ui'
 import { ACCOUNT_TYPES, CURRENCIES, date, todayISO } from '../lib/format'
 import { t } from '../i18n'
 
-const TYPE_ICON = { checking: Wallet, savings: PiggyBank, credit_card: CreditCard, investment: TrendingUp, cash: Wallet, loan: Landmark, other: Building2 }
-const TYPE_COLOR = { checking: '#6366F1', savings: '#10B981', credit_card: '#F43F5E', investment: '#8B5CF6', cash: '#F59E0B', loan: '#64748B', other: '#0EA5E9' }
 
 export default function Accounts() {
   const { version, bump } = useApp()
@@ -41,10 +40,11 @@ export default function Accounts() {
           ) : (
             <div className="list">
               {visible.map((a) => {
-                const Icon = TYPE_ICON[a.type] ?? Wallet
                 return (
                   <div className="list-row" key={a.id} style={{ opacity: a.is_archived ? 0.6 : 1 }}>
-                    <span className="tile" style={{ '--tile': TYPE_COLOR[a.type] }}><Icon /></span>
+                    {a.last_transaction
+                      ? <Postmark className="postmark mini" top={a.name} date={a.last_transaction} />
+                      : <span className="postmark-blank" title={t('no transactions yet')} aria-hidden="true" />}
                     <div className="grow">
                       <div className="row" style={{ gap: 8 }}>
                         <Link to={`/transactions?account=${a.id}`} className="title" style={{ color: 'inherit' }}>{a.name}</Link>

@@ -136,7 +136,7 @@ export default {
   "No purchases recorded": "Aucun achat enregistré",
   "Largest single purchases": "Plus gros achats",
   "Saved in registered accounts": "Épargné dans des comptes enregistrés",
-  "No TFSA, RRSP or FHSA contributions recorded for {year}. Add them on the TFSA, RRSP & FHSA page.": "Aucune cotisation CÉLI, REER ou CELIAPP enregistrée pour {year}. Ajoutez-les à la page CÉLI, REER et CELIAPP.",
+  "No TFSA, RRSP or FHSA contributions recorded for {year}. Add them on the Registered accounts page.": "Aucune cotisation CÉLI, REER ou CELIAPP enregistrée pour {year}. Ajoutez-les à la page Comptes enregistrés.",
   "{amount} taken out": "{amount} retirés",
   "of {amount} room": "sur {amount} de droits",
   "The year in a sentence": "L’année en une phrase",

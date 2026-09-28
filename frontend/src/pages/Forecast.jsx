@@ -112,9 +112,9 @@ export default function Forecast() {
                 <YAxis tickLine={false} axisLine={false} width={66} tickFormatter={(v) => money(v, view.currency, { compact: true })} />
                 <Tooltip content={<ForecastTip currency={view.currency} />} cursor={{ stroke: 'var(--rule-2)' }} />
                 <ReferenceLine y={0} stroke="var(--rule-2)" />
-                {cushionLine > 0 && <ReferenceLine y={cushionLine} stroke="var(--tray)" strokeDasharray="4 4" />}
-                <Area dataKey="value" stroke="var(--frame)" fill="var(--frame)" fillOpacity={0.1} strokeWidth={2.2} dot={false} isAnimationActive={false} />
-                <ReferenceDot x={view.low.date} y={view.low.value} r={5} fill={view.low.value < 0 ? 'var(--red)' : 'var(--tray)'} stroke="var(--sheet)" strokeWidth={2} />
+                {cushionLine > 0 && <ReferenceLine y={cushionLine} stroke="var(--ink-3)" strokeDasharray="4 4" />}
+                <Area dataKey="value" stroke="var(--ink-2)" fill="var(--ink-3)" fillOpacity={0.12} strokeWidth={2.2} dot={false} isAnimationActive={false} />
+                <ReferenceDot x={view.low.date} y={view.low.value} r={5} fill={view.low.value < 0 ? 'var(--red)' : 'var(--ink)'} stroke="var(--sheet)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
