@@ -11,6 +11,8 @@ from ..importers.presets import public_presets
 from ..importers.csvfile import ROLES
 from ..models import Account, Category, ImportBatch, Transaction, User
 from ..services import receipts, transfers
+
+from ..services.charge_alerts import run_safely as charge_alerts_after_import
 from ..services.ledger import Categorizer, commit_import, plan_import
 from ..services.reports import f2
 
@@ -73,6 +75,7 @@ async def commit(account_id: int = Form(...), options: str | None = Form(None), 
         raise HTTPException(422, "Nothing to import. " + " ".join(result.warnings[:3]))
     batch = commit_import(db, user, account, result, file.filename or "upload")
     matched = transfers.auto_match(db, user)
+    charge_alerts_after_import(db, user)
     return {"batch_id": batch.id, "imported": batch.imported, "skipped": batch.skipped, "transfers_matched": matched}
 
 

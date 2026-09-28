@@ -13,7 +13,9 @@ from .db import SessionLocal, migrate_schema
 from .models import SyncConnection
 from .routers import (accounts, admin, ai, assets, auth, categories, currency, extras, imports, planning, plans, reports,
                       sharing, sync, transactions)
+from .routers import planahead
 from .services import inbox, notify, receipts, recurring
+from .services import charge_alerts
 from .services.sync import SyncError, sync_connection
 
 log = logging.getLogger("finvault")
@@ -28,6 +30,7 @@ def _hourly_jobs() -> None:
             notify.send_due_reminders(db)
         except Exception:  # noqa: BLE001
             log.exception("bill reminders failed")
+        charge_alerts.run_all(db)
         if not settings_store.get(db, "bank_sync_enabled"):
             return
         cutoff = datetime.now(timezone.utc) - timedelta(hours=config.SYNC_INTERVAL_HOURS)
@@ -99,7 +102,7 @@ async def guard(request: Request, call_next):
 
 
 for r in (auth, admin, accounts, transactions, imports, categories, planning, assets, reports, currency, sync, ai,
-          plans, sharing, extras):
+          plans, sharing, extras, planahead):
     app.include_router(r.router)
 
 from .routers import ai_tools  # noqa: E402

@@ -4,6 +4,7 @@ import {
   ArrowLeftRight, BarChart3, Bot, ChevronDown, Eye, EyeOff, Landmark, LayoutDashboard, LogOut, Menu, Moon, PiggyBank,
   Plug, Repeat, Search, Settings, Shield, SlidersHorizontal, Sun, Tag, Target, Upload, Wallet,
   CalendarDays, FileText, Users, BadgeDollarSign,
+  CreditCard, Sparkles, TrendingUp,
 } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
@@ -28,12 +29,15 @@ export const NAV = [
     { to: '/reports', label: 'Reports', icon: BarChart3 },
     { to: '/assets', label: 'Assets', icon: Landmark },
     { to: '/tax', label: 'Tax time', icon: FileText },
+    { to: '/year-in-review', label: 'Year in review', icon: Sparkles },
     { to: '/chat', label: 'Ask AI', icon: Bot, needsAi: true },
   ] },
   { group: 'Plan ahead', items: [
     { to: '/budgets', label: 'Budgets', icon: PiggyBank },
     { to: '/goals', label: 'Goals', icon: Target },
     { to: '/plans', label: 'TFSA, RRSP & FHSA', icon: BadgeDollarSign },
+    { to: '/forecast', label: 'Forecast', icon: TrendingUp },
+    { to: '/debts', label: 'Debt payoff', icon: CreditCard },
     { to: '/bills', label: 'Bills', icon: CalendarDays },
     { to: '/recurring', label: 'Recurring', icon: Repeat },
     { to: '/categories', label: 'Categories', icon: Tag },

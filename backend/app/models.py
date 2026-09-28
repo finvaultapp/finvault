@@ -327,3 +327,4 @@ class Attachment(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 from .models_ai import *  # noqa: E402,F401,F403
+from .models_plan import *  # noqa: E402,F401,F403
