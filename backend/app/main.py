@@ -99,6 +99,9 @@ for r in (auth, admin, accounts, transactions, imports, categories, planning, as
           plans, sharing, extras):
     app.include_router(r.router)
 
+from .routers import ai_tools  # noqa: E402
+app.include_router(ai_tools.router)
+
 
 @app.get("/api/health")
 def health():

@@ -8,7 +8,8 @@ import { Confirm, Empty, ErrorNote, Money, PageHead, useData, useToast, Category
 import TxDialog, { CategorySelect } from '../components/TxDialog'
 import RuleDialog from '../components/RuleDialog'
 import TransferReview from '../components/TransferReview'
-import { date } from '../lib/format'
+import { date, money } from '../lib/format'
+import { AiChip, AiSuggestBar, AskBox, aiFiltersToParams, useAiReady, useAiSuggestions } from '../components/AiTools'
 import { t } from '../i18n'
 
 function monthRange(ym) {
@@ -30,6 +31,9 @@ export default function Transactions() {
   const [ruleFrom, setRuleFrom] = useState(null)
   const [ruleOpen, setRuleOpen] = useState(false)
   const [reviewing, setReviewing] = useState(false)
+  const aiReady = useAiReady()
+  const [mode, setMode] = useState('search')
+  const [understood, setUnderstood] = useState(null)
 
   const filters = useMemo(() => {
     const month = monthRange(params.get('month'))
@@ -71,12 +75,16 @@ export default function Transactions() {
   const cats = categories.data ?? []
   const accts = accounts.data?.items ?? []
   const items = list.data?.items ?? []
+  const ai = useAiSuggestions(filters.uncategorized ? items.filter((tx) => !tx.category_id).map((tx) => tx.id) : [], aiReady)
   const activeFilters = [
     ...filters.account_id.map((id) => ({ key: `a${id}`, label: accts.find((a) => a.id === id)?.name ?? t('Account'), clear: { account: filters.account_id.filter((x) => x !== id) } })),
     ...filters.category_id.map((id) => ({ key: `c${id}`, label: cats.find((c) => c.id === id)?.name ?? t('Category'), clear: { category: filters.category_id.filter((x) => x !== id) } })),
     filters.uncategorized && { key: 'u', label: t('Uncategorized'), clear: { uncategorized: null } },
     (filters.start || filters.end) && { key: 'd', label: `${filters.start ? date(filters.start) : '…'} – ${filters.end ? date(filters.end) : '…'}`, clear: { start: null, end: null, month: null } },
     filters.kind && { key: 'k', label: filters.kind === 'income' ? t('Money in') : t('Money out'), clear: { kind: null } },
+    filters.min_amount && { key: 'min', label: t('At least {amount}', { amount: money(Number(filters.min_amount), accts[0]?.currency ?? 'CAD') }), clear: { min: null } },
+    filters.max_amount && { key: 'max', label: t('At most {amount}', { amount: money(Number(filters.max_amount), accts[0]?.currency ?? 'CAD') }), clear: { max: null } },
+    mode === 'ask' && filters.q && { key: 'q', label: `“${filters.q}”`, clear: { q: null } },
   ].filter(Boolean)
 
   const setCategory = async (tx, category_id) => {
@@ -85,6 +93,27 @@ export default function Transactions() {
       list.reload()
       bump()
       if (category_id && !tx.category_id) setRuleFrom({ tx, category_id })
+    } catch (e) { toast(e.message, 'error') }
+  }
+
+  const applyAsk = (r) => {
+    setParams(aiFiltersToParams(r.filters), { replace: true })
+    setQ(r.filters.q ?? '')
+    setUnderstood(r)
+  }
+  const switchMode = (m) => { setMode(m); setUnderstood(null); setQ(params.get('q') ?? '') }
+  const acceptAi = async (list_, createRules) => {
+    try {
+      const r = await ai.accept(list_, createRules)
+      toast(r.rules_created ? t('Accepted {n} and created {rules} rules', { n: r.updated, rules: r.rules_created }) : t('Categorized {n} transactions', { n: r.updated }))
+      list.reload(); bump()
+    } catch (e) { toast(e.message, 'error') }
+  }
+  const acceptOne = async (tx, s) => {
+    try {
+      await ai.accept([s])
+      list.reload(); bump()
+      setRuleFrom({ tx, category_id: s.category_id })
     } catch (e) { toast(e.message, 'error') }
   }
 
@@ -115,10 +144,18 @@ export default function Transactions() {
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-body" style={{ padding: 14 }}>
           <div className="row wrap">
-            <div className="search-box">
-              <Search />
-              <input className="input" placeholder={t('Search descriptions, payees and notes…')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('Search transactions')} />
-            </div>
+            {aiReady && (
+              <div className="segmented" role="group" aria-label={t('Search mode')}>
+                <button className={mode === 'search' ? 'on' : ''} onClick={() => switchMode('search')}>{t('Search')}</button>
+                <button className={mode === 'ask' ? 'on' : ''} onClick={() => switchMode('ask')}>{t('Ask in plain words')}</button>
+              </div>
+            )}
+            {mode === 'ask' && aiReady ? <AskBox onResult={applyAsk} /> : (
+              <div className="search-box">
+                <Search />
+                <input className="input" placeholder={t('Search descriptions, payees and notes…')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('Search transactions')} />
+              </div>
+            )}
             <button className={`btn ${showFilters ? 'primary' : ''}`} onClick={() => setShowFilters((s) => !s)}><Filter />{t('Filters')}</button>
             {activeFilters.length > 0 && <button className="btn ghost sm" onClick={() => setParams({}, { replace: true })}>{t('Clear filters')}</button>}
           </div>
@@ -145,6 +182,7 @@ export default function Transactions() {
           )}
           {activeFilters.length > 0 && (
             <div className="row wrap" style={{ marginTop: 12, gap: 6 }}>
+              {mode === 'ask' && understood && <span className="small muted">{t('Understood as')}</span>}
               {activeFilters.map((f) => (
                 <span key={f.key} className="pill indigo" style={{ padding: '3px 6px 3px 10px' }}>{f.label}
                   <button className="icon-btn" style={{ width: 18, height: 18 }} onClick={() => update(f.clear)} aria-label={t('Remove {label} filter', { label: f.label })}><X size={12} /></button>
@@ -152,10 +190,14 @@ export default function Transactions() {
               ))}
             </div>
           )}
+          {mode === 'ask' && understood && (understood.unmatched.categories.length + understood.unmatched.accounts.length) > 0 && (
+            <p className="small muted" style={{ marginTop: 8 }}>{t('Not in your lists, so left out: {names}', { names: [...understood.unmatched.categories, ...understood.unmatched.accounts].join(', ') })}</p>
+          )}
         </div>
       </div>
 
       <ErrorNote error={list.error} />
+      {aiReady && filters.uncategorized && items.length > 0 && <div style={{ marginBottom: 16 }}><AiSuggestBar ai={ai} onAcceptAll={acceptAi} /></div>}
       {pairs.data?.length > 0 && (
         <div className="banner info" style={{ marginBottom: 16 }}>
           <ArrowLeftRight />
@@ -237,6 +279,7 @@ export default function Transactions() {
                     <td>
                       <CategorySelect className={`cat-select ${tx.category_id ? '' : 'unset'}`} categories={cats} value={tx.category_id}
                         onChange={(v) => setCategory(tx, v)} aria-label={t('Category')} />
+                      {ai.map[tx.id] && <div style={{ marginTop: 5 }}><AiChip s={ai.map[tx.id]} onAccept={() => acceptOne(tx, ai.map[tx.id])} onReject={() => ai.reject(ai.map[tx.id])} /></div>}
                     </td>
                     <td className="amount"><Money value={tx.amount} currency={tx.currency} sign colored /></td>
                     <td>
