@@ -1,5 +1,7 @@
 # FinVault
 
+[![CI](https://github.com/henilsarang/finvault/actions/workflows/ci.yml/badge.svg)](https://github.com/henilsarang/finvault/actions/workflows/ci.yml)
+
 A private personal finance app for your household that you run yourself. Your accounts, transactions and reports live in a database on your own computer or home server, not with a company.
 
 - Multiple accounts (chequing, savings, credit cards, loans, cash, investments), each in its own currency
@@ -111,6 +113,19 @@ cd frontend && npm install && npm run dev
 ```
 
 API docs are at `/api/docs` while the server runs.
+
+### Running the tests
+
+```bash
+cd backend && python -m pytest -q          # API and importer tests
+
+cd frontend
+npm run build                              # the browser tests use the built app
+npx playwright install chromium            # once
+npm run test:e2e                           # Playwright, Chromium only
+```
+
+`npm run test:e2e` seeds a demo household into a temporary data folder and starts `backend/scripts/serve_local.py` on port 8765 (`E2E_PORT` to change it, `PYTHON` to pick the interpreter with the backend requirements). To test a server that is already running, set `E2E_BASE_URL` instead. CI (`.github/workflows/ci.yml`) runs the backend tests, the frontend build, the browser tests and a Docker build with a health-check smoke test.
 
 ## Credits
 
