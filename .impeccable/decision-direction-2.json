@@ -1,0 +1,306 @@
+{
+ "title": "Choose FinVault's look",
+ "question": "The Securo look is out. The roll dealt Survey Sheet. Keep it, take an alternate, steer, or re-roll.",
+ "options": [
+  {
+   "id": "assigned",
+   "label": "Survey Sheet",
+   "kicker": "THE ROLL",
+   "lineage": "Canadian topographic map sheets: the collar, the legend, the grid and the gazetteer",
+   "thesis": "Your household's money drawn as a map sheet: income runs downstream into categories, each import re-surveys the sheet.",
+   "palette": [
+    "#F6F4EE",
+    "#23303A",
+    "#B06A34",
+    "#3E86B4",
+    "#D5E5C6",
+    "#C8412F"
+   ],
+   "materials": [
+    "map-collar margins",
+    "contour brown rules",
+    "river blue flows",
+    "forest tint fields",
+    "road red for overspend",
+    "UTM-style grid"
+   ],
+   "viewport": "The sheet collar names the household and month with an edition stamp; a watershed of this month's money flows from income to categories; the gazetteer of transactions sits beneath, Import survey at top right.",
+   "risk": "The map metaphor could obscure plain answers; tables and totals must stay literal and legible.",
+   "raised": [
+    {
+     "from": "Teletext service",
+     "raise": "Every sheet has a keyed number and the whole app runs from the keyboard: 1 overview, 2 accounts, 3 gazetteer, i to import."
+    },
+    {
+     "from": "Datamatics field",
+     "raise": "Selecting a category or column pulls its figures into focus while the rest of the sheet drops back."
+    },
+    {
+     "from": "CD-ROM console",
+     "raise": "Controls have real pressed states: a toggle visibly sinks into the collar when active."
+    },
+    {
+     "from": "Mesophotic dive",
+     "raise": "One axis rules every line: time runs down the gazetteer and across every chart in the same direction."
+    }
+   ],
+   "wireframe": {
+    "cols": 12,
+    "rows": 10,
+    "regions": [
+     {
+      "label": "sheet collar: household · month · edition · Import survey",
+      "x": 0,
+      "y": 0,
+      "w": 12,
+      "h": 1,
+      "accent": true
+     },
+     {
+      "label": "legend: sheets + categories",
+      "x": 0,
+      "y": 1,
+      "w": 2,
+      "h": 9
+     },
+     {
+      "label": "watershed: income → categories",
+      "x": 2,
+      "y": 1,
+      "w": 10,
+      "h": 5,
+      "accent": true
+     },
+     {
+      "label": "gazetteer: transactions",
+      "x": 2,
+      "y": 6,
+      "w": 7,
+      "h": 4
+     },
+     {
+      "label": "elevation: net worth",
+      "x": 9,
+      "y": 6,
+      "w": 3,
+      "h": 4
+     }
+    ]
+   }
+  },
+  {
+   "id": "model-pick",
+   "label": "Sorting Case",
+   "kicker": "IMPECCABLE’S PICK",
+   "lineage": "The post office sorting case and the postmark on every statement that used to arrive by mail",
+   "thesis": "Each statement arrives, gets postmarked with its dates, and every line is sorted into its pigeonhole.",
+   "palette": [
+    "#EFE9DF",
+    "#1F2B3A",
+    "#C23B2E",
+    "#6B7F52",
+    "#D9A441"
+   ],
+   "materials": [
+    "pigeonhole grid",
+    "circular date postmarks",
+    "kraft labels",
+    "rubber-band bundles"
+   ],
+   "viewport": "A wall of category pigeonholes filling as the newest statement is sorted; unsorted lines wait in the tray at left.",
+   "risk": "Leans on postal imagery; must stay generic, never any postal service's own marks.",
+   "wireframe": {
+    "cols": 12,
+    "rows": 10,
+    "regions": [
+     {
+      "label": "unsorted tray",
+      "x": 0,
+      "y": 0,
+      "w": 3,
+      "h": 10,
+      "accent": true
+     },
+     {
+      "label": "category pigeonholes",
+      "x": 3,
+      "y": 0,
+      "w": 9,
+      "h": 7
+     },
+     {
+      "label": "postmarked statements",
+      "x": 3,
+      "y": 7,
+      "w": 9,
+      "h": 3
+     }
+    ]
+   }
+  },
+  {
+   "id": "challenger-botanical",
+   "label": "Season Folio",
+   "verdict": "competitive",
+   "lineage": "A botanical folio: one plant, every stage, same scale and ground",
+   "thesis": "Every month drawn as a plate at the same scale, so months compare at a glance.",
+   "palette": [
+    "#F3EEE2",
+    "#5C4630",
+    "#3F7A4A",
+    "#B8342B",
+    "#6E6E6E"
+   ],
+   "materials": [
+    "fixed-scale plates",
+    "hairline sepia rules",
+    "engraved species captions"
+   ],
+   "viewport": "Twelve month plates on one baseline, the current month open with its categories annotated.",
+   "case": "Holds product clarity (fixed-scale months make comparison honest) but loses audience identification.",
+   "risk": "Cream ground and engraved captions are the most common look in this kind of redesign.",
+   "hero": "https://impeccable.style/worlds/cards/editorial-sequence-montage-botanical-folio-season-hero.webp",
+   "board": "https://impeccable.style/worlds/cards/editorial-sequence-montage-botanical-folio-season.webp",
+   "wireframe": {
+    "cols": 12,
+    "rows": 10,
+    "regions": [
+     {
+      "label": "month plates strip",
+      "x": 0,
+      "y": 0,
+      "w": 12,
+      "h": 3,
+      "accent": true
+     },
+     {
+      "label": "open plate",
+      "x": 0,
+      "y": 3,
+      "w": 8,
+      "h": 7
+     },
+     {
+      "label": "annotations",
+      "x": 8,
+      "y": 3,
+      "w": 4,
+      "h": 7
+     }
+    ]
+   }
+  },
+  {
+   "id": "challenger-teletext",
+   "label": "Teletext Pages",
+   "verdict": "declined",
+   "lineage": "broadcast teletext magazines",
+   "thesis": "Every screen a three-digit page on black.",
+   "palette": [
+    "#000000",
+    "#FFFF00",
+    "#00FFFF",
+    "#FF0000"
+   ],
+   "materials": [
+    "block mosaic",
+    "40×24 grid"
+   ],
+   "viewport": "P100 index, accounts as numbered rows.",
+   "case": "Loses both axes: dense and cold for this household.",
+   "kept": "Keyboard-first: every page is keyed directly.",
+   "risk": "Retro and dense.",
+   "hero": "https://impeccable.style/worlds/cards/broadcast-programming-teletext-service-hero.webp"
+  },
+  {
+   "id": "challenger-datamatics",
+   "label": "Datamatics Field",
+   "verdict": "declined",
+   "lineage": "black and white data-sublime installations",
+   "thesis": "Money as barcode fields.",
+   "palette": [
+    "#000000",
+    "#FFFFFF"
+   ],
+   "materials": [
+    "hairline bars",
+    "mono numerics"
+   ],
+   "viewport": "A wall of bars per transaction.",
+   "case": "Loses both axes: clinical and dense.",
+   "kept": "Selection pulls one column into focus.",
+   "risk": "Cold.",
+   "hero": "https://impeccable.style/worlds/cards/ikeda-datamatics-hero.webp"
+  },
+  {
+   "id": "challenger-cdrom",
+   "label": "CD-ROM Console",
+   "verdict": "declined",
+   "lineage": "mid-90s rendered CD-ROM interfaces",
+   "thesis": "A rendered console around a small window.",
+   "palette": [
+    "#8C949C",
+    "#2F8F8A",
+    "#6A4C9C"
+   ],
+   "materials": [
+    "brushed panels",
+    "bevels"
+   ],
+   "viewport": "Console frame, content in a small window.",
+   "case": "Loses both axes: novelty that shrinks the data.",
+   "kept": "Controls with real pressed states.",
+   "risk": "Kitsch.",
+   "hero": "https://impeccable.style/worlds/cards/digital-design-canon-cdrom-chrome-navigation-hero.webp"
+  },
+  {
+   "id": "challenger-dive",
+   "label": "Deep Dive",
+   "verdict": "declined",
+   "lineage": "technical dive profile",
+   "thesis": "Months as depth.",
+   "palette": [
+    "#07162B",
+    "#39C6D6",
+    "#F2F5F7"
+   ],
+   "materials": [
+    "abyssal blue",
+    "marine snow"
+   ],
+   "viewport": "A vertical depth axis.",
+   "case": "Loses both axes: atmosphere over data.",
+   "kept": "One axis rules every line.",
+   "risk": "Moody.",
+   "hero": "https://impeccable.style/worlds/cards/rivers-tides-ocean-depths-mesophotic-deep-dive-hero.webp"
+  }
+ ],
+ "reroll": {
+  "registers": [
+   "safer",
+   "bolder"
+  ]
+ },
+ "buildPath": {
+  "value": "code",
+  "toggle": false
+ },
+ "canon": true,
+ "canonCard": {
+  "label": "The category standard",
+  "thesis": "A clean personal-finance dashboard, executed impeccably.",
+  "palette": [
+   "#FFFFFF",
+   "#111827",
+   "#2563EB"
+  ],
+  "materials": [
+   "white cards",
+   "clean grid",
+   "line charts"
+  ],
+  "viewport": "Sidebar, headline totals, cards of charts and recent transactions.",
+  "risk": "This is the Securo-style look you just rejected; every finance app looks like this."
+ },
+ "steer": true
+}

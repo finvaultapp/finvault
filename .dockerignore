@@ -1,0 +1,10 @@
+.git
+.env
+data
+backend/.venv
+backend/data
+backend/tests
+**/__pycache__
+frontend/node_modules
+frontend/dist
+.impeccable

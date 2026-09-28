@@ -1,0 +1,146 @@
+{
+  "title": "Choose FinVault's look",
+  "question": "The roll dealt The Household Passbook. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "The Household Passbook",
+      "kicker": "THE ROLL",
+      "lineage": "Savings passbooks and the machine that printed new lines into them",
+      "thesis": "Your household keeps one passbook; each statement you import prints new lines into it.",
+      "palette": ["#3B2340", "#EEF3EC", "#1E2433", "#C2412D", "#2F6B4F", "#5B4B8A"],
+      "materials": ["plum book-cloth cover", "sage security-tint pages", "ruled columns", "violet date stamps", "printer ink numerals"],
+      "viewport": "A plum cloth rail holds the page; the open page shows the newest imported lines, ruled date, description, out, in, balance, with Update book at the top.",
+      "risk": "A passbook is a bank object; it must stay the household's own book, never a bank's branding.",
+      "raised": [
+        {"from": "Seedbed lobes", "raise": "The plum cloth owns the whole rail and page frame at full strength; no scattered accent colour."},
+        {"from": "Oscilloscope bench", "raise": "One ruling measures everything: every row, figure and chart sits on the same line pitch and column grid."},
+        {"from": "Drawcord cape", "raise": "States are named on the page: each import shows previewed, printed or undone, and each account its last-updated stamp."},
+        {"from": "Zoo guide map", "raise": "Flat unmodulated colour only: no gradients, glass or grain anywhere."}
+      ],
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "cloth rail + page tabs", "x": 0, "y": 0, "w": 2, "h": 10, "accent": true},
+        {"label": "book header · Update book", "x": 2, "y": 0, "w": 10, "h": 1},
+        {"label": "ruled entries: date · description · out · in · balance", "x": 2, "y": 1, "w": 7, "h": 9},
+        {"label": "margin: month totals, budgets", "x": 9, "y": 1, "w": 3, "h": 9}
+      ]}
+    },
+    {
+      "id": "model-pick",
+      "label": "The Accordion File",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "The expanding manila folder every household keeps its statements in",
+      "thesis": "Each month is a pocket; importing a statement files it into that month's pocket.",
+      "palette": ["#D9B77A", "#2B2A26", "#F4EBDD", "#B5452F", "#3D6E8C"],
+      "materials": ["manila card", "coloured index tabs", "rubber-stamped month labels"],
+      "viewport": "A row of month tabs across the top; the open pocket lists that month's filed statements and transactions.",
+      "risk": "Familiar skeuomorph; folders and tabs are what most file-first apps already look like.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "month tabs", "x": 0, "y": 0, "w": 12, "h": 1, "accent": true},
+        {"label": "filed statements", "x": 0, "y": 1, "w": 4, "h": 9},
+        {"label": "pocket contents", "x": 4, "y": 1, "w": 8, "h": 9}
+      ]}
+    },
+    {
+      "id": "challenger-hypercard",
+      "label": "Shoebox Stack",
+      "verdict": "competitive",
+      "lineage": "HyperCard stacks: every card readable and editable in place",
+      "thesis": "Every transaction is a card you fix right where you read it.",
+      "palette": ["#000000", "#FFFFFF", "#8C8C8C"],
+      "materials": ["one-bit black on white", "dither greys", "painted buttons"],
+      "viewport": "A stack of transaction cards; the front card open for categorising, back links retracing your trail.",
+      "case": "Holds product clarity (edit-in-place suits the monthly tidy-up) but loses audience identification, and one-bit monochrome drifts toward cold.",
+      "risk": "Retro-novelty; reads clinical when the dithering is timid.",
+      "hero": "https://impeccable.style/worlds/cards/medium-native-hypercard-stack-shoebox-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/medium-native-hypercard-stack-shoebox.webp",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "menu bar", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "front card", "x": 1, "y": 1, "w": 10, "h": 8, "accent": true},
+        {"label": "stack buttons", "x": 1, "y": 9, "w": 10, "h": 1}
+      ]}
+    },
+    {
+      "id": "challenger-seedbed",
+      "label": "Seedbed Lobes",
+      "verdict": "declined",
+      "lineage": "one saturated green field with floating white capsules",
+      "thesis": "The interface floats as pills over one colour field.",
+      "palette": ["#82CC5C", "#2F3130", "#F2EFE3"],
+      "materials": ["flat vector", "capsule chrome"],
+      "viewport": "Green field, floating capsule nav, cream slab below.",
+      "case": "Loses both axes: reads as fintech marketing and too playful for this household.",
+      "kept": "Total colour commitment: the cloth owns its region.",
+      "risk": "Playful fintech energy.",
+      "hero": "https://impeccable.style/worlds/cards/sd-seedbed-lobes-hero.webp"
+    },
+    {
+      "id": "challenger-oscilloscope",
+      "label": "Signal Bench",
+      "verdict": "declined",
+      "lineage": "CRT oscilloscope on an etched graticule",
+      "thesis": "Cash flow as a phosphor trace.",
+      "palette": ["#0B0F0C", "#39FF7A", "#FFB23F"],
+      "materials": ["phosphor glass", "etched graticule"],
+      "viewport": "One graticule, channels per account.",
+      "case": "Loses both axes: clinical, and a trace can't carry categorising.",
+      "kept": "One measuring grid for every figure.",
+      "risk": "Cold instrument look.",
+      "hero": "https://impeccable.style/worlds/cards/scientific-notation-oscilloscope-signal-bench-hero.webp"
+    },
+    {
+      "id": "challenger-zoo",
+      "label": "Guide Map Lobes",
+      "verdict": "declined",
+      "lineage": "zoo and gardens guide map",
+      "thesis": "Accounts as swelling lobes of flat colour.",
+      "palette": ["#8ED462", "#F5F1E4", "#FF705D"],
+      "materials": ["flat colour lobes"],
+      "viewport": "One lobe per area, coastlines dividing.",
+      "case": "Loses both axes: playful, and lobes hide tabular data.",
+      "kept": "Flat unmodulated colour, no gradients.",
+      "risk": "Toy-like.",
+      "hero": "https://impeccable.style/worlds/cards/aww2-zoo-gardens-guide-map-hero.webp"
+    },
+    {
+      "id": "challenger-cape",
+      "label": "Drawcord Cape",
+      "verdict": "declined",
+      "lineage": "transforming silk cape",
+      "thesis": "One pull changes the whole form.",
+      "palette": ["#111111", "#C9A227", "#4A4F57"],
+      "materials": ["black silk", "gold cord"],
+      "viewport": "A flat semicircle gathering into shape.",
+      "case": "Loses both axes: no link to household money.",
+      "kept": "Named states for every transformation.",
+      "risk": "Fashion abstraction.",
+      "hero": "https://impeccable.style/worlds/cards/textiles-weave-drape-fashion-drawcord-transforming-cape-hero.webp"
+    },
+    {
+      "id": "challenger-cyclorama",
+      "label": "Dawn Cyclorama",
+      "verdict": "declined",
+      "lineage": "theatre cyclorama lighting",
+      "thesis": "Months as light passing from night to day.",
+      "palette": ["#05060A", "#2A45C9", "#E77FA0"],
+      "materials": ["light bands"],
+      "viewport": "Stacked horizon bands.",
+      "case": "Loses both axes: atmosphere over data.",
+      "kept": "Phases labelled so colour is never the only signal.",
+      "risk": "Moody, low information.",
+      "hero": "https://impeccable.style/worlds/cards/stagecraft-theater-lighting-cyclorama-dawn-hero.webp"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "code", "toggle": false},
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A clean personal-finance dashboard, executed impeccably.",
+    "palette": ["#FFFFFF", "#111827", "#2563EB"],
+    "materials": ["white cards", "clean grid", "line charts"],
+    "viewport": "Sidebar, headline totals, cards of charts and recent transactions.",
+    "risk": "Indistinguishable from other finance apps by design."
+  },
+  "steer": true
+}

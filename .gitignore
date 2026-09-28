@@ -1,0 +1,13 @@
+.env
+data/
+backend/.venv/
+backend/data/
+__pycache__/
+*.pyc
+.pytest_cache/
+frontend/node_modules/
+frontend/dist/
+.impeccable/live/
+.impeccable/*.log
+.impeccable/config.local.json
+inbox/

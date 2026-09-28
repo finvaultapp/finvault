@@ -1,0 +1,44 @@
+services:
+  finvault:
+    build: .
+    image: finvault:latest
+    container_name: finvault
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - finvault-data:/data
+      # Watched import folder: point this at a folder on your NAS, then drop bank exports into it.
+      - ./inbox:/inbox
+
+  # Optional: Postgres instead of the built-in SQLite file.
+  # Start with:  docker compose --profile postgres up -d
+  # and set DATABASE_URL=postgresql+psycopg://finvault:finvault@db/finvault in .env
+  db:
+    image: postgres:17-alpine
+    profiles: ["postgres"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: finvault
+      POSTGRES_PASSWORD: finvault
+      POSTGRES_DB: finvault
+    volumes:
+      - finvault-pg:/var/lib/postgresql/data
+
+  # Optional: a local model for the AI chat. Nothing leaves your machine.
+  # Start with:  docker compose --profile ai up -d
+  # then:        docker compose exec ollama ollama pull llama3.1
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ai"]
+    restart: unless-stopped
+    volumes:
+      - finvault-ollama:/root/.ollama
+
+volumes:
+  finvault-data:
+  finvault-pg:
+  finvault-ollama:

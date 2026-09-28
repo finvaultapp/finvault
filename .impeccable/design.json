@@ -1,0 +1,518 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-28T21:14:47.704Z",
+  "title": "Design System: FinVault",
+  "extensions": {
+    "colorMeta": {
+      "frame": {
+        "role": "primary",
+        "displayName": "Sorting-Case Teal",
+        "canonical": "oklch(44.0% 0.064 184.9)",
+        "dark": "#5FBFA9",
+        "tonalRamp": [
+          "oklch(15% 0.04 184.9)",
+          "oklch(25% 0.06 184.9)",
+          "oklch(35% 0.064 184.9)",
+          "oklch(45% 0.064 184.9)",
+          "oklch(58% 0.064 184.9)",
+          "oklch(70% 0.06 184.9)",
+          "oklch(82% 0.05 184.9)",
+          "oklch(95% 0.025 184.9)"
+        ]
+      },
+      "frame-2": {
+        "role": "primary",
+        "displayName": "Deep Case Teal",
+        "dark": "#7FD0BD"
+      },
+      "frame-soft": {
+        "role": "primary",
+        "displayName": "Teal Mist",
+        "dark": "#17302B"
+      },
+      "frame-ink": {
+        "role": "primary",
+        "displayName": "On Teal",
+        "dark": "#0C1916"
+      },
+      "tray": {
+        "role": "secondary",
+        "displayName": "Tray Amber",
+        "canonical": "oklch(76.1% 0.139 76.3)",
+        "dark": "#E8B355",
+        "tonalRamp": [
+          "oklch(15% 0.05 76.3)",
+          "oklch(25% 0.07 76.3)",
+          "oklch(35% 0.09 76.3)",
+          "oklch(45% 0.11 76.3)",
+          "oklch(58% 0.13 76.3)",
+          "oklch(70% 0.139 76.3)",
+          "oklch(82% 0.12 76.3)",
+          "oklch(95% 0.04 76.3)"
+        ]
+      },
+      "tray-bg": {
+        "role": "secondary",
+        "displayName": "Tray Cream",
+        "dark": "#33280F"
+      },
+      "tray-ink": {
+        "role": "secondary",
+        "displayName": "Tray Brown",
+        "dark": "#F2CD86"
+      },
+      "post": {
+        "role": "tertiary",
+        "displayName": "Postmark Violet",
+        "canonical": "oklch(48.3% 0.104 286.7)",
+        "dark": "#B3ACEA",
+        "tonalRamp": [
+          "oklch(15% 0.06 286.7)",
+          "oklch(25% 0.08 286.7)",
+          "oklch(35% 0.1 286.7)",
+          "oklch(45% 0.104 286.7)",
+          "oklch(58% 0.104 286.7)",
+          "oklch(70% 0.09 286.7)",
+          "oklch(82% 0.06 286.7)",
+          "oklch(95% 0.02 286.7)"
+        ]
+      },
+      "post-bg": {
+        "role": "tertiary",
+        "displayName": "Violet Wash",
+        "dark": "#24223A"
+      },
+      "green": {
+        "role": "semantic",
+        "displayName": "Ledger Green",
+        "canonical": "oklch(56.3% 0.119 158.9)",
+        "dark": "#5FCB94",
+        "tonalRamp": [
+          "oklch(15% 0.05 158.9)",
+          "oklch(25% 0.08 158.9)",
+          "oklch(35% 0.1 158.9)",
+          "oklch(45% 0.115 158.9)",
+          "oklch(58% 0.119 158.9)",
+          "oklch(70% 0.11 158.9)",
+          "oklch(82% 0.08 158.9)",
+          "oklch(95% 0.03 158.9)"
+        ]
+      },
+      "green-bg": {
+        "role": "semantic",
+        "displayName": "Mint Wash",
+        "dark": "#15301F"
+      },
+      "red": {
+        "role": "semantic",
+        "displayName": "Rose Out",
+        "canonical": "oklch(60.1% 0.181 14.9)",
+        "dark": "#F07A8C",
+        "tonalRamp": [
+          "oklch(15% 0.07 14.9)",
+          "oklch(25% 0.1 14.9)",
+          "oklch(35% 0.13 14.9)",
+          "oklch(45% 0.16 14.9)",
+          "oklch(58% 0.181 14.9)",
+          "oklch(70% 0.15 14.9)",
+          "oklch(82% 0.09 14.9)",
+          "oklch(95% 0.025 14.9)"
+        ]
+      },
+      "red-bg": {
+        "role": "semantic",
+        "displayName": "Rose Wash",
+        "dark": "#3A1D23"
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Warm Ground",
+        "canonical": "oklch(97.0% 0.004 91.4)",
+        "dark": "#101413",
+        "tonalRamp": [
+          "oklch(15% 0.004 91.4)",
+          "oklch(25% 0.004 91.4)",
+          "oklch(35% 0.004 91.4)",
+          "oklch(45% 0.004 91.4)",
+          "oklch(58% 0.004 91.4)",
+          "oklch(70% 0.004 91.4)",
+          "oklch(82% 0.004 91.4)",
+          "oklch(95% 0.004 91.4)"
+        ]
+      },
+      "sheet": {
+        "role": "neutral",
+        "displayName": "Sheet White",
+        "dark": "#181D1C"
+      },
+      "sheet-2": {
+        "role": "neutral",
+        "displayName": "Sheet Shade",
+        "dark": "#1E2423"
+      },
+      "wall": {
+        "role": "neutral",
+        "displayName": "Pigeonhole Wall",
+        "canonical": "oklch(94.5% 0.010 174.3)",
+        "dark": "#14201E",
+        "tonalRamp": [
+          "oklch(15% 0.01 174.3)",
+          "oklch(25% 0.01 174.3)",
+          "oklch(35% 0.01 174.3)",
+          "oklch(45% 0.01 174.3)",
+          "oklch(58% 0.01 174.3)",
+          "oklch(70% 0.01 174.3)",
+          "oklch(82% 0.01 174.3)",
+          "oklch(95% 0.01 174.3)"
+        ]
+      },
+      "side": {
+        "role": "neutral",
+        "displayName": "Sidebar Tint",
+        "dark": "#121C1A"
+      },
+      "side-2": {
+        "role": "neutral",
+        "displayName": "Sidebar Hover",
+        "dark": "#182523"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(25.7% 0.026 255.8)",
+        "dark": "#ECEDEA",
+        "tonalRamp": [
+          "oklch(15% 0.026 255.8)",
+          "oklch(25% 0.026 255.8)",
+          "oklch(35% 0.026 255.8)",
+          "oklch(45% 0.026 255.8)",
+          "oklch(58% 0.026 255.8)",
+          "oklch(70% 0.026 255.8)",
+          "oklch(82% 0.026 255.8)",
+          "oklch(95% 0.026 255.8)"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "dark": "#BFC5C2"
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink Quiet",
+        "dark": "#8E9794"
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(93.5% 0.009 84.6)",
+        "dark": "#262E2C",
+        "tonalRamp": [
+          "oklch(15% 0.009 84.6)",
+          "oklch(25% 0.009 84.6)",
+          "oklch(35% 0.009 84.6)",
+          "oklch(45% 0.009 84.6)",
+          "oklch(58% 0.009 84.6)",
+          "oklch(70% 0.009 84.6)",
+          "oklch(82% 0.009 84.6)",
+          "oklch(95% 0.009 84.6)"
+        ]
+      },
+      "rule-2": {
+        "role": "neutral",
+        "displayName": "Hairline Firm",
+        "dark": "#34403D"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles; 26px under 860px."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Month totals in the manifest strip; 20px on phones."
+      },
+      "figure-sm": {
+        "displayName": "Figure Small",
+        "purpose": "Spent amount in each pigeonhole; import stat strips."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card and section headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default text; subtitles cap at 70ch."
+      },
+      "body-sm": {
+        "displayName": "Body Small",
+        "purpose": "Secondary lines and small helper text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field, manifest and figure labels; buttons run 14px/600."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Meta lines, table headers, tray dates, 'of budget' text."
+      }
+    },
+    "shadows": [
+      {
+        "name": "rest",
+        "value": "0 1px 2px rgba(27,36,48,0.04), 0 2px 8px rgba(27,36,48,0.04)",
+        "dark": "0 1px 2px rgba(0,0,0,0.3)",
+        "purpose": "Cards, tray, envelopes, manifest, active nav pill, active segmented option."
+      },
+      {
+        "name": "hover",
+        "value": "0 4px 16px rgba(27,36,48,0.08)",
+        "dark": "0 4px 16px rgba(0,0,0,0.4)",
+        "purpose": "Hovered pigeonholes and envelopes."
+      },
+      {
+        "name": "float",
+        "value": "0 20px 44px -12px rgba(27,36,48,0.28), 0 4px 10px -4px rgba(27,36,48,0.08)",
+        "dark": "0 20px 44px -12px rgba(0,0,0,0.7)",
+        "purpose": "Dialogs, toasts, chart tooltips, off-canvas sidebar."
+      },
+      {
+        "name": "cell-recess",
+        "value": "inset 0 3px 8px -4px rgba(27,36,48,0.12)",
+        "purpose": "Top-edge recess of a pigeonhole cell, combined with rest."
+      },
+      {
+        "name": "slot-recess",
+        "value": "inset 0 2px 4px rgba(27,36,48,0.1)",
+        "purpose": "The fill pocket at the bottom of each pigeonhole."
+      },
+      {
+        "name": "primary-button",
+        "value": "0 1px 2px rgba(31,94,87,0.25)",
+        "purpose": "Faint teal contact shadow under primary buttons."
+      },
+      {
+        "name": "focus-halo",
+        "value": "0 0 0 3px color-mix(in srgb, var(--frame) 18%, transparent)",
+        "purpose": "Focused inputs."
+      },
+      {
+        "name": "focus-outline",
+        "value": "outline: 2px solid var(--focus); outline-offset: 2px",
+        "purpose": "Global :focus-visible ring."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-soft-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Pigeonhole hover lift (0.18s), slot fill (0.6s), dialog pop (0.22s), toast in (0.35s), drawer (0.25s)."
+      },
+      {
+        "name": "ease-sort-away",
+        "value": "cubic-bezier(0.5, 0, 0.75, 0)",
+        "purpose": "Tray item leaving: translateX(105%) rotate(2deg) with fade over 0.34s."
+      },
+      {
+        "name": "state-fast",
+        "value": "0.15s",
+        "purpose": "Colour, border and shadow transitions on controls."
+      },
+      {
+        "name": "press",
+        "value": "translateY(1px) over 0.08s",
+        "purpose": "Button press."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation-duration and transition-duration 0.01ms",
+        "purpose": "Applied globally under prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide",
+        "value": "1180px",
+        "purpose": "Below: sorting and received rows stack; manifest 3 columns."
+      },
+      {
+        "name": "medium",
+        "value": "960px",
+        "purpose": "Below: two-column grids stack; sign-in aside hidden."
+      },
+      {
+        "name": "narrow",
+        "value": "860px",
+        "purpose": "Below: off-canvas sidebar, mobile bar, two-column wall, single-column forms."
+      }
+    ],
+    "layout": {
+      "railWidth": "264px",
+      "pageMax": "1300px",
+      "mainPadding": "28px 40px 64px",
+      "mainPaddingNarrow": "20px 16px 48px",
+      "trayColumn": "minmax(300px, 370px)",
+      "totalsColumn": "320px",
+      "wallCellMin": "170px"
+    },
+    "theming": {
+      "attribute": "data-theme",
+      "values": [
+        "light",
+        "dark"
+      ],
+      "initial": "prefers-color-scheme on first visit, then persisted as fv.theme"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one teal action per context: Import statement, Save, Confirm.",
+      "html": "<button class=\"ds-btn-primary\">Import statement</button>",
+      "css": ".ds-btn-primary{font-family:var(--body,'Figtree Variable',system-ui,sans-serif);display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 15px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;background:var(--frame,#1F5E57);border:1px solid var(--frame,#1F5E57);color:var(--frame-ink,#fff);box-shadow:0 1px 2px rgba(31,94,87,.25);transition:background .15s,border-color .15s,transform .08s}.ds-btn-primary:hover{background:var(--frame-2,#184B45);border-color:var(--frame-2,#184B45)}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:focus-visible{outline:2px solid var(--focus,#1F5E57);outline-offset:2px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Default button: white sheet, firm hairline.",
+      "html": "<button class=\"ds-btn2\">Export</button>",
+      "css": ".ds-btn2{font-family:var(--body,'Figtree Variable',system-ui,sans-serif);display:inline-flex;align-items:center;height:38px;padding:0 15px;border-radius:10px;border:1px solid var(--rule-2,#DCD8D0);background:var(--sheet,#fff);color:var(--ink,#1B2430);font-weight:600;font-size:14px;cursor:pointer;transition:background .15s,transform .08s}.ds-btn2:hover{background:var(--sheet-2,#F7F6F3)}.ds-btn2:active{transform:translateY(1px)}.ds-btn2:focus-visible{outline:2px solid var(--focus,#1F5E57);outline-offset:2px}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive confirm: rose text, rose wash on hover.",
+      "html": "<button class=\"ds-btn-danger\">Delete</button>",
+      "css": ".ds-btn-danger{font-family:var(--body,'Figtree Variable',system-ui,sans-serif);height:38px;padding:0 15px;border-radius:10px;border:1px solid var(--rule-2,#DCD8D0);background:var(--sheet,#fff);color:var(--red,#D6455D);font-weight:600;font-size:14px;cursor:pointer;transition:background .15s,border-color .15s}.ds-btn-danger:hover{background:var(--red-bg,#FDECEF);border-color:transparent}.ds-btn-danger:focus-visible{outline:2px solid var(--focus,#1F5E57);outline-offset:2px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "40px field with a teal border and halo on focus.",
+      "html": "<label class=\"ds-field\"><span>Description</span><input class=\"ds-input\" placeholder=\"Search transactions\"></label>",
+      "css": ".ds-field{font-family:var(--body,'Figtree Variable',system-ui,sans-serif);display:flex;flex-direction:column;gap:6px;max-width:320px}.ds-field span{font-size:13px;font-weight:600;color:var(--ink-2,#4B5563)}.ds-input{font:inherit;font-size:14.5px;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--rule-2,#DCD8D0);background:var(--sheet,#fff);color:var(--ink,#1B2430);transition:border-color .15s,box-shadow .15s}.ds-input::placeholder{color:var(--ink-3,#6F7784)}.ds-input:focus{outline:none;border-color:var(--frame,#1F5E57);box-shadow:0 0 0 3px color-mix(in srgb,var(--frame,#1F5E57) 18%,transparent)}"
+    },
+    {
+      "name": "Sidebar Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Pale teal sidebar; active item is a white pill with teal text; unsorted count in amber.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-a on\" href=\"#\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"9\" rx=\"1\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"5\" rx=\"1\"/><rect x=\"14\" y=\"12\" width=\"7\" height=\"9\" rx=\"1\"/><rect x=\"3\" y=\"16\" width=\"7\" height=\"5\" rx=\"1\"/></svg>Dashboard</a><a class=\"ds-nav-a\" href=\"#\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01\"/></svg>Transactions<span class=\"ds-count\">7</span></a></nav>",
+      "css": ".ds-nav{font-family:var(--body,'Figtree Variable',system-ui,sans-serif);background:var(--side,#EDF4F1);padding:12px;width:240px;border-radius:14px}.ds-nav-a{display:flex;align-items:center;gap:11px;padding:8px 11px;margin:1px 0;border-radius:10px;color:var(--ink-2,#4B5563);font-weight:550;font-size:14.5px;text-decoration:none}.ds-nav-a svg{width:18px;height:18px;color:var(--ink-3,#6F7784)}.ds-nav-a:hover{background:var(--side-2,#E1ECE8);color:var(--ink,#1B2430)}.ds-nav-a:focus-visible{outline:2px solid var(--focus,#1F5E57);outline-offset:2px}.ds-nav-a.on{background:var(--sheet,#fff);color:var(--frame,#1F5E57);font-weight:650;box-shadow:0 1px 2px rgba(27,36,48,.04),0 2px 8px rgba(27,36,48,.04)}.ds-nav-a.on svg{color:var(--frame,#1F5E57)}.ds-count{margin-left:auto;min-width:22px;text-align:center;font-size:12px;font-weight:700;padding:0 7px;border-radius:999px;background:var(--tray-bg,#FDF4E1);color:var(--tray-ink,#8A5A0C)}"
+    },
+    {
+      "name": "Semantic Pills",
+      "kind": "chip",
+      "refersTo": "pill-tray",
+      "description": "Full-round washes; each lamp colour only where its meaning applies.",
+      "html": "<div class=\"ds-pills\"><span class=\"ds-pill\">Manual</span><span class=\"ds-pill amber\">Stale</span><span class=\"ds-pill post\">Synced</span><span class=\"ds-pill green\">Paid</span><span class=\"ds-pill red\">Over</span></div>",
+      "css": ".ds-pills{font-family:var(--body,'Figtree Variable',system-ui,sans-serif);display:flex;gap:6px;flex-wrap:wrap}.ds-pill{display:inline-flex;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:650;line-height:19px;background:var(--sheet-2,#F7F6F3);color:var(--ink-3,#6F7784)}.ds-pill.amber{background:var(--tray-bg,#FDF4E1);color:var(--tray-ink,#8A5A0C)}.ds-pill.post{background:var(--post-bg,#EFEDF8);color:var(--post,#5B5496)}.ds-pill.green{background:var(--green-bg,#E6F5EC);color:var(--green,#1F8A5B)}.ds-pill.red{background:var(--red-bg,#FDECEF);color:var(--red,#D6455D)}"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "White 14px sheet with hairline, Rest shadow and a hairline-separated head.",
+      "html": "<section class=\"ds-card\"><header class=\"ds-card-head\"><h2>Totals</h2><span>September 2026</span></header><div class=\"ds-card-body\">Money in, money out and net for the month.</div></section>",
+      "css": ".ds-card{font-family:var(--body,'Figtree Variable',system-ui,sans-serif);background:var(--sheet,#fff);border:1px solid var(--rule,#ECE9E3);border-radius:14px;box-shadow:0 1px 2px rgba(27,36,48,.04),0 2px 8px rgba(27,36,48,.04);color:var(--ink,#1B2430);max-width:360px}.ds-card-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--rule,#ECE9E3)}.ds-card-head h2{margin:0;font-size:16.5px;font-weight:650}.ds-card-head span{font-size:13px;color:var(--ink-3,#6F7784)}.ds-card-body{padding:20px;font-size:14.5px;line-height:1.5}"
+    },
+    {
+      "name": "Unsorted Tray",
+      "kind": "custom",
+      "refersTo": "tray-head",
+      "description": "Amber-headed tray of uncategorized lines with one-click sort chips.",
+      "html": "<div class=\"ds-tray\"><div class=\"ds-tray-head\"><div><h2>To sort</h2><div class=\"ds-tray-sub\">New lines without a category</div></div><span class=\"ds-tray-count\">3</span></div><div class=\"ds-tray-item\"><div class=\"ds-top\"><span class=\"ds-desc\">Loblaws 1043</span><strong>-$84.20</strong></div><div class=\"ds-when\">Sep 24</div><div class=\"ds-sort\"><button class=\"ds-chip likely\" style=\"--c:#2F9E6E\"><i></i>Groceries</button><button class=\"ds-chip\" style=\"--c:#C9722F\"><i></i>Dining</button></div></div></div>",
+      "css": ".ds-tray{font-family:var(--body,'Figtree Variable',system-ui,sans-serif);background:var(--sheet,#fff);border:1px solid var(--rule,#ECE9E3);border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(27,36,48,.04),0 2px 8px rgba(27,36,48,.04);max-width:360px;color:var(--ink,#1B2430)}.ds-tray-head{display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--tray-bg,#FDF4E1);color:var(--tray-ink,#8A5A0C);border-bottom:1px solid color-mix(in srgb,var(--tray,#E3A43A) 30%,transparent)}.ds-tray-head h2{margin:0;font-size:16px;font-weight:650;color:var(--ink,#1B2430)}.ds-tray-sub{font-size:12.5px;opacity:.85}.ds-tray-count{margin-left:auto;min-width:30px;height:30px;padding:0 9px;border-radius:999px;display:grid;place-items:center;background:var(--tray,#E3A43A);color:#fff;font-weight:750;font-size:14px}.ds-tray-item{padding:13px 18px}.ds-top{display:flex;gap:10px;font-size:14.5px;font-variant-numeric:tabular-nums}.ds-desc{flex:1;font-weight:600}.ds-when{font-size:12.5px;color:var(--ink-3,#6F7784);margin:1px 0 8px}.ds-sort{display:flex;gap:6px;flex-wrap:wrap}.ds-chip{font:inherit;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule-2,#DCD8D0);background:var(--sheet,#fff);color:var(--ink-2,#4B5563);font-size:12.5px;font-weight:600;padding:3px 11px;border-radius:999px;cursor:pointer;transition:background .15s,border-color .15s,color .15s}.ds-chip i{width:7px;height:7px;border-radius:50%;background:var(--c)}.ds-chip.likely{border-color:color-mix(in srgb,var(--c) 55%,transparent);background:color-mix(in srgb,var(--c) 10%,var(--sheet,#fff));color:var(--ink,#1B2430)}.ds-chip:hover{border-color:var(--frame,#1F5E57);color:var(--frame,#1F5E57);background:var(--frame-soft,#E4F0EC)}.ds-chip:focus-visible{outline:2px solid var(--focus,#1F5E57);outline-offset:2px}"
+    },
+    {
+      "name": "Pigeonhole Wall",
+      "kind": "custom",
+      "refersTo": "pigeonhole",
+      "description": "Category cells on a pale teal wall; the slot fills toward the budget, over-limit gets the rose ribbon.",
+      "html": "<div class=\"ds-wall\"><a class=\"ds-hole\" href=\"#\" style=\"--c:#2F9E6E\"><div class=\"ds-hl\"><i></i>Groceries</div><div class=\"ds-hb\"><div class=\"ds-amt\">$412</div><div class=\"ds-of\">of $600</div></div><div class=\"ds-slot\"><span style=\"transform:scaleY(.69)\"></span></div></a><a class=\"ds-hole over\" href=\"#\" style=\"--c:#C9722F\"><div class=\"ds-hl\"><i></i>Dining</div><div class=\"ds-hb\"><div class=\"ds-amt\">$236<b class=\"ds-band\">over</b></div><div class=\"ds-of\">of $200</div></div><div class=\"ds-slot\"><span></span></div></a></div>",
+      "css": ".ds-wall{font-family:var(--body,'Figtree Variable',system-ui,sans-serif);display:grid;grid-template-columns:repeat(2,170px);gap:10px;padding:14px;background:var(--wall,#E6EFEC);border-radius:14px;border:1px solid color-mix(in srgb,var(--frame,#1F5E57) 12%,transparent)}.ds-hole{position:relative;display:flex;flex-direction:column;min-height:200px;background:var(--sheet,#fff);border-radius:12px;overflow:hidden;color:var(--ink,#1B2430);text-decoration:none;box-shadow:inset 0 3px 8px -4px rgba(27,36,48,.12),0 1px 2px rgba(27,36,48,.04),0 2px 8px rgba(27,36,48,.04);transition:transform .18s cubic-bezier(.16,1,.3,1),box-shadow .18s}.ds-hole:hover{transform:translateY(-2px);box-shadow:inset 0 3px 8px -4px rgba(27,36,48,.12),0 4px 16px rgba(27,36,48,.08)}.ds-hole:focus-visible{outline:2px solid var(--focus,#1F5E57);outline-offset:2px}.ds-hl{margin:10px 10px 0;padding:3px 10px 3px 8px;width:fit-content;background:color-mix(in srgb,var(--c) 13%,var(--sheet,#fff));color:color-mix(in srgb,var(--c) 70%,var(--ink,#1B2430));border-radius:999px;font-weight:650;font-size:13px;display:flex;align-items:center;gap:6px}.ds-hl i{width:8px;height:8px;border-radius:50%;background:var(--c)}.ds-hb{padding:10px 12px 8px}.ds-amt{font-size:20px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}.ds-of{font-size:12.5px;color:var(--ink-3,#6F7784)}.ds-slot{position:relative;margin:2px 12px 12px;flex:1;min-height:58px;border-radius:8px;background:var(--sheet-2,#F7F6F3);box-shadow:inset 0 2px 4px rgba(27,36,48,.1);overflow:hidden}.ds-slot span{position:absolute;inset:0;transform-origin:bottom;background:color-mix(in srgb,var(--c) 42%,var(--sheet,#fff));border-top:2px solid var(--c)}.ds-band{display:inline-block;margin-left:6px;padding:0 7px;border-radius:999px;background:var(--red,#D6455D);color:#fff;font-size:11px;font-weight:700;line-height:17px;vertical-align:1px}.ds-hole.over{box-shadow:0 0 0 2px var(--red,#D6455D),0 1px 2px rgba(27,36,48,.04),0 2px 8px rgba(27,36,48,.04)}.ds-hole.over .ds-slot span{background:color-mix(in srgb,var(--red,#D6455D) 35%,var(--sheet,#fff));border-top-color:var(--red,#D6455D)}.ds-hole.over .ds-slot::after{content:'';position:absolute;left:-10%;right:-10%;top:38%;height:10px;background:var(--red,#D6455D);transform:rotate(-6deg);opacity:.85}"
+    },
+    {
+      "name": "Postmarked Envelope",
+      "kind": "custom",
+      "refersTo": "envelope",
+      "description": "A received statement: white envelope with a rotated violet date postmark.",
+      "html": "<a class=\"ds-env\" href=\"#\"><svg class=\"ds-pm\" viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"RBC Chequing, received 2026-09-24\"><defs><path id=\"dsT\" d=\"M 16 50 A 34 34 0 0 1 84 50\"/><path id=\"dsB\" d=\"M 14 52 A 36 36 0 0 0 86 52\"/></defs><circle cx=\"50\" cy=\"50\" r=\"46\" stroke=\"currentColor\" stroke-width=\"3\" fill=\"none\"/><circle cx=\"50\" cy=\"50\" r=\"30\" stroke=\"currentColor\" stroke-width=\"1.5\" fill=\"none\"/><text fill=\"currentColor\" font-weight=\"700\" font-size=\"11\" letter-spacing=\"1.5\"><textPath href=\"#dsT\" startOffset=\"50%\" text-anchor=\"middle\">RBC CHEQUING</textPath></text><text fill=\"currentColor\" font-weight=\"600\" font-size=\"9\" letter-spacing=\"2\"><textPath href=\"#dsB\" startOffset=\"50%\" text-anchor=\"middle\">IMPORTED</textPath></text><text x=\"50\" y=\"50\" text-anchor=\"middle\" fill=\"currentColor\" font-weight=\"700\" font-size=\"20\">24</text><text x=\"50\" y=\"63\" text-anchor=\"middle\" fill=\"currentColor\" font-weight=\"600\" font-size=\"10\" letter-spacing=\"1\">SEP 2026</text></svg><div><div class=\"ds-who\">RBC Chequing</div><small>Sep 24 · OFX</small></div></a>",
+      "css": ".ds-env{font-family:var(--body,'Figtree Variable',system-ui,sans-serif);display:flex;align-items:center;gap:14px;padding:12px 16px 12px 12px;background:var(--sheet,#fff);border:1px solid var(--rule,#ECE9E3);border-radius:14px;box-shadow:0 1px 2px rgba(27,36,48,.04),0 2px 8px rgba(27,36,48,.04);max-width:340px;color:var(--ink,#1B2430);text-decoration:none;transition:box-shadow .15s}.ds-env:hover{box-shadow:0 4px 16px rgba(27,36,48,.08)}.ds-env:focus-visible{outline:2px solid var(--focus,#1F5E57);outline-offset:2px}.ds-pm{width:58px;height:58px;flex-shrink:0;color:var(--post,#5B5496);opacity:.9;transform:rotate(-8deg);font-family:'Figtree Variable',Figtree,sans-serif}.ds-who{font-weight:650}.ds-env small{display:block;color:var(--ink-3,#6F7784);font-size:12.5px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Soft Sorting Room",
+    "overview": "FinVault is a household mail-sorting case rendered in soft materials. Each imported statement arrives as an envelope with a circular violet postmark; every line is sorted into a category pigeonhole on a pale teal wall; whatever has no category waits in an amber tray until someone sorts it with one click. The sorting-case ideas carry the meaning, and the softness carries the mood: white rounded sheets on a warm off-white ground, hairline borders, low ambient shadows, one friendly sans in sentence case, and generous space.\n\nThe system is calm and domestic rather than financial. There is no hero metric, no gradient, no glass, and no brand-colored chrome beyond a single deep teal for actions and the active place in the nav. Colour is spent on meaning: amber means \"waiting to be sorted\", violet means \"this arrived from a statement\", green is money in, rose is money out and over-limit. Category colours come from the household's own data and appear only as soft tints inside pigeonholes and chips. Density is moderate: comfortable 20px card padding, 13px list rows, tabular numerals everywhere so money columns line up.\n\nThe world was deliberately softened away from a strict mail-room build that read as too technical. All-caps condensed type, square corners and heavy rules are out; so is a copy of the Securo reference's layout, indigo accent, and icon-tile grammar.",
+    "keyCharacteristics": [
+      "Warm off-white ground (#F6F5F2) under white sheets with 14px corners and #ECE9E3 hairlines.",
+      "One action colour: deep teal (#1F5E57) for primary buttons, links, focus, and the active nav pill.",
+      "Semantic accents only: amber tray, violet postmark, green in, rose out.",
+      "Figtree Variable throughout, sentence case, tabular numerals, weights between 400 and 750.",
+      "Pigeonholes: rounded cells on a pale teal wall whose pastel fill rises toward the budget; over-limit gets a rose ring and a diagonal rose ribbon.",
+      "Flat by default with a whisper of ambient shadow; lift only on hover and for floating layers.",
+      "A full dark theme mirrors every token (`data-theme=\"dark\"`), following the OS preference on first visit."
+    ],
+    "rules": [
+      {
+        "name": "The Lamp Rule",
+        "body": "Amber, violet, green and rose are lamps, not paint. Each one appears only where its meaning applies (unsorted, received, in, out/over); never as decoration, section colour, or a second brand accent.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Teal Rule",
+        "body": "Teal is the only colour that means \"you can act here\" or \"you are here\". A second action colour is a defect.",
+        "section": "colors"
+      },
+      {
+        "name": "The Household Colours Rule",
+        "body": "Category colours belong to the user's data. They enter the interface only through `--c` as soft `color-mix` tints (10 to 42 percent into the sheet) on pigeonhole labels, fills and sort chips, never as solid fields.",
+        "section": "colors"
+      },
+      {
+        "name": "The Sentence Case Rule",
+        "body": "Every interface label, heading, button and nav item is sentence case with normal or slightly negative tracking. The one native exception is the postmark stamp itself, whose ring text and month are set in capitals with open tracking because that is what a date stamp is.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Money Rule",
+        "body": "`font-variant-numeric: tabular-nums` is set on `body`; money is always right-aligned in tables and set at 600 to 700 weight.",
+        "section": "typography"
+      },
+      {
+        "name": "The Resting Paper Rule",
+        "body": "At rest, nothing is lifted more than the Rest shadow. Hover may lift a clickable sheet by 2px with the Hover shadow; only floating layers get Float.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No Gloss Rule",
+        "body": "No gradients, glass, blur backdrops or glows anywhere in the interface. The only blur is the privacy blur on money values.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** set every surface on the warm ground (#F6F5F2) with white sheets at 14px radius, 1px #ECE9E3 hairlines and the Rest shadow.",
+      "**Do** reserve teal (#1F5E57) for primary actions, links, focus and the active place in navigation.",
+      "**Do** use amber only for unsorted work, violet only for received statements, green for money in and rose for money out or over budget.",
+      "**Do** tint category colours softly with `color-mix` into the sheet; let the household's colours live inside pigeonholes and chips.",
+      "**Do** keep all interface text in Figtree, sentence case, with tabular numerals and right-aligned money.",
+      "**Do** lift only on hover (2px, Hover shadow) and give Float only to dialogs, toasts, tooltips and the drawer.",
+      "**Do** respect reduced motion; every animation and transition collapses to near zero under `prefers-reduced-motion`.",
+      "**Do** define every new colour for both themes; dark mode is a full mirror, not an afterthought."
+    ],
+    "donts": [
+      "**Don't** add gradients, glass, backdrop blur or glows.",
+      "**Don't** use all-caps or condensed type for labels, headings or buttons; capitals belong only inside the postmark stamp.",
+      "**Don't** square off corners or use heavy rules; hairlines and soft radii are the material.",
+      "**Don't** introduce an indigo or second action accent, or copy the Securo layout of white sidebar, slate ground and icon tiles.",
+      "**Don't** lead a screen with a single hero metric or a grid of icon tiles; the tray and the pigeonhole wall carry the dashboard.",
+      "**Don't** fill large areas with solid category colour or a semantic lamp colour."
+    ]
+  }
+}
