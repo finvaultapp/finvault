@@ -19,6 +19,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/app ./app
 COPY backend/alembic.ini ./alembic.ini
 COPY backend/migrations ./migrations
+COPY backend/scripts ./scripts
 COPY --from=web /web/dist ./static
 RUN useradd --system --uid 1000 finvault && mkdir -p /data /inbox && chown finvault /data /inbox
 USER finvault

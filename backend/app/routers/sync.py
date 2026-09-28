@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -7,6 +7,7 @@ from .. import settings_store
 from ..db import get_db
 from ..deps import current_user, owned
 from ..models import Account, SyncConnection, User
+from ..services import audit
 from ..services import sync as s
 
 router = APIRouter(prefix="/api/sync", tags=["sync"])
@@ -49,12 +50,13 @@ class GcStartIn(BaseModel):
 
 
 @router.post("/gocardless/start")
-def gc_start(body: GcStartIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
+def gc_start(body: GcStartIn, request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
     _require(db, "gocardless")
     try:
         conn, link = s.gc_start(db, user, body.institution_id, body.redirect_url)
     except s.SyncError as exc:
         _err(exc)
+    audit.record(db, "sync.connected", request=request, user=user, provider="gocardless", connection_id=conn.id)
     return {"connection_id": conn.id, "link": link}
 
 
@@ -63,22 +65,24 @@ class TokenIn(BaseModel):
 
 
 @router.post("/simplefin/connect")
-def simplefin_connect(body: TokenIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
+def simplefin_connect(body: TokenIn, request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
     _require(db, "simplefin")
     try:
         conn = s.simplefin_connect(db, user, body.token)
     except s.SyncError as exc:
         _err(exc)
+    audit.record(db, "sync.connected", request=request, user=user, provider="simplefin", connection_id=conn.id)
     return {"connection_id": conn.id}
 
 
 @router.post("/pluggy/connect")
-def pluggy_connect(body: TokenIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
+def pluggy_connect(body: TokenIn, request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
     _require(db, "pluggy")
     try:
         conn = s.pluggy_connect(db, user, body.token)
     except s.SyncError as exc:
         _err(exc)
+    audit.record(db, "sync.connected", request=request, user=user, provider="pluggy", connection_id=conn.id)
     return {"connection_id": conn.id}
 
 
@@ -120,11 +124,13 @@ def sync_now(cid: int, user: User = Depends(current_user), db: Session = Depends
 
 
 @router.delete("/connections/{cid}")
-def disconnect(cid: int, user: User = Depends(current_user), db: Session = Depends(get_db)):
+def disconnect(cid: int, request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
     """Removes stored provider credentials. Imported transactions stay."""
     conn = owned(db, SyncConnection, cid, user)
     for a in db.scalars(select(Account).where(Account.sync_connection_id == conn.id)):
         a.sync_connection_id, a.external_id = None, None
+    provider = conn.provider
     db.delete(conn)
     db.commit()
+    audit.record(db, "sync.disconnected", request=request, user=user, provider=provider, connection_id=cid)
     return {"ok": True}

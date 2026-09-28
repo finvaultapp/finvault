@@ -121,13 +121,48 @@ See [.env.example](.env.example) for the full list.
 ## Backups
 
 Everything important is in the data volume. For SQLite:
+Everything is in the data volume. FinVault can also make **encrypted backups** for you (off by default):
+
+1. In **Admin → Encrypted backups**, set a backup passphrase (at least 12 characters; write it down, it can't be recovered) and turn on **Nightly backup**. **Back up now** makes one right away.
+2. Each backup is one `.fvbackup` file: a consistent database snapshot (SQLite's online backup API, or a JSON export of every table on Postgres), the receipts folder, `secret.key` and a manifest with a SHA-256 for every file, packed as tar.gz and encrypted with AES-256-GCM using a key derived from your passphrase with scrypt (random salt in the file header).
+3. Files go to `BACKUP_DIR` (default `/data/backups`; mount your NAS share there) and, if the `BACKUP_S3_*` settings are filled in, also to S3-compatible storage. The newest `BACKUP_KEEP` (default 14) are kept in each place.
+
+The passphrase is stored encrypted with the app's secret key and never sent back to the browser. If you set `SECRET_KEY` in `.env` instead of using the generated `/data/secret.key`, keep that value somewhere safe too: the backup only contains `secret.key`, and 2FA secrets and provider tokens are encrypted with the key.
+
+#### Restoring a backup
+
+The restore script checks everything before it overwrites anything, and refuses to run while FinVault has the database open.
 
 ```bash
-docker compose exec finvault python -c "import sqlite3; s=sqlite3.connect('/data/finvault.db'); d=sqlite3.connect('/data/backup.db'); s.backup(d)"
-docker compose cp finvault:/data/backup.db ./finvault-backup.db
+docker compose stop finvault
+# copy the backup into the data volume if it isn't there already
+docker compose cp ./finvault-20260101-030000.fvbackup finvault:/data/backups/
+# check the file and passphrase only (changes nothing)
+docker compose run --rm finvault python -m scripts.restore_backup /data/backups/finvault-20260101-030000.fvbackup --verify-only
+# restore (asks for the passphrase, then asks you to type "restore")
+docker compose run --rm finvault python -m scripts.restore_backup /data/backups/finvault-20260101-030000.fvbackup
+docker compose start finvault
 ```
 
 Keep `/data/secret.key` or your `SECRET_KEY` with the backup. TOTP secrets, AI keys, and provider credentials are encrypted with it.
+Without Docker: `cd backend && .venv/Scripts/python -m scripts.restore_backup FILE --data-dir ../data` (use `.venv/bin` on macOS/Linux).
+
+- The current database, receipts folder and `secret.key` are kept next to them as `*.before-restore-<time>` (for Postgres, take a `pg_dump` first: rows are replaced in one transaction).
+- If FinVault crashed and left `finvault.db-wal` behind, the script thinks the database is still open. Make sure the server is stopped, then add `--force`.
+- For scripted restores, set `FINVAULT_BACKUP_PASSPHRASE` instead of typing it. A SQLite backup restores into SQLite; a Postgres (JSON) backup restores into Postgres or SQLite.
+
+### Single sign-on (OIDC)
+
+FinVault can sign people in with Authentik, Pocket ID, Keycloak or any standard OpenID Connect provider. Create a confidential client at the provider with the redirect URI `https://<your FinVault>/api/auth/oidc/callback`, then set `OIDC_ENABLED=true`, `OIDC_PROVIDER_NAME`, `OIDC_DISCOVERY_URL`, `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` in `.env`. The sign-in page then shows "Sign in with <provider>".
+
+- It uses the authorization code flow with PKCE; state and nonce live in a short-lived signed cookie, and the ID token's signature (from the provider's JWKS), issuer, audience, expiry and nonce are all checked.
+- With `OIDC_ALLOW_SIGNUP=false` (the default) only existing members can sign in, matched by the provider's **verified** email. The first sign-in links the provider account to the member, so later email changes at the provider can't take over another account. With `true`, new people get an account too, still following the registration mode (in invite mode, open the invite link first, then click the button).
+- **Two-factor:** when a member who has FinVault TOTP turned on signs in through the provider, FinVault doesn't ask for their code again. The provider is trusted to do its own multi-factor check, so turn on MFA there. Password sign-in still asks for the code.
+- `LOCAL_AUTH_ENABLED=false` hides the password form and refuses password sign-in and registration. Keep at least one admin who can sign in through the provider before turning it off.
+
+### Audit log
+
+**Admin → Audit log** lists security events: sign-ins and failed sign-ins (email and IP address, never passwords), 2FA on/off/reset, password changes, sign out everywhere, admin setting changes (which keys, never secret values), members created/deleted/changed, invites, backups, bank sync connect/disconnect and AI keys added/removed. Filter by event or member and export to CSV. Events older than `AUDIT_RETENTION_DAYS` (default 365) are deleted nightly. Behind a reverse proxy, the IP is taken from `X-Forwarded-For` (the Docker image runs uvicorn with `--proxy-headers`), so don't expose the container port directly if you rely on it.
 
 ## Security Notes
 
