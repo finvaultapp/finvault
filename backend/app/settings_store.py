@@ -1,5 +1,6 @@
 """Server-wide settings editable by admins. Environment variables provide the defaults."""
 import json
+import time
 
 from sqlalchemy.orm import Session
 
@@ -45,6 +46,25 @@ def set(db: Session, key: str, value) -> None:
         db.add(AppSetting(key=key, value=json.dumps(value)))
     else:
         row.value = json.dumps(value)
+
+
+def acquire_lock(db: Session, key: str, ttl_seconds: int) -> bool:
+    """Best-effort cross-process lease stored in app_settings."""
+    lock_key = f"lock:{key}"
+    now = time.time()
+    row = db.get(AppSetting, lock_key)
+    if row is not None:
+        try:
+            expires = float(json.loads(row.value))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            expires = 0
+        if expires > now:
+            return False
+        row.value = json.dumps(now + ttl_seconds)
+    else:
+        db.add(AppSetting(key=lock_key, value=json.dumps(now + ttl_seconds)))
+    db.commit()
+    return True
 
 
 def public(db: Session) -> dict:

@@ -1,117 +1,198 @@
 # FinVault
 
-A private personal finance app for your household that you run yourself. Your accounts, transactions and reports live in a database on your own computer or home server, not with a company.
+Private household finance, sorted on your own hardware.
 
-- Multiple accounts (chequing, savings, credit cards, loans, cash, investments), each in its own currency
-- Import statements from **QFX/OFX, QBO, QIF and CSV**, with duplicate detection and one-click undo
-- Search, filter and bulk-edit transactions; export to CSV, OFX or JSON
-- Rules that categorize repeat purchases automatically, plus "remembered merchants" from your history
-- Budgets, recurring transactions (with detection from history), savings goals
-- Assets and debts (home, car, RRSP/TFSA, mortgage) with value history
-- Net worth and income-vs-expense reports with charts
-- Multi-currency, with a visible warning whenever an exchange rate is missing (amounts are never silently guessed)
-- Multi-user with per-person data, admin panel, registration controls (open / invite / closed), TOTP two-factor login with recovery codes
-- Optional bank sync for **non-Canadian** banks (GoCardless for EU PSD2, Pluggy for Brazil, SimpleFIN for the US)
-- Optional AI chat over your own data, **off by default**: use a self-hosted model such as Ollama, or let each member connect their own ChatGPT (OpenAI) account with an API key
+FinVault is a self-hosted personal finance app for households that want clean budgets, statement imports, shared-cost tracking, and reports without handing bank credentials or transaction history to a cloud company. It is file-first for Canadian banks: download the QFX/OFX/QBO/QIF/CSV statement your bank already provides, preview it, import it, and sort the new lines.
 
-### Built for Canadian households
+![FinVault dashboard](docs/screenshots/dashboard.png)
 
-- **TFSA, RRSP and FHSA room tracker:** copy each year's room from CRA My Account (or your Notice of Assessment), link the account, and FinVault counts contributions and withdrawals against it. It warns you before you over-contribute, allows for the RRSP's $2,000 buffer, and reminds you that TFSA withdrawals only come back as room the next January 1. These are reminders, not tax advice.
-- **Tax time:** tag categories (Health = medical, and so on) or single transactions as medical, child care, donations, moving or home office, and get a yearly summary plus a CSV to hand to your accountant. Split lines and shared costs are counted correctly.
-- **Français:** the whole interface is available in Canadian French (Settings → Language), with French money and date formats. Members who sign up in French get French default categories.
-- **Watched import folder:** mount a NAS folder at `/inbox`, turn it on per account, and bank exports saved there are imported every couple of minutes. Imported files move to `imported/`; unreadable ones move to `failed/` with a note explaining why.
+## Why It Exists
 
-### Household money
+Most finance apps ask for too much trust. FinVault is built around a quieter bargain:
 
-- **Split and shared costs:** split one transaction across categories, or share it with a person (partner, roommate). Only your part counts as your spending. FinVault tracks who owes whom, and settling up can be linked to the e-transfer that paid you back so it isn't counted as income.
-- **Transfer matching:** card payments and moves between your own accounts are paired automatically after each import, so they never count as spending or income. Unclear pairs are offered for review.
-- **Bills calendar and reminders:** every recurring bill on a month calendar, with reminders a chosen number of days ahead by ntfy push or email (SMTP). Amounts can be hidden from lock-screen notifications.
-- **Receipts:** attach a photo or PDF to any transaction. With OCR turned on, Tesseract reads the text on your own server, the text becomes searchable, and FinVault flags a receipt total that doesn't match the transaction.
+- Your accounts, transactions, receipts, reports, 2FA secrets, and provider tokens live in your own database.
+- Canadian accounts never connect directly to a bank and never ask for an online-banking password.
+- Optional features such as bank sync, OCR, notifications, exchange-rate fetching, and AI are off until an admin enables them.
+- When exchange rates are missing, totals warn you instead of silently guessing.
+- Each household member has a separate login and separate finance data.
 
-## Canadian banks: file import only
+## Product Tour
 
-FinVault never connects to a Canadian bank and never asks for an online-banking password. Canada doesn't yet have a live consumer open-banking system, and the aggregators that fill the gap usually need your banking password. So for Canadian accounts the only way in is the export file your bank already gives you:
+### Sort New Transactions
 
-1. Sign in to your bank's own website.
-2. Open the account, find **Download** / **Export** / **Download transactions**.
-3. Choose **Quicken (QFX)**, **Money (OFX)** or **QuickBooks (QBO)** if offered. This is the standard format and carries stable transaction IDs. Otherwise choose **CSV**.
-4. Upload it on the **Import** page and check the preview.
+Imported lines without a category land in an amber tray. Rules and remembered merchants suggest where they belong, and the monthly pigeonhole wall shows where spending is going.
 
-Built-in CSV layouts: RBC, TD, CIBC, BMO (bank and Mastercard), Scotiabank, Tangerine, Simplii, Wealthsimple, Rogers Bank, PC Financial, American Express Canada. EQ Bank, Neo Financial, Triangle (Canadian Tire), Desjardins, National Bank and credit unions are read with the generic matcher, which understands English and French headers, semicolons, decimal commas, separate debit/credit columns and debit/credit type columns. If a bank changes its layout you can remap the columns in the preview. Credit-card files that list purchases as positive numbers are detected and flipped (you can override this).
+![Dashboard sorting room](docs/screenshots/dashboard.png)
 
-Canadian accounts are marked "Import only". The sync code refuses to link any account with country CA, CAD currency or a `.ca` institution.
+### Import Statements
 
-## Run it with Docker
+FinVault handles OFX/QFX/QBO, QIF, and CSV exports, including Canadian bank presets and a generic mapper for unusual files. Duplicates are skipped, overlapping date ranges are fine, and imports can be undone.
+
+![Statement import](docs/screenshots/import.png)
+
+### Review Transactions
+
+Search, filter, bulk edit, categorize, split, share, attach receipts, and export as CSV, OFX, or JSON.
+
+![Transactions table](docs/screenshots/transactions.png)
+
+### Understand Trends
+
+Reports show income vs expenses, net worth, category breakdowns, budgets, goals, registered-plan reminders, tax summaries, and multi-currency warnings.
+
+![Reports](docs/screenshots/reports.png)
+
+## Feature Highlights
+
+- Multiple account types: chequing, savings, credit cards, cash, loans, investments, and assets.
+- Statement imports for QFX/OFX/QBO, QIF, CSV, TXT, and TSV.
+- Built-in CSV presets for RBC, TD, CIBC, BMO, Scotiabank, Tangerine, Simplii, Wealthsimple, Rogers Bank, PC Financial, American Express Canada, and more.
+- Categorization rules, remembered merchants, bulk editing, and one-click sorting.
+- Budgets, recurring bills, bill reminders, goals, assets, debts, and net worth.
+- TFSA, RRSP, and FHSA contribution-room tracking.
+- Tax-time summaries for medical, child care, donations, moving, home office, and other deductible categories.
+- Shared expenses, people balances, and settle-up tracking.
+- Receipt attachments with optional local OCR through Tesseract.
+- Multi-currency conversion with explicit missing-rate warnings.
+- Canadian French interface and French default categories.
+- Optional non-Canadian bank sync via GoCardless, Pluggy, or SimpleFIN.
+- Optional AI chat over your own data, with a preview of exactly what will be sent before using it.
+
+## Canadian Banks
+
+For Canadian accounts, FinVault is import-only by design. Canada does not yet have a live consumer open-banking system, and many aggregators fill that gap by asking for online-banking credentials. FinVault does not do that.
+
+The flow is:
+
+1. Sign in to your bank's website.
+2. Download transactions as QFX, OFX, QBO, QIF, or CSV.
+3. Upload the file in FinVault.
+4. Review the preview, confirm column mapping if needed, and import.
+5. Sort any uncategorized lines.
+
+Canadian accounts are blocked from direct sync when the account country is CA, currency is CAD, or the provider institution looks Canadian.
+
+## Run With Docker
 
 ```bash
-git clone <this repo> finvault && cd finvault
-cp .env.example .env        # optional: edit settings
+git clone https://github.com/henilsarang/finvault.git
+cd finvault
+cp .env.example .env
 docker compose up -d --build
 ```
 
-Open <http://localhost:8000>. The first account you create becomes the admin. Data lives in the `finvault-data` Docker volume (SQLite by default).
+Open [http://localhost:8000](http://localhost:8000). The first account you create becomes the admin. Data is stored in the `finvault-data` Docker volume.
 
-Optional extras:
+Optional services:
 
 ```bash
-docker compose --profile postgres up -d   # use Postgres (also set DATABASE_URL in .env)
-docker compose --profile ai up -d         # run Ollama next to FinVault for AI chat
+docker compose --profile postgres up -d
+docker compose --profile ai up -d
 docker compose exec ollama ollama pull llama3.1
 ```
 
-If you expose FinVault beyond your home network, put it behind HTTPS (Caddy, Traefik, Tailscale) and set `COOKIE_SECURE=true`.
+If you expose FinVault beyond a trusted LAN, put it behind HTTPS and set:
 
-### Backups
+```env
+COOKIE_SECURE=true
+FORWARDED_ALLOW_IPS=<your reverse proxy IP or CIDR>
+```
 
-Everything is in the data volume. For SQLite:
+## Configuration
+
+See [.env.example](.env.example) for the full list.
+
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| `REGISTRATION_MODE` | `invite` | Who can sign up after the admin: `open`, `invite`, or `closed`. |
+| `DEFAULT_CURRENCY` | `CAD` | Suggested base currency for new members. |
+| `COOKIE_SECURE` | `false` | Set to `true` behind HTTPS. |
+| `FORWARDED_ALLOW_IPS` | Uvicorn default | Trust forwarded headers only from your reverse proxy. |
+| `ALLOW_PRIVATE_OUTBOUND_URLS` | `false` | Allow user-configured webhook/provider URLs to call LAN hosts. |
+| `BANK_SYNC_ENABLED` | `false` | Master switch for optional non-Canadian sync. |
+| `SIMPLEFIN_ENABLED` | `false` | Allows SimpleFIN setup tokens. |
+| `AI_ENABLED` | `false` | Enables the household AI endpoint. Members must still opt in. |
+| `FX_FETCH_ENABLED` | `false` | Enables fetching ECB exchange rates. |
+| `FOLDER_IMPORT_ENABLED` | `false` | Enables watched-folder imports. |
+| `OCR_ENABLED` | `false` | Enables local receipt OCR. |
+
+## Backups
+
+Everything important is in the data volume. For SQLite:
 
 ```bash
 docker compose exec finvault python -c "import sqlite3; s=sqlite3.connect('/data/finvault.db'); d=sqlite3.connect('/data/backup.db'); s.backup(d)"
 docker compose cp finvault:/data/backup.db ./finvault-backup.db
 ```
 
-Keep `/data/secret.key` (or your `SECRET_KEY`) with the backup: 2FA secrets and provider tokens are encrypted with it.
+Keep `/data/secret.key` or your `SECRET_KEY` with the backup. TOTP secrets, AI keys, and provider credentials are encrypted with it.
 
-## Configuration
+## Security Notes
 
-See [.env.example](.env.example). Everything optional is off by default:
-
-| Setting | Default | What it does |
-| --- | --- | --- |
-| `REGISTRATION_MODE` | `invite` | Who can sign up after the admin: `open`, `invite` or `closed`. Admins can change it in the app. |
-| `DEFAULT_CURRENCY` | `CAD` | Suggested main currency for new members. |
-| `BANK_SYNC_ENABLED` | `false` | Master switch for bank sync (admin can toggle). |
-| `GOCARDLESS_SECRET_ID/KEY` | empty | Enables EU PSD2 banks via GoCardless Bank Account Data. |
-| `PLUGGY_CLIENT_ID/SECRET` | empty | Enables Brazilian banks via Pluggy. |
-| `SIMPLEFIN_ENABLED` | `false` | Allows SimpleFIN; each member pastes their own setup token. |
-| `AI_ENABLED` | `false` | AI chat. Each member must also opt in under Settings. |
-| `AI_BASE_URL` / `AI_MODEL` | Ollama / `llama3.1` | Any OpenAI-compatible endpoint. The admin panel warns if it isn't on your local network. |
-| (admin toggle) | off | "Let members connect their own ChatGPT (OpenAI) account". Each member pastes an OpenAI API key in Settings → AI assistant; it's checked with OpenAI, stored encrypted, and billed to their OpenAI account. A ChatGPT Plus/Pro subscription can't be used by other apps, so an API key from platform.openai.com/api-keys is required. |
-| `FX_FETCH_ENABLED` | `false` | Adds a button to fetch ECB exchange rates (only currency codes are sent). |
-
-## Security notes
-
-- Passwords are hashed with bcrypt; sessions are HttpOnly, SameSite cookies; write requests need a custom header (CSRF defence).
-- Login and 2FA attempts are rate-limited. TOTP secrets and bank provider tokens are encrypted at rest.
-- Each member's data is isolated; admins manage members but can't read their finances in the app.
-- The app sends strict security headers (CSP, frame denial, no-sniff).
+- Passwords are bcrypt-hashed after SHA-256 prehashing, so long passphrases keep their entropy.
+- Sessions are HttpOnly, SameSite cookies; cookie-authenticated writes require the `X-FinVault` header.
+- Login throttling applies both per apparent IP/email pair and per email.
+- TOTP secrets, provider tokens, and AI keys are encrypted at rest.
+- Security headers include no-sniff, frame denial, referrer policy, permissions policy, and CSP for the SPA.
+- Uploaded receipts are sniffed by file bytes, stored under random names, and capped at 10 MB.
+- Statement imports are capped at 15 MB before parsing.
+- User-configured outbound URLs are guarded against localhost/private-network SSRF by default.
+- Alembic migrations run at startup, with a compatibility path for older local databases.
 
 ## Development
 
-```bash
-# backend
-cd backend
-python -m venv .venv && .venv/Scripts/pip install -r requirements.txt pytest   # use .venv/bin on macOS/Linux
-.venv/Scripts/python -m pytest
-.venv/Scripts/python -m scripts.demo_seed      # optional: synthetic demo household (demo@finvault.local / demo-password-123)
-.venv/Scripts/python -m uvicorn app.main:app --reload
+Backend:
 
-# frontend (proxies /api to :8000)
-cd frontend && npm install && npm run dev
+```bash
+cd backend
+python -m venv .venv
+.venv/Scripts/pip install -r requirements-dev.txt
+.venv/Scripts/python -m pytest
+.venv/Scripts/python -m scripts.demo_seed
+.venv/Scripts/python -m uvicorn app.main:app --reload
 ```
 
-API docs are at `/api/docs` while the server runs.
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+npm run build
+npm audit --omit=dev
+```
+
+The Vite dev server proxies `/api` to `localhost:8000`. API docs are available at `/api/docs` while the backend is running.
+
+## Screenshots
+
+The screenshots in `docs/screenshots` are generated from the synthetic demo household.
+
+```bash
+cd frontend
+npm run build
+# In another terminal, run the backend with demo data on http://127.0.0.1:8765
+npm run screenshots
+```
+
+Demo credentials:
+
+```text
+demo@finvault.local
+demo-password-123
+```
+
+All demo transactions and balances are fake.
+
+## CI
+
+GitHub Actions runs:
+
+- backend dependency install and `pytest`
+- frontend `npm ci`
+- frontend production build
+- production dependency audit
 
 ## Credits
 
-The interface follows the look of [Securo](https://github.com/securo-finance/securo), an open-source self-hosted finance manager. No Securo code is included.
+FinVault's interface takes inspiration from soft household sorting rooms and statement envelopes. Earlier visual exploration referenced [Securo](https://github.com/securo-finance/securo), but no Securo code is included.

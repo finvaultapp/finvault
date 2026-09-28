@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from .. import config
 from ..models import Account, Recurring, User
+from .net import validate_outbound_url
 from .recurring import occurrences
 
 log = logging.getLogger("finvault.notify")
@@ -32,7 +33,8 @@ def send_email(to: str, subject: str, body: str) -> None:
 
 
 def send_ntfy(url: str, title: str, body: str) -> None:
-    r = httpx.post(url, content=body.encode(), headers={"Title": title, "Tags": "calendar"}, timeout=15)
+    r = httpx.post(validate_outbound_url(url, label="The ntfy address"), content=body.encode(),
+                   headers={"Title": title, "Tags": "calendar"}, timeout=15)
     r.raise_for_status()
 
 

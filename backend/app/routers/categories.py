@@ -81,8 +81,8 @@ class RuleIn(BaseModel):
     match_field: str = Field(default="description", pattern="^(description|payee)$")
     match_type: str = Field(default="contains", pattern="^(contains|equals|starts_with|regex)$")
     pattern: str = Field(min_length=1, max_length=300)
-    amount_min: float | None = None
-    amount_max: float | None = None
+    amount_min: Decimal | None = None
+    amount_max: Decimal | None = None
     account_id: int | None = None
     set_category_id: int | None = None
     set_payee: str | None = Field(default=None, max_length=200)
@@ -102,8 +102,6 @@ def _validate_rule(db: Session, user: User, body: RuleIn) -> dict:
     if not body.set_category_id and not body.set_payee:
         raise HTTPException(422, "A rule needs to set a category or a payee.")
     data = body.model_dump()
-    for k in ("amount_min", "amount_max"):
-        data[k] = Decimal(str(data[k])) if data[k] is not None else None
     return data
 
 
@@ -142,10 +140,6 @@ def test_rule(body: RuleIn, user: User = Depends(current_user), db: Session = De
     """Show which existing transactions a draft rule would match."""
     data = _validate_rule(db, user, body) if (body.set_category_id or body.set_payee) else body.model_dump()
     draft = Rule(**{k: v for k, v in data.items()})
-    if draft.amount_min is not None:
-        draft.amount_min = Decimal(str(draft.amount_min))
-    if draft.amount_max is not None:
-        draft.amount_max = Decimal(str(draft.amount_max))
     matches, count = [], 0
     for t in db.scalars(select(Transaction).where(Transaction.user_id == user.id).order_by(Transaction.date.desc()).limit(5000)).unique():
         if rule_matches(draft, t.description, t.payee, Decimal(t.amount), t.account_id):

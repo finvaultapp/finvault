@@ -4,7 +4,7 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 
 from sqlalchemy import (
-    Boolean, Date, DateTime, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint, exc,
+    Boolean, Date, DateTime, ForeignKey, Index, Integer, Numeric, String, Text, UniqueConstraint, exc,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -123,7 +123,15 @@ class ImportBatch(Base):
 
 class Transaction(Base):
     __tablename__ = "transactions"
-    __table_args__ = (UniqueConstraint("account_id", "import_hash", name="uq_tx_account_hash"),)
+    __table_args__ = (
+        UniqueConstraint("account_id", "import_hash", name="uq_tx_account_hash"),
+        UniqueConstraint("recurring_id", "date", name="uq_tx_recurring_date"),
+        Index("ix_tx_user_date_id", "user_id", "date", "id"),
+        Index("ix_tx_user_account_date", "user_id", "account_id", "date"),
+        Index("ix_tx_user_category_date", "user_id", "category_id", "date"),
+        Index("ix_tx_account_external_id", "account_id", "external_id"),
+        Index("ix_tx_import_batch", "import_batch_id"),
+    )
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), index=True)

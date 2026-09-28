@@ -12,6 +12,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from .. import config, settings_store
 from ..db import SessionLocal
@@ -66,13 +67,28 @@ def file_path(a: Attachment) -> Path:
     return folder(a.user_id) / a.stored_name
 
 
-def delete(db: Session, a: Attachment) -> None:
+def unlink_file(a: Attachment) -> None:
     try:
         file_path(a).unlink(missing_ok=True)
     except OSError:
         pass
+
+
+def delete(db: Session, a: Attachment) -> None:
+    unlink_file(a)
     db.delete(a)
     db.commit()
+
+
+def unlink_for_transactions(db: Session, transaction_ids: list[int]) -> int:
+    """Remove stored receipt files for transactions before DB cascades delete rows."""
+    if not transaction_ids:
+        return 0
+    removed = 0
+    for a in db.scalars(select(Attachment).where(Attachment.transaction_id.in_(transaction_ids))):
+        unlink_file(a)
+        removed += 1
+    return removed
 
 
 def ocr_available() -> bool:

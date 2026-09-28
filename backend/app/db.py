@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from pathlib import Path
 
 from . import config
 
@@ -40,6 +41,20 @@ def add_missing_columns() -> None:
                 if col.server_default is not None:
                     ddl += f" DEFAULT '{col.server_default.arg}'"
                 conn.execute(text(ddl))
+
+
+def migrate_schema() -> None:
+    """Run Alembic migrations, with the old additive migrator as a compatibility net."""
+    ini = Path(__file__).resolve().parent.parent / "alembic.ini"
+    if ini.exists():
+        from alembic import command
+        from alembic.config import Config
+
+        command.upgrade(Config(str(ini)), "head")
+        add_missing_columns()
+        return
+    Base.metadata.create_all(engine)
+    add_missing_columns()
 
 
 def get_db():

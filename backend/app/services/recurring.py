@@ -51,6 +51,10 @@ def post_due(db: Session, user_id: int | None = None, today: date | None = None)
     created = 0
     for r in db.scalars(q):
         for d in occurrences(r, today):
+            exists = db.scalar(select(Transaction.id).where(Transaction.recurring_id == r.id, Transaction.date == d))
+            if exists:
+                r.next_date = advance(d, r.frequency, r.anchor_day)
+                continue
             db.add(Transaction(user_id=r.user_id, account_id=r.account_id, date=d, amount=r.amount,
                                description=r.name, payee=r.name, category_id=r.category_id, recurring_id=r.id))
             created += 1

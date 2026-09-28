@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -25,6 +27,20 @@ def status(user: User = Depends(current_user), db: Session = Depends(get_db)):
         "server_model": settings_store.get(db, "ai_model") if server_on else None,
         "endpoint_is_local": target["local"] if target else ai.is_local_url(settings_store.get(db, "ai_base_url") or ""),
         "personal": {"key_set": bool(user.ai_api_key), "model": user.ai_model},
+    }
+
+
+@router.get("/context-preview")
+def context_preview(user: User = Depends(current_user), db: Session = Depends(get_db)):
+    """Show the exact finance summary that would be sent with an AI question."""
+    max_tx = int(settings_store.get(db, "ai_max_transactions") or 300)
+    target = ai.resolve(db, user)
+    return {
+        "model": target["model"] if target else None,
+        "provider": target["provider"] if target else None,
+        "endpoint_is_local": target["local"] if target else ai.is_local_url(settings_store.get(db, "ai_base_url") or ""),
+        "max_transactions": max_tx,
+        "data": json.loads(ai.build_context(db, user, max_tx)),
     }
 
 

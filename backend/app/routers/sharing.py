@@ -36,7 +36,7 @@ def get_detail(tid: int, user: User = Depends(current_user), db: Session = Depen
 
 class SplitLine(BaseModel):
     category_id: int | None = None
-    amount: float
+    amount: Decimal
     note: str = Field(default="", max_length=200)
 
 
@@ -52,7 +52,7 @@ def set_splits(tid: int, body: SplitsIn, user: User = Depends(current_user), db:
         if line.category_id:
             owned(db, Category, line.category_id, user)
     if body.lines:
-        total = sum((Decimal(str(line.amount)) for line in body.lines), Decimal(0))
+        total = sum((line.amount for line in body.lines), Decimal(0))
         if abs(total - Decimal(t.amount)) > Decimal("0.01"):
             raise HTTPException(422, f"The parts add up to {total:.2f} but the transaction is {Decimal(t.amount):.2f}.")
         if len(body.lines) < 2:
@@ -61,14 +61,14 @@ def set_splits(tid: int, body: SplitsIn, user: User = Depends(current_user), db:
         db.delete(s)
     for line in body.lines:
         db.add(TransactionSplit(transaction_id=t.id, category_id=line.category_id,
-                                amount=Decimal(str(line.amount)), note=line.note))
+                                amount=line.amount, note=line.note))
     db.commit()
     return detail(db, t)
 
 
 class ShareLine(BaseModel):
     person_id: int
-    amount: float = Field(gt=0)
+    amount: Decimal = Field(gt=0)
 
 
 class SharesIn(BaseModel):
@@ -81,7 +81,7 @@ def set_shares(tid: int, body: SharesIn, user: User = Depends(current_user), db:
     t = owned(db, Transaction, tid, user)
     if body.shares and t.amount >= 0:
         raise HTTPException(422, "You can only share a payment you made (money out).")
-    total = sum((Decimal(str(s.amount)) for s in body.shares), Decimal(0))
+    total = sum((s.amount for s in body.shares), Decimal(0))
     if total > -Decimal(t.amount) + Decimal("0.01"):
         raise HTTPException(422, "Shares can't add up to more than the payment.")
     for s in body.shares:
@@ -89,7 +89,7 @@ def set_shares(tid: int, body: SharesIn, user: User = Depends(current_user), db:
     for s in db.scalars(select(Share).where(Share.transaction_id == t.id)):
         db.delete(s)
     for s in body.shares:
-        db.add(Share(transaction_id=t.id, person_id=s.person_id, amount=Decimal(str(s.amount))))
+        db.add(Share(transaction_id=t.id, person_id=s.person_id, amount=s.amount))
     db.commit()
     return detail(db, t)
 
@@ -157,7 +157,7 @@ def person_activity(pid: int, user: User = Depends(current_user), db: Session = 
 
 
 class SettleIn(BaseModel):
-    amount: float
+    amount: Decimal
     date: date
     note: str = Field(default="", max_length=200)
     transaction_id: int | None = None
@@ -179,7 +179,7 @@ def settle(pid: int, body: SettleIn, user: User = Depends(current_user), db: Ses
             db.add(cat)
             db.flush()
         t.category_id = cat.id
-    db.add(Settlement(user_id=user.id, person_id=p.id, amount=Decimal(str(body.amount)), date=body.date,
+    db.add(Settlement(user_id=user.id, person_id=p.id, amount=body.amount, date=body.date,
                       note=body.note, transaction_id=body.transaction_id))
     db.commit()
     return {"people": balances(db, user)}

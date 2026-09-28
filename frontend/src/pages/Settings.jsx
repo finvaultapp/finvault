@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { AlertTriangle, CheckCircle2, Copy, Download, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Copy, Download, Eye, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
 import { Dialog, Field, Loading, PageHead, Switch, useData, useToast } from '../components/ui'
@@ -207,6 +207,7 @@ function AiOptIn() {
   const status = useData(() => api.get('/ai/status'), [user.ai_opt_in, tick])
   const [key, setKey] = useState('')
   const [models, setModels] = useState(null)
+  const [preview, setPreview] = useState(null)
   const [busy, setBusy] = useState(false)
   const s = status.data
   if (!s?.available) return null
@@ -228,6 +229,7 @@ function AiOptIn() {
     setBusy(false)
   }
   const loadModels = async () => { try { setModels((await api.get('/ai/personal/models')).models) } catch (e) { toast(e.message, 'error') } }
+  const loadPreview = async () => { try { setPreview(await api.get('/ai/context-preview')) } catch (e) { toast(e.message, 'error') } }
   const pickModel = async (model) => { await api.put('/ai/personal', { provider: 'openai', model }); reload() }
   const disconnect = async () => { await api.del('/ai/personal'); setModels(null); toast(t('OpenAI key removed')); reload() }
 
@@ -301,8 +303,27 @@ function AiOptIn() {
             </div>
           </div>
         </div>
+        <div>
+          <button className="btn" onClick={loadPreview}><Eye />{t('Preview data shared with AI')}</button>
+        </div>
         {s.ready && <p className="small">{t('Ready. Open')} <Link to="/chat">{t('Ask AI')}</Link> {t('from the sidebar.')}</p>}
       </div>
+      {preview && <AiPreview preview={preview} onClose={() => setPreview(null)} />}
     </Section>
+  )
+}
+
+function AiPreview({ preview, onClose }) {
+  return (
+    <Dialog title={t('Data shared with AI')} onClose={onClose} footer={<button className="btn primary" onClick={onClose}>{t('Done')}</button>}>
+      <div className="stack" style={{ gap: 12 }}>
+        <p className="small muted">
+          {preview.model
+            ? t('{provider} receives this summary with each question. Recent transactions included: {n}.', { provider: preview.provider, n: preview.max_transactions })
+            : t('No AI model is selected yet, but this is the summary FinVault will prepare once AI is set up.')}
+        </p>
+        <pre className="json-preview">{JSON.stringify(preview.data, null, 2)}</pre>
+      </div>
+    </Dialog>
   )
 }

@@ -10,6 +10,7 @@ from .. import security, settings_store
 from ..db import get_db
 from ..deps import admin_user
 from ..models import Account, Invite, Transaction, User
+from ..services import receipts
 from ..services.ai import is_local_url
 from ..services.ledger import seed_categories
 
@@ -93,6 +94,8 @@ def delete_user(user_id: int, me: User = Depends(admin_user), db: Session = Depe
         raise HTTPException(404, "User not found")
     if u.is_admin and _admins_left(db, u.id) == 0:
         raise HTTPException(409, "There must be at least one active admin.")
+    tx_ids = list(db.scalars(select(Transaction.id).where(Transaction.user_id == u.id)))
+    receipts.unlink_for_transactions(db, tx_ids)
     db.delete(u)
     db.commit()
     return {"ok": True}

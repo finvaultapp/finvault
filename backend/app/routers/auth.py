@@ -85,16 +85,20 @@ class LoginIn(BaseModel):
 
 @router.post("/login")
 def login(body: LoginIn, request: Request, response: Response, db: Session = Depends(get_db)):
-    key = f"{request.client.host if request.client else '?'}|{body.email.lower()}"
-    if security.login_throttle.blocked(key):
+    email = body.email.strip().lower()
+    key = f"{request.client.host if request.client else '?'}|{email}"
+    email_key = f"email|{email}"
+    if security.login_throttle.blocked(key) or security.email_login_throttle.blocked(email_key):
         raise HTTPException(429, "Too many attempts. Wait 15 minutes and try again.")
-    user = db.scalar(select(User).where(User.email == body.email.strip().lower()))
+    user = db.scalar(select(User).where(User.email == email))
     if not user or not security.verify_password(body.password, user.password_hash) or not user.is_active:
         security.login_throttle.hit(key)
+        security.email_login_throttle.hit(email_key)
         raise HTTPException(401, "Email or password is incorrect.")
     if user.totp_enabled:
         return {"requires_2fa": True, "challenge": security.create_token(user.id, user.token_version, "2fa", minutes=5)}
     security.login_throttle.reset(key)
+    security.email_login_throttle.reset(email_key)
     _set_session(response, user)
     return {"requires_2fa": False, "user": user_out(user)}
 

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from ..deps import current_user, owned
 from ..models import Account, Transaction, User
+from ..services import receipts
 from ..services.currency import Converter
 from ..services.ledger import account_balances
 from ..services.reports import f2
@@ -48,7 +49,7 @@ class AccountIn(BaseModel):
     type: str = Field(default="checking", pattern=TYPES)
     currency: str = Field(default="CAD", min_length=3, max_length=3)
     country: str = Field(default="CA", max_length=2)
-    opening_balance: float = 0
+    opening_balance: Decimal = Decimal("0")
     opening_date: date | None = None
     import_preset: str | None = None
 
@@ -59,7 +60,7 @@ class AccountPatch(BaseModel):
     type: str | None = Field(default=None, pattern=TYPES)
     currency: str | None = Field(default=None, min_length=3, max_length=3)
     country: str | None = Field(default=None, max_length=2)
-    opening_balance: float | None = None
+    opening_balance: Decimal | None = None
     opening_date: date | None = None
     import_preset: str | None = None
     is_archived: bool | None = None
@@ -68,11 +69,11 @@ class AccountPatch(BaseModel):
 @router.post("")
 def create_account(body: AccountIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
     a = Account(user_id=user.id, **body.model_dump(exclude={"opening_balance", "currency", "country"}),
-                opening_balance=Decimal(str(body.opening_balance)), currency=body.currency.upper(),
+                opening_balance=body.opening_balance, currency=body.currency.upper(),
                 country=body.country.upper())
     db.add(a)
     db.commit()
-    return account_out(a, Decimal(str(body.opening_balance)), None)
+    return account_out(a, body.opening_balance, None)
 
 
 @router.patch("/{account_id}")
@@ -80,7 +81,7 @@ def update_account(account_id: int, body: AccountPatch, user: User = Depends(cur
     a = owned(db, Account, account_id, user)
     data = body.model_dump(exclude_unset=True)
     if "opening_balance" in data:
-        data["opening_balance"] = Decimal(str(data["opening_balance"] or 0))
+        data["opening_balance"] = data["opening_balance"] or Decimal("0")
     for k in ("currency", "country"):
         if data.get(k):
             data[k] = data[k].upper()
@@ -95,13 +96,15 @@ def update_account(account_id: int, body: AccountPatch, user: User = Depends(cur
 @router.delete("/{account_id}")
 def delete_account(account_id: int, user: User = Depends(current_user), db: Session = Depends(get_db)):
     a = owned(db, Account, account_id, user)
+    tx_ids = list(db.scalars(select(Transaction.id).where(Transaction.account_id == a.id)))
+    receipts.unlink_for_transactions(db, tx_ids)
     db.delete(a)
     db.commit()
     return {"ok": True}
 
 
 class ReconcileIn(BaseModel):
-    balance: float
+    balance: Decimal
     on: date | None = None
 
 
@@ -113,7 +116,7 @@ def reconcile(account_id: int, body: ReconcileIn, user: User = Depends(current_u
     if a.opening_date and a.opening_date > on:
         raise HTTPException(422, "The statement date is before the account's opening date.")
     current = account_balances(db, user.id, on).get(a.id, Decimal(0))
-    diff = Decimal(str(body.balance)) - current
+    diff = body.balance - current
     a.opening_balance = Decimal(a.opening_balance or 0) + diff
     db.commit()
     return {"adjusted_by": f2(diff)}

@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 
 from app.db import Base, engine  # noqa: E402
 from app.main import app  # noqa: E402
-from app.security import login_throttle  # noqa: E402
+from app.security import email_login_throttle, login_throttle  # noqa: E402
 
 
 @pytest.fixture()
@@ -22,6 +22,7 @@ def client():
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     login_throttle.hits.clear()
+    email_login_throttle.hits.clear()
     with TestClient(app) as c:
         c.headers["X-FinVault"] = "1"
         yield c

@@ -18,6 +18,7 @@ from ..importers import ParsedTxn, ParseResult
 from ..models import Account, SyncConnection, User
 from ..security import decrypt_json, encrypt
 from .ledger import commit_import
+from .net import validate_outbound_url
 
 CANADA_BLOCK_MESSAGE = (
     "Direct bank connections are turned off for Canadian accounts. Download a QFX/OFX or CSV "
@@ -75,6 +76,8 @@ def gc_institutions(country: str) -> list[dict]:
 
 
 def gc_start(db: Session, user: User, institution_id: str, redirect_url: str) -> tuple[SyncConnection, str]:
+    if not redirect_url.startswith(("http://", "https://")):
+        raise SyncError("The return address must start with http:// or https://.")
     token = _gc_token()
     r = httpx.post(f"{GC_URL}/requisitions/", headers={"Authorization": f"Bearer {token}"},
                    json={"redirect": redirect_url, "institution_id": institution_id, "user_language": "EN"}, timeout=20)
@@ -181,11 +184,19 @@ def simplefin_connect(db: Session, user: User, setup_token: str) -> SyncConnecti
         raise SyncError("That doesn't look like a SimpleFIN setup token.") from exc
     if not claim_url.startswith("https://"):
         raise SyncError("SimpleFIN setup token must point to an https URL.")
+    try:
+        claim_url = validate_outbound_url(claim_url, label="SimpleFIN setup token")
+    except ValueError as exc:
+        raise SyncError(str(exc)) from exc
     r = httpx.post(claim_url, timeout=20)
     if r.status_code >= 400:
         raise SyncError("SimpleFIN rejected the token. Setup tokens can only be claimed once; create a new one.")
+    try:
+        access_url = validate_outbound_url(r.text.strip(), label="SimpleFIN access URL")
+    except ValueError as exc:
+        raise SyncError(f"SimpleFIN returned an unsafe access URL: {exc}") from exc
     conn = SyncConnection(user_id=user.id, provider="simplefin", name="SimpleFIN", status="active",
-                          credentials=encrypt({"access_url": r.text.strip()}))
+                          credentials=encrypt({"access_url": access_url}))
     db.add(conn)
     db.commit()
     return conn
@@ -193,7 +204,8 @@ def simplefin_connect(db: Session, user: User, setup_token: str) -> SyncConnecti
 
 def _simplefin_get(creds: dict, since: date | None = None) -> dict:
     params = {"start-date": int(datetime.combine(since, datetime.min.time(), tzinfo=timezone.utc).timestamp())} if since else {"balances-only": 1}
-    r = httpx.get(f"{creds['access_url']}/accounts", params=params, timeout=40)
+    access_url = validate_outbound_url(creds["access_url"], label="SimpleFIN access URL")
+    r = httpx.get(f"{access_url}/accounts", params=params, timeout=40)
     if r.status_code >= 400:
         raise SyncError(f"SimpleFIN request failed ({r.status_code})")
     return r.json()

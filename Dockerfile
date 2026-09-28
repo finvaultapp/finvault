@@ -17,10 +17,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr t
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/app ./app
+COPY backend/alembic.ini ./alembic.ini
+COPY backend/migrations ./migrations
 COPY --from=web /web/dist ./static
 RUN useradd --system --uid 1000 finvault && mkdir -p /data /inbox && chown finvault /data /inbox
 USER finvault
 VOLUME ["/data", "/inbox"]
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/api/health')" || exit 1
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]

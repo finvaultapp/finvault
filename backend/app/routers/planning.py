@@ -27,7 +27,7 @@ def get_budgets(month: str | None = None, user: User = Depends(current_user), db
 
 class BudgetIn(BaseModel):
     category_id: int
-    amount: float = Field(ge=0)
+    amount: Decimal = Field(ge=0)
 
 
 @router.put("/budgets")
@@ -37,9 +37,9 @@ def set_budget(body: BudgetIn, user: User = Depends(current_user), db: Session =
         raise HTTPException(422, "Budgets can only be set on expense categories.")
     b = db.scalar(select(Budget).where(Budget.user_id == user.id, Budget.category_id == cat.id))
     if b is None:
-        db.add(Budget(user_id=user.id, category_id=cat.id, amount=Decimal(str(body.amount))))
+        db.add(Budget(user_id=user.id, category_id=cat.id, amount=body.amount))
     else:
-        b.amount = Decimal(str(body.amount))
+        b.amount = body.amount
     db.commit()
     return {"ok": True}
 
@@ -65,7 +65,7 @@ def rec_out(r: Recurring, accounts: dict, cats: dict) -> dict:
 
 class RecurringIn(BaseModel):
     name: str = Field(min_length=1, max_length=200)
-    amount: float
+    amount: Decimal
     account_id: int
     category_id: int | None = None
     frequency: str = Field(default="monthly", pattern="^(weekly|biweekly|monthly|quarterly|yearly)$")
@@ -115,7 +115,7 @@ def _check(db, user, body: RecurringIn):
 @router.post("/recurring")
 def create_recurring(body: RecurringIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
     _check(db, user, body)
-    r = Recurring(user_id=user.id, **body.model_dump(exclude={"amount"}), amount=Decimal(str(body.amount)),
+    r = Recurring(user_id=user.id, **body.model_dump(exclude={"amount"}), amount=body.amount,
                   anchor_day=body.next_date.day)
     db.add(r)
     db.commit()
@@ -129,7 +129,7 @@ def update_recurring(rid: int, body: RecurringIn, user: User = Depends(current_u
     _check(db, user, body)
     for k, v in body.model_dump(exclude={"amount"}).items():
         setattr(r, k, v)
-    r.amount = Decimal(str(body.amount))
+    r.amount = body.amount
     r.anchor_day = body.next_date.day
     db.commit()
     rec.post_due(db, user.id)
@@ -163,11 +163,11 @@ def suggestions(user: User = Depends(current_user), db: Session = Depends(get_db
 
 class GoalIn(BaseModel):
     name: str = Field(min_length=1, max_length=120)
-    target_amount: float = Field(gt=0)
+    target_amount: Decimal = Field(gt=0)
     currency: str = Field(default="CAD", min_length=3, max_length=3)
     target_date: date | None = None
     account_id: int | None = None
-    saved_amount: float = 0
+    saved_amount: Decimal = Decimal("0")
 
 
 @router.get("/goals")
@@ -179,9 +179,9 @@ def list_goals(user: User = Depends(current_user), db: Session = Depends(get_db)
 def create_goal(body: GoalIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
     if body.account_id:
         owned(db, Account, body.account_id, user)
-    g = Goal(user_id=user.id, name=body.name, target_amount=Decimal(str(body.target_amount)),
+    g = Goal(user_id=user.id, name=body.name, target_amount=body.target_amount,
              currency=body.currency.upper(), target_date=body.target_date, account_id=body.account_id,
-             saved_amount=Decimal(str(body.saved_amount)))
+             saved_amount=body.saved_amount)
     db.add(g)
     db.commit()
     return {"id": g.id}
@@ -192,14 +192,14 @@ def update_goal(gid: int, body: GoalIn, user: User = Depends(current_user), db: 
     g = owned(db, Goal, gid, user)
     if body.account_id:
         owned(db, Account, body.account_id, user)
-    g.name, g.target_amount, g.currency = body.name, Decimal(str(body.target_amount)), body.currency.upper()
-    g.target_date, g.account_id, g.saved_amount = body.target_date, body.account_id, Decimal(str(body.saved_amount))
+    g.name, g.target_amount, g.currency = body.name, body.target_amount, body.currency.upper()
+    g.target_date, g.account_id, g.saved_amount = body.target_date, body.account_id, body.saved_amount
     db.commit()
     return {"ok": True}
 
 
 class ContributeIn(BaseModel):
-    amount: float
+    amount: Decimal
 
 
 @router.post("/goals/{gid}/contribute")
@@ -207,7 +207,7 @@ def contribute(gid: int, body: ContributeIn, user: User = Depends(current_user),
     g = owned(db, Goal, gid, user)
     if g.account_id:
         raise HTTPException(422, "This goal tracks a linked account's balance; move money into that account instead.")
-    g.saved_amount = Decimal(g.saved_amount or 0) + Decimal(str(body.amount))
+    g.saved_amount = Decimal(g.saved_amount or 0) + body.amount
     db.commit()
     return {"saved_amount": f2(g.saved_amount)}
 

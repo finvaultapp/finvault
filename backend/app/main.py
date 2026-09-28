@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 
 from . import config, settings_store
-from .db import Base, SessionLocal, add_missing_columns, engine
+from .db import SessionLocal, migrate_schema
 from .models import SyncConnection
 from .routers import (accounts, admin, ai, assets, auth, categories, currency, extras, imports, planning, plans, reports,
                       sharing, sync, transactions)
@@ -21,6 +21,8 @@ log = logging.getLogger("finvault")
 
 def _hourly_jobs() -> None:
     with SessionLocal() as db:
+        if not settings_store.acquire_lock(db, "hourly_jobs", 55 * 60):
+            return
         recurring.post_due(db)
         try:
             notify.send_due_reminders(db)
@@ -49,6 +51,8 @@ async def _scheduler():
 
 def _frequent_jobs() -> None:
     with SessionLocal() as db:
+        if not settings_store.acquire_lock(db, "frequent_jobs", 110):
+            return
         inbox.scan(db)
     receipts.run_pending()
 
@@ -64,8 +68,7 @@ async def _frequent():
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    Base.metadata.create_all(engine)
-    add_missing_columns()
+    migrate_schema()
     tasks = [asyncio.create_task(_scheduler()), asyncio.create_task(_frequent())]
     yield
     for t in tasks:

@@ -38,6 +38,7 @@ SECRET_KEY = _load_secret_key()
 SESSION_HOURS = int(os.environ.get("SESSION_HOURS", "12"))
 # Set to false only when serving over plain http on a trusted LAN.
 COOKIE_SECURE = _bool("COOKIE_SECURE", False)
+ALLOW_PRIVATE_OUTBOUND_URLS = _bool("ALLOW_PRIVATE_OUTBOUND_URLS", False)
 
 # open | invite | closed. The very first account can always be created and becomes admin.
 DEFAULT_REGISTRATION_MODE = os.environ.get("REGISTRATION_MODE", "invite")

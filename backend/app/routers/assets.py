@@ -40,7 +40,7 @@ class AssetIn(BaseModel):
     kind: str = Field(default="other", pattern="^(real_estate|vehicle|investment|retirement|cash|valuables|other|mortgage|loan|other_debt)$")
     currency: str = Field(default="CAD", min_length=3, max_length=3)
     notes: str = ""
-    value: float | None = None
+    value: Decimal | None = None
     as_of: date | None = None
 
 
@@ -49,7 +49,7 @@ def create_asset(body: AssetIn, user: User = Depends(current_user), db: Session 
     a = Asset(user_id=user.id, name=body.name, kind=body.kind, is_liability=body.kind in LIABILITY_KINDS,
               currency=body.currency.upper(), notes=body.notes)
     if body.value is not None:
-        a.values.append(AssetValue(date=body.as_of or date.today(), value=Decimal(str(abs(body.value)))))
+        a.values.append(AssetValue(date=body.as_of or date.today(), value=abs(body.value)))
     db.add(a)
     db.commit()
     return {"id": a.id}
@@ -73,7 +73,7 @@ def delete_asset(asset_id: int, user: User = Depends(current_user), db: Session 
 
 class ValueIn(BaseModel):
     date: dt.date
-    value: float
+    value: Decimal
 
 
 @router.post("/{asset_id}/values")
@@ -81,9 +81,9 @@ def add_value(asset_id: int, body: ValueIn, user: User = Depends(current_user), 
     a = owned(db, Asset, asset_id, user)
     existing = next((v for v in a.values if v.date == body.date), None)
     if existing:
-        existing.value = Decimal(str(abs(body.value)))
+        existing.value = abs(body.value)
     else:
-        db.add(AssetValue(asset_id=a.id, date=body.date, value=Decimal(str(abs(body.value)))))
+        db.add(AssetValue(asset_id=a.id, date=body.date, value=abs(body.value)))
     db.commit()
     return {"ok": True}
 

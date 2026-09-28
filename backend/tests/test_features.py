@@ -147,6 +147,10 @@ PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
 
 
 def test_receipts(client):
+    from app.db import SessionLocal
+    from app.models import Attachment
+    from app.services import receipts
+
     chq, _, _ = setup_basic(client)
     t = tx(client, chq, -42, "HARDWARE STORE")
     up = client.post(f"/api/transactions/{t['id']}/attachments", files={"file": ("receipt.png", io.BytesIO(PNG), "image/png")})
@@ -159,7 +163,11 @@ def test_receipts(client):
     assert fake.status_code == 422
     row = client.get("/api/transactions").json()["items"][0]
     assert row["attachments"] == 1
-    assert client.delete(f"/api/attachments/{a['id']}").json()["ok"]
+    with SessionLocal() as db:
+        path = receipts.file_path(db.get(Attachment, a["id"]))
+        assert path.exists()
+    assert client.delete(f"/api/transactions/{t['id']}").json()["ok"]
+    assert not path.exists()
 
 
 def test_receipt_total_guess():
@@ -172,6 +180,7 @@ def test_bill_reminders(client, monkeypatch):
     from app.db import SessionLocal
     from app.services import notify
     chq, _, _ = setup_basic(client)
+    assert client.put("/api/notifications", json={"ntfy_url": "http://127.0.0.1/secret-topic"}).status_code == 422
     client.put("/api/notifications", json={"ntfy_url": "https://ntfy.example/secret-topic"})
     rec = client.post("/api/recurring", json={"name": "Rent", "amount": -2150, "account_id": chq["id"], "frequency": "monthly",
                                               "next_date": (date.today() + timedelta(days=2)).isoformat()}).json()

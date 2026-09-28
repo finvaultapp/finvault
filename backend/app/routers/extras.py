@@ -11,7 +11,7 @@ from .. import config, settings_store
 from ..db import get_db
 from ..deps import current_user, owned
 from ..models import Account, Attachment, Recurring, Transaction, User
-from ..services import inbox, notify, receipts
+from ..services import inbox, net, notify, receipts
 from ..services.recurring import occurrences
 from ..services.reports import f2
 
@@ -92,8 +92,11 @@ class NotifyIn(BaseModel):
 @router.put("/notifications")
 def set_notifications(body: NotifyIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
     url = body.ntfy_url.strip()
-    if url and not url.startswith(("https://", "http://")):
-        raise HTTPException(422, "The ntfy address should look like https://ntfy.sh/your-private-topic.")
+    if url:
+        try:
+            url = net.validate_outbound_url(url, label="The ntfy address")
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
     user.notify_ntfy_url = url or None
     user.notify_email = body.email and notify.smtp_configured()
     user.notify_hide_amounts = body.hide_amounts

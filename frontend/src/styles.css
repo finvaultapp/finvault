@@ -99,6 +99,7 @@ h2 { font-size: 16.5px; }
 h3 { font-size: 15.5px; }
 p { margin: 0; }
 code { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: 0.9em; }
+pre { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; }
 * { scrollbar-width: thin; scrollbar-color: var(--rule-2) transparent; }
 
 /* ---- Shell ---------------------------------------------------------------- */
@@ -509,6 +510,7 @@ ol.howto { margin: 0; padding-left: 20px; display: flex; flex-direction: column;
 .ai-choice button:hover { border-color: var(--frame); }
 .ai-choice button.on { border-color: var(--frame); background: var(--frame-soft); }
 .field.grow, .row > .grow { flex: 1; min-width: 200px; }
+.json-preview { margin: 0; max-height: 380px; overflow: auto; padding: 12px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--sheet-2); color: var(--ink); font-size: 12px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
 
 /* ---- Bill calendar ------------------------------------------------------------ */
 .calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--rule); border-top: 1px solid var(--rule); border-radius: 0 0 var(--radius-lg) var(--radius-lg); overflow: hidden; }

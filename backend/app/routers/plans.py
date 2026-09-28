@@ -27,7 +27,7 @@ def list_plans(user: User = Depends(current_user), db: Session = Depends(get_db)
 class PlanIn(BaseModel):
     kind: str = Field(pattern="^(tfsa|rrsp|fhsa)$")
     year: int = Field(ge=2009, le=2100)
-    room: float = Field(ge=0)
+    room: Decimal = Field(ge=0)
     account_id: int | None = None
     notes: str = Field(default="", max_length=2000)
 
@@ -39,7 +39,7 @@ def create_plan(body: PlanIn, user: User = Depends(current_user), db: Session = 
     if db.scalar(select(RegisteredPlan).where(RegisteredPlan.user_id == user.id, RegisteredPlan.kind == body.kind,
                                               RegisteredPlan.year == body.year)):
         raise HTTPException(409, f"You already have a {body.kind.upper()} entry for {body.year}. Edit that one instead.")
-    p = RegisteredPlan(user_id=user.id, kind=body.kind, year=body.year, room=Decimal(str(body.room)),
+    p = RegisteredPlan(user_id=user.id, kind=body.kind, year=body.year, room=body.room,
                        account_id=body.account_id, notes=body.notes)
     db.add(p)
     db.commit()
@@ -51,7 +51,7 @@ def update_plan(pid: int, body: PlanIn, user: User = Depends(current_user), db: 
     p = owned(db, RegisteredPlan, pid, user)
     if body.account_id:
         owned(db, Account, body.account_id, user)
-    p.kind, p.year, p.room, p.account_id, p.notes = body.kind, body.year, Decimal(str(body.room)), body.account_id, body.notes
+    p.kind, p.year, p.room, p.account_id, p.notes = body.kind, body.year, body.room, body.account_id, body.notes
     db.commit()
     return plan_svc.summary(db, p)
 
@@ -65,7 +65,7 @@ def delete_plan(pid: int, user: User = Depends(current_user), db: Session = Depe
 
 class EntryIn(BaseModel):
     date: date
-    amount: float
+    amount: Decimal
     note: str = Field(default="", max_length=200)
 
 
@@ -74,7 +74,7 @@ def add_entry(pid: int, body: EntryIn, user: User = Depends(current_user), db: S
     p = owned(db, RegisteredPlan, pid, user)
     if body.date.year != p.year:
         raise HTTPException(422, f"That date isn't in {p.year}. Add it to that year's entry instead.")
-    db.add(PlanEntry(plan_id=p.id, date=body.date, amount=Decimal(str(body.amount)), note=body.note))
+    db.add(PlanEntry(plan_id=p.id, date=body.date, amount=body.amount, note=body.note))
     db.commit()
     return plan_svc.summary(db, p)
 

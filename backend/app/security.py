@@ -124,3 +124,4 @@ class Throttle:
 
 
 login_throttle = Throttle(limit=8, window_seconds=15 * 60)
+email_login_throttle = Throttle(limit=20, window_seconds=15 * 60)

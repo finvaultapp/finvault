@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from ..deps import current_user, owned
 from ..models import Account, Attachment, Category, Share, Transaction, TransactionSplit, User
+from ..services import receipts
 from ..services.ledger import Categorizer
 from ..services.reports import f2
 
@@ -50,8 +51,8 @@ def add_flags(db: Session, items: list[dict]) -> list[dict]:
 
 
 def _filtered(user: User, q: str | None, account_id: list[int] | None, category_id: list[int] | None,
-              uncategorized: bool, start: date | None, end: date | None, min_amount: float | None,
-              max_amount: float | None, kind: str | None):
+              uncategorized: bool, start: date | None, end: date | None, min_amount: Decimal | None,
+              max_amount: Decimal | None, kind: str | None):
     stmt = select(Transaction).where(Transaction.user_id == user.id)
     if q:
         like = f"%{q.strip()}%"
@@ -81,7 +82,7 @@ def _filtered(user: User, q: str | None, account_id: list[int] | None, category_
 
 def _filters(q: str | None = None, account_id: list[int] | None = Query(None), category_id: list[int] | None = Query(None),
              uncategorized: bool = False, start: date | None = None, end: date | None = None,
-             min_amount: float | None = None, max_amount: float | None = None, kind: str | None = None):
+             min_amount: Decimal | None = None, max_amount: Decimal | None = None, kind: str | None = None):
     return dict(q=q, account_id=account_id, category_id=category_id, uncategorized=uncategorized, start=start,
                 end=end, min_amount=min_amount, max_amount=max_amount, kind=kind)
 
@@ -112,7 +113,7 @@ def list_transactions(f: dict = Depends(_filters), page: int = 1, page_size: int
 class TxIn(BaseModel):
     account_id: int
     date: dt.date
-    amount: float
+    amount: Decimal
     description: str = Field(max_length=500)
     payee: str = Field(default="", max_length=200)
     notes: str = ""
@@ -122,7 +123,7 @@ class TxIn(BaseModel):
 class TxPatch(BaseModel):
     account_id: int | None = None
     date: dt.date | None = None
-    amount: float | None = None
+    amount: Decimal | None = None
     description: str | None = Field(default=None, max_length=500)
     payee: str | None = Field(default=None, max_length=200)
     notes: str | None = None
@@ -139,7 +140,7 @@ def _check_refs(db: Session, user: User, account_id: int | None, category_id: in
 @router.post("")
 def create_transaction(body: TxIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
     _check_refs(db, user, body.account_id, body.category_id)
-    t = Transaction(user_id=user.id, **body.model_dump(exclude={"amount"}), amount=Decimal(str(body.amount)))
+    t = Transaction(user_id=user.id, **body.model_dump(exclude={"amount"}), amount=body.amount)
     db.add(t)
     db.commit()
     db.refresh(t)
@@ -151,8 +152,6 @@ def update_transaction(tx_id: int, body: TxPatch, user: User = Depends(current_u
     t = owned(db, Transaction, tx_id, user)
     data = body.model_dump(exclude_unset=True)
     _check_refs(db, user, data.get("account_id"), data.get("category_id"))
-    if "amount" in data:
-        data["amount"] = Decimal(str(data["amount"]))
     for k, v in data.items():
         setattr(t, k, v)
     db.commit()
@@ -162,7 +161,9 @@ def update_transaction(tx_id: int, body: TxPatch, user: User = Depends(current_u
 
 @router.delete("/{tx_id}")
 def delete_transaction(tx_id: int, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    db.delete(owned(db, Transaction, tx_id, user))
+    t = owned(db, Transaction, tx_id, user)
+    receipts.unlink_for_transactions(db, [t.id])
+    db.delete(t)
     db.commit()
     return {"ok": True}
 
@@ -178,6 +179,8 @@ def bulk(body: BulkIn, user: User = Depends(current_user), db: Session = Depends
     if body.category_id is not None:
         owned(db, Category, body.category_id, user)
     rows = list(db.scalars(select(Transaction).where(Transaction.user_id == user.id, Transaction.id.in_(body.ids))))
+    if body.action == "delete":
+        receipts.unlink_for_transactions(db, [t.id for t in rows])
     for t in rows:
         if body.action == "delete":
             db.delete(t)

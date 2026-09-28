@@ -179,6 +179,17 @@ def test_ai_off_by_default(client):
     assert r.status_code == 403
 
 
+def test_ai_context_preview_shows_payload(client):
+    register(client)
+    acct = client.post("/api/accounts", json={"name": "Chequing", "opening_balance": "25.50"}).json()
+    client.post("/api/transactions", json={"account_id": acct["id"], "date": date.today().isoformat(),
+                                           "amount": "-4.25", "description": "Coffee"})
+    preview = client.get("/api/ai/context-preview").json()
+    assert preview["max_transactions"] == 300
+    assert preview["data"]["accounts"][0]["name"] == "Chequing"
+    assert preview["data"]["recent_transactions[date,account,description,amount,category]"][0][2] == "Coffee"
+
+
 def test_secrets_encrypted_at_rest(client):
     register(client)
     client.post("/api/auth/2fa/setup")

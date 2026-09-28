@@ -47,7 +47,7 @@ def list_rates(user: User = Depends(current_user), db: Session = Depends(get_db)
 class RateIn(BaseModel):
     base: str = Field(min_length=3, max_length=3)
     quote: str = Field(min_length=3, max_length=3)
-    rate: float = Field(gt=0)
+    rate: Decimal = Field(gt=0)
     date: dt.date | None = None
 
 
@@ -58,9 +58,9 @@ def set_rate(body: RateIn, user: User = Depends(current_user), db: Session = Dep
         raise HTTPException(422, "Pick two different currencies.")
     r = db.scalar(select(ExchangeRate).where(ExchangeRate.base == base, ExchangeRate.quote == quote, ExchangeRate.date == on))
     if r:
-        r.rate, r.source = Decimal(str(body.rate)), "manual"
+        r.rate, r.source = body.rate, "manual"
     else:
-        db.add(ExchangeRate(base=base, quote=quote, date=on, rate=Decimal(str(body.rate)), source="manual"))
+        db.add(ExchangeRate(base=base, quote=quote, date=on, rate=body.rate, source="manual"))
     db.commit()
     return {"ok": True}
 
