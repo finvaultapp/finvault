@@ -700,3 +700,12 @@ ol.howto { margin: 0; padding-left: 20px; display: flex; flex-direction: column;
   .alloc-chart { height: 170px; }
   .invest-head-total { text-align: left; }
 }
+
+/* ==== merged from worktree-agent-aec2a02c9a9f5141e ==== */
+/* Installable app: offline banner and install card */
+.offline-banner { position: sticky; top: 12px; z-index: 5; margin-bottom: 20px; align-items: center; box-shadow: var(--shadow); }
+.offline-banner .banner-body { color: var(--tray-ink); font-weight: 600; }
+@media (max-width: 860px) { .offline-banner { top: 64px; } }
+.install-steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.install-steps li svg { width: 16px; height: 16px; vertical-align: -3px; color: var(--frame); }
+.install-note { margin: 14px 0 0; }

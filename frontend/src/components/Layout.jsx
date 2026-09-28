@@ -10,10 +10,12 @@ import { api } from '../api'
 import { useApp } from '../context'
 import { t } from '../i18n'
 import { date } from '../lib/format'
-import { useData } from './ui'
+import { useData, useToast } from './ui'
 import { Money } from './ui'
 import Logo from './Logo'
 import CommandPalette from './CommandPalette'
+import OfflineBanner from './OfflineBanner'
+import { clearOfflineData } from '../lib/offline'
 
 export const NAV = [
   { group: null, items: [
@@ -66,8 +68,13 @@ export default function Layout() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  const toast = useToast()
   const logout = async () => {
-    await api.post('/auth/logout')
+    clearOfflineData() // even offline, so the next person on this phone can't see saved data
+    try { await api.post('/auth/logout') } catch (e) {
+      toast(e.status === 0 ? t('Saved data on this device was cleared. Connect to the internet to finish signing out.') : e.message, 'error')
+      return
+    }
     setUser(null)
     navigate('/login')
   }
@@ -150,7 +157,7 @@ export default function Layout() {
           <button className="icon-btn" onClick={() => setPalette(true)} aria-label={t('Search')}><Search /></button>
           <button className="icon-btn" onClick={toggleHidden} aria-label={hidden ? t('Show amounts') : t('Hide amounts')}>{hidden ? <EyeOff /> : <Eye />}</button>
         </div>
-        <main className="main"><div className="page"><Outlet /></div></main>
+        <main className="main"><div className="page"><OfflineBanner /><Outlet /></div></main>
       </div>
       {palette && <CommandPalette onClose={() => setPalette(false)} aiOn={aiOn} />}
     </div>

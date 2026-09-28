@@ -1,8 +1,14 @@
 // Thin fetch wrapper. Cookie session + X-FinVault header (the backend's CSRF check).
+import { t } from './i18n'
+import { noteResponse } from './lib/offline'
+import { serverText } from './lib/serverText'
+
+// message is shown to people (French when the interface is French); detail is the server's own text.
 export class ApiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, detail = message) {
     super(message)
     this.status = status
+    this.detail = detail
   }
 }
 
@@ -13,14 +19,24 @@ async function request(method, path, body, { form } = {}) {
     opts.headers['Content-Type'] = 'application/json'
     opts.body = JSON.stringify(body)
   }
-  const res = await fetch(`/api${path}`, opts)
+  let res
+  try {
+    res = await fetch(`/api${path}`, opts)
+  } catch {
+    // No network (or no saved copy for this view). Writes are never queued: say plainly it wasn't saved.
+    const offline = navigator.onLine === false
+    throw new ApiError(method === 'GET'
+      ? (offline ? t("You're offline, and this hasn't been saved on this device yet.") : t("Couldn't reach FinVault. Check your connection and try again."))
+      : (offline ? t("You're offline. This change wasn't saved. Try again when you're connected.") : t("Couldn't reach FinVault. This change wasn't saved. Try again in a moment.")), 0)
+  }
+  noteResponse(res)
   const text = await res.text()
   const data = text ? safeJson(text) : null
   if (!res.ok) {
-    let msg = data?.detail ?? res.statusText
-    if (Array.isArray(msg)) msg = msg.map((d) => d.msg.replace(/^Value error, /, '')).join(' ')
+    const detail = data?.detail ?? res.statusText
+    const msg = Array.isArray(detail) ? detail.map((d) => serverText(d.msg.replace(/^Value error, /, ''))).join(' ') : serverText(detail)
     if (res.status === 401 && path !== '/auth/login' && path !== '/auth/me') window.dispatchEvent(new Event('fv:signed-out'))
-    throw new ApiError(msg, res.status)
+    throw new ApiError(msg, res.status, detail)
   }
   return data
 }

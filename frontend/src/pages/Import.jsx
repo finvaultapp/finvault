@@ -9,6 +9,7 @@ import Postmark from '../components/Postmark'
 import WatchedFolder from '../components/WatchedFolder'
 import { date } from '../lib/format'
 import { t } from '../i18n'
+import { serverText } from '../lib/serverText'
 
 // Getters so labels translate at render time.
 const ROLE_LABELS = {
@@ -210,7 +211,7 @@ function Preview({ p, account, options, change, setRole, roleByCol, presets, bus
         {p.statement_balance != null && <div><small>{t('Statement balance')}</small><strong><Money value={p.statement_balance} currency={account?.currency} /></strong></div>}
       </div>
 
-      {p.warnings.map((w) => <div className="banner warn" key={w}><AlertTriangle /><div className="banner-body">{w}</div></div>)}
+      {p.warnings.map((w) => <div className="banner warn" key={w}><AlertTriangle /><div className="banner-body">{serverText(w)}</div></div>)}
 
       <div className="row wrap" style={{ gap: 18 }}>
         {p.format === 'csv' && (

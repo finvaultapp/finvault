@@ -107,7 +107,8 @@ async def guard(request: Request, call_next):
     else:
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; "
-            "font-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; frame-ancestors 'none'")
+            "font-src 'self'; script-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; "
+            "object-src 'none'; frame-ancestors 'none'")
     return response
 
 
@@ -122,6 +123,21 @@ app.include_router(ai_tools.router)
 @app.get("/api/health")
 def health():
     return {"ok": True}
+
+
+# Installable app. Served explicitly (not by the SPA fallback) so a missing file is a 404 rather than
+# index.html, with exact content types, and revalidated on every load so a new deploy is picked up.
+_PWA_FILES = {"sw.js": "text/javascript; charset=utf-8", "manifest.webmanifest": "application/manifest+json"}
+
+
+@app.api_route("/sw.js", methods=["GET", "HEAD"], include_in_schema=False)
+@app.api_route("/manifest.webmanifest", methods=["GET", "HEAD"], include_in_schema=False)
+def pwa_file(request: Request):
+    name = request.url.path.lstrip("/")
+    path = config.STATIC_DIR / name
+    if not path.is_file():
+        return JSONResponse({"detail": "Not found"}, status_code=404)
+    return FileResponse(path, media_type=_PWA_FILES[name], headers={"Cache-Control": "no-cache"})
 
 
 if (config.STATIC_DIR / "index.html").exists():
