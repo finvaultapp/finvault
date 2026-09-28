@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { FileText, Paperclip, Plus, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { api } from '../api'
 import { t } from '../i18n'
+import { serverText } from '../lib/serverText'
 import { Dialog, Field, Money, useData, useToast } from './ui'
 import { todayISO } from '../lib/format'
 import { TAX_TAGS } from '../lib/tax'
@@ -230,7 +231,7 @@ function Receipts({ tx, onSaved }) {
                 <div className="small" style={{ color: 'var(--tray-ink)', marginTop: 4 }}>{t('The receipt total looks like {total}, but the transaction is {amount}.', { total: a.total_guess.toFixed(2), amount: Math.abs(tx.amount).toFixed(2) })}</div>
               )}
               {a.ocr_text && <details style={{ marginTop: 6 }}><summary className="small" style={{ cursor: 'pointer' }}>{t('Show text')}</summary><pre className="small" style={{ whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto', background: 'var(--sheet-2)', padding: 10, borderRadius: 8 }}>{a.ocr_text}</pre></details>}
-              {a.ocr_error && <div className="small muted">{a.ocr_error}</div>}
+              {a.ocr_error && <div className="small muted">{serverText(a.ocr_error)}</div>}
             </div>
             <div className="row" style={{ gap: 0 }}>
               {a.ocr_status !== 'none' && <button className="icon-btn" title={t('Read text again')} aria-label={t('Read text again')} onClick={async () => { try { await api.post(`/attachments/${a.id}/ocr`); files.reload() } catch (e) { toast(e.message, 'error') } }}><RefreshCw /></button>}

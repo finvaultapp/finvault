@@ -6,6 +6,7 @@ import { useApp } from '../context'
 import { Dialog, Field, Loading, PageHead, Switch, useData, useToast } from '../components/ui'
 import { CURRENCIES, date, todayISO } from '../lib/format'
 import { LANGUAGES, t, useI18n } from '../i18n'
+import InstallApp from '../components/InstallApp'
 
 export default function Settings() {
   const { hash } = useLocation()
@@ -18,6 +19,7 @@ export default function Settings() {
         <Currency />
         <Security />
         <AiOptIn />
+        <InstallApp />
       </div>
     </>
   )

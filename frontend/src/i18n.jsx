@@ -21,6 +21,8 @@ export function t(text, vars) {
   return fill(out, vars)
 }
 
+export const getLocale = () => current
+
 export function detectLocale() {
   try {
     const saved = localStorage.getItem('fv.locale')

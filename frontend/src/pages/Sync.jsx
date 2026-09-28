@@ -6,6 +6,7 @@ import { useApp } from '../context'
 import { Confirm, Dialog, Empty, Field, Loading, PageHead, useData, useToast } from '../components/ui'
 import { date } from '../lib/format'
 import { t } from '../i18n'
+import { serverText } from '../lib/serverText'
 
 export default function Sync() {
   const { version, bump } = useApp()
@@ -71,7 +72,7 @@ export default function Sync() {
                   <div className="grow">
                     <div className="row" style={{ gap: 8 }}><span className="title">{c.name}</span><span className={`pill ${c.status === 'active' ? 'green' : c.status === 'error' ? 'red' : 'amber'}`}>{t(c.status)}</span></div>
                     <div className="meta">{c.provider} · {c.accounts.length ? c.accounts.map((a) => a.name).join(', ') : t('no accounts linked')} · {c.last_synced_at ? t('synced {date}', { date: date(c.last_synced_at) }) : t('never synced')}</div>
-                    {c.last_error && <div className="small expense">{c.last_error}</div>}
+                    {c.last_error && <div className="small expense">{serverText(c.last_error)}</div>}
                   </div>
                   <button className="btn sm" onClick={() => setLinking(c.id)}>{t('Link accounts')}</button>
                   <button className="btn sm" onClick={() => syncNow(c)} disabled={!c.accounts.length || syncing === c.id}>{syncing === c.id ? <Loader2 className="spin" /> : <RefreshCw />}{t('Sync')}</button>

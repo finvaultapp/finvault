@@ -6,6 +6,9 @@ import App from './App'
 import { AppProvider } from './context'
 import { ToastProvider } from './components/ui'
 import { I18nProvider } from './i18n'
+import { registerServiceWorker } from './lib/offline'
+
+registerServiceWorker() // production builds only
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

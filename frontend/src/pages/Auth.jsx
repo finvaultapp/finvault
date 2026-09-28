@@ -41,7 +41,7 @@ export default function Auth({ mode }) {
       navigate('/')
     } catch (err) {
       setError(err.message)
-      if (challenge && err.status === 401 && /expired/i.test(err.message)) setChallenge(null)
+      if (challenge && err.status === 401 && /expired/i.test(err.detail ?? err.message)) setChallenge(null)
     }
     setBusy(false)
   }
