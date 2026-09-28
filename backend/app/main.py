@@ -13,7 +13,8 @@ from .db import Base, SessionLocal, add_missing_columns, engine
 from .models import SyncConnection
 from .routers import (accounts, admin, ai, assets, auth, categories, currency, extras, imports, planning, plans, reports,
                       sharing, sync, transactions)
-from .services import inbox, notify, receipts, recurring
+from .routers import investments
+from .services import inbox, invest, notify, receipts, recurring
 from .services.sync import SyncError, sync_connection
 
 log = logging.getLogger("finvault")
@@ -26,6 +27,10 @@ def _hourly_jobs() -> None:
             notify.send_due_reminders(db)
         except Exception:  # noqa: BLE001
             log.exception("bill reminders failed")
+        try:
+            invest.fetch_due(db)  # security prices; only when an admin turned it on
+        except Exception:  # noqa: BLE001
+            log.exception("price fetch failed")
         if not settings_store.get(db, "bank_sync_enabled"):
             return
         cutoff = datetime.now(timezone.utc) - timedelta(hours=config.SYNC_INTERVAL_HOURS)
@@ -96,7 +101,7 @@ async def guard(request: Request, call_next):
 
 
 for r in (auth, admin, accounts, transactions, imports, categories, planning, assets, reports, currency, sync, ai,
-          plans, sharing, extras):
+          plans, sharing, extras, investments):
     app.include_router(r.router)
 
 

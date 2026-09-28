@@ -89,6 +89,7 @@ export default function Admin() {
             <Toggle checked={s.ocr_enabled} onChange={(v) => patch({ ocr_enabled: v })} title={t('Read text from receipts')}
               desc={t('Runs Tesseract OCR on this server for uploaded receipt photos, so receipt text is searchable. Nothing leaves the server.')} />
             <Toggle checked={s.fx_fetch_enabled} onChange={(v) => patch({ fx_fetch_enabled: v })} title={t('Fetch exchange rates')} desc={t('Adds a button to download ECB reference rates. Only currency codes are sent.')} />
+            <Toggle checked={s.prices_fetch_enabled} onChange={(v) => patch({ prices_fetch_enabled: v })} title={t('Fetch security prices')} desc={t('Downloads daily closing prices for held securities from Stooq, once a day and on request. Only ticker symbols are sent.')} />
             <Toggle checked={s.ai_enabled} onChange={(v) => patch({ ai_enabled: v })} title={t('Household AI model')} desc={t('Members who opt in can ask questions about their own data. Point it at a model you host, like Ollama.')} />
             <Toggle checked={s.ai_allow_personal_keys} onChange={(v) => patch({ ai_allow_personal_keys: v })} title={t('Let members connect their own ChatGPT (OpenAI) account')}
               desc={t('Each member can add their own OpenAI API key, billed to them. Their questions, with a summary of their data, go to OpenAI.')} />

@@ -11,6 +11,7 @@ from ..deps import current_user
 from ..models import Account, Transaction, User
 from ..services import reports
 from ..services.currency import Converter
+from ..services.invest import Portfolio
 from ..services.ledger import account_balances
 from .transactions import tx_out
 
@@ -81,9 +82,10 @@ def dashboard(month: str | None = None, user: User = Depends(current_user), db: 
     conv = Converter(db, user.base_currency)
     on = min(reports.month_end(y, m), today)
     balances = account_balances(db, user.id, on)
+    holdings = Portfolio(db, user).account_values(on, conv)  # investment accounts: cash + holdings
     accounts, total_balance, by_currency = [], Decimal(0), defaultdict(Decimal)
     for a in db.scalars(select(Account).where(Account.user_id == user.id, Account.is_archived.is_(False)).order_by(Account.name)):
-        bal = balances.get(a.id, Decimal(0))
+        bal = balances.get(a.id, Decimal(0)) + holdings.get(a.id, Decimal(0))
         c = conv.convert(bal, a.currency, on)
         by_currency[a.currency] += bal
         if c is not None:

@@ -10,6 +10,7 @@ from ..db import get_db
 from ..deps import current_user, owned
 from ..models import Account, Transaction, User
 from ..services.currency import Converter
+from ..services.invest import Portfolio
 from ..services.ledger import account_balances
 from ..services.reports import f2
 
@@ -34,11 +35,16 @@ def list_accounts(user: User = Depends(current_user), db: Session = Depends(get_
     stats = {aid: (n, last) for aid, n, last in db.execute(
         select(Transaction.account_id, func.count(Transaction.id), func.max(Transaction.date))
         .where(Transaction.user_id == user.id).group_by(Transaction.account_id))}
+    holdings = Portfolio(db, user).account_values(date.today(), conv)  # investment accounts: cash + holdings
     items = []
     for a in db.scalars(select(Account).where(Account.user_id == user.id).order_by(Account.is_archived, Account.name)):
-        bal = balances.get(a.id, Decimal(0))
+        cash = balances.get(a.id, Decimal(0))
+        bal = cash + holdings.get(a.id, Decimal(0))
         n, last = stats.get(a.id, (0, None))
-        items.append(account_out(a, bal, conv.convert(bal, a.currency), n, last))
+        out = account_out(a, bal, conv.convert(bal, a.currency), n, last)
+        if a.id in holdings:
+            out |= {"cash_balance": f2(cash), "holdings_value": f2(holdings[a.id])}
+        items.append(out)
     return {"items": items, "base_currency": user.base_currency, "warnings": conv.warnings()}
 
 

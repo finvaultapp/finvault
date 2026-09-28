@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import {
   ArrowLeftRight, BarChart3, Bot, ChevronDown, Eye, EyeOff, Landmark, LayoutDashboard, LogOut, Menu, Moon, PiggyBank,
   Plug, Repeat, Search, Settings, Shield, SlidersHorizontal, Sun, Tag, Target, Upload, Wallet,
-  CalendarDays, FileText, Users, BadgeDollarSign,
+  CalendarDays, FileText, Users, BadgeDollarSign, LineChart,
 } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
@@ -26,6 +26,7 @@ export const NAV = [
   ] },
   { group: 'Look back', items: [
     { to: '/reports', label: 'Reports', icon: BarChart3 },
+    { to: '/investments', label: 'Investments', icon: LineChart },
     { to: '/assets', label: 'Assets', icon: Landmark },
     { to: '/tax', label: 'Tax time', icon: FileText },
     { to: '/chat', label: 'Ask AI', icon: Bot, needsAi: true },

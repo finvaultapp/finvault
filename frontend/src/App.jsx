@@ -24,6 +24,7 @@ const Plans = lazy(() => import('./pages/Plans'))
 const Tax = lazy(() => import('./pages/Tax'))
 const People = lazy(() => import('./pages/People'))
 const Bills = lazy(() => import('./pages/Bills'))
+const Investments = lazy(() => import('./pages/Investments'))
 
 export default function App() {
   const { user } = useApp()
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="tax" element={<Tax />} />
           <Route path="people" element={<People />} />
           <Route path="bills" element={<Bills />} />
+          <Route path="investments" element={<Investments />} />
           {user.is_admin && <Route path="admin" element={<Admin />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
