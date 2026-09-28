@@ -8,6 +8,7 @@ import { t } from '../i18n'
 import { Empty, ErrorNote, Loading, Money, Progress, useData, useToast, Warnings } from '../components/ui'
 import { CategorySelect } from '../components/TxDialog'
 import Postmark from '../components/Postmark'
+import LowBalanceBanner from '../components/LowBalanceBanner'
 import { addMonths, date, money, monthLabel, shortMonth, todayISO } from '../lib/format'
 
 const thisMonth = () => todayISO().slice(0, 7)
@@ -52,6 +53,7 @@ export default function Dashboard() {
       <MonthPockets month={month} onChange={setMonth} />
 
       <Warnings items={data.warnings} />
+      {isCurrent && <LowBalanceBanner />}
       {data.stale_accounts.length > 0 && isCurrent && (
         <div className="banner info">
           <Clock />

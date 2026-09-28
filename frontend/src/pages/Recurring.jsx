@@ -4,6 +4,7 @@ import { api } from '../api'
 import { useApp } from '../context'
 import { CategoryTile, Confirm, Dialog, Empty, Field, Loading, Money, PageHead, Switch, useData, useToast } from '../components/ui'
 import { CategorySelect } from '../components/TxDialog'
+import ChargeAlerts from '../components/ChargeAlerts'
 import { date, relativeDays, todayISO } from '../lib/format'
 import { t } from '../i18n'
 
@@ -27,6 +28,7 @@ export default function Recurring() {
       </PageHead>
       <div className="grid-2" style={{ gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)' }}>
         <div className="stack">
+          <ChargeAlerts onAdd={setEditing} />
           <section className="card">
             <div className="card-head"><h2>{t('Scheduled')}</h2>
               {Object.entries(rec.data.monthly_outflow_by_currency).map(([c, v]) => <span key={c} className="small muted">≈ <Money value={v} currency={c} className="strong" /> {t('out per month')}</span>)}
