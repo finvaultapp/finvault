@@ -13,7 +13,8 @@ from .db import Base, SessionLocal, add_missing_columns, engine
 from .models import SyncConnection
 from .routers import (accounts, admin, ai, assets, auth, categories, currency, extras, imports, planning, plans, reports,
                       sharing, sync, transactions)
-from .services import inbox, notify, receipts, recurring
+from .routers import audit_log, backups, oidc
+from .services import inbox, nightly, notify, receipts, recurring
 from .services.sync import SyncError, sync_connection
 
 log = logging.getLogger("finvault")
@@ -44,6 +45,10 @@ async def _scheduler():
             await asyncio.to_thread(_hourly_jobs)
         except Exception:  # noqa: BLE001
             log.exception("background job failed")
+        try:
+            await asyncio.to_thread(nightly.run_if_due)
+        except Exception:  # noqa: BLE001
+            log.exception("nightly backup / audit pruning failed")
         await asyncio.sleep(3600)
 
 
@@ -96,7 +101,7 @@ async def guard(request: Request, call_next):
 
 
 for r in (auth, admin, accounts, transactions, imports, categories, planning, assets, reports, currency, sync, ai,
-          plans, sharing, extras):
+          plans, sharing, extras, audit_log, backups, oidc):
     app.include_router(r.router)
 
 

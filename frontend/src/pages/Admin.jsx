@@ -5,6 +5,8 @@ import { useApp } from '../context'
 import { Confirm, Dialog, Field, Loading, PageHead, Switch, useData, useToast } from '../components/ui'
 import { date } from '../lib/format'
 import { t } from '../i18n'
+import Backups from '../components/admin/Backups'
+import AuditLog from '../components/admin/AuditLog'
 
 export default function Admin() {
   const { user, refreshUser } = useApp()
@@ -106,6 +108,9 @@ export default function Admin() {
             </div>
           )}
         </section>
+
+        <Backups />
+        <AuditLog users={users.data || []} />
       </div>
       {creating && <CreateUser onClose={() => setCreating(false)} onSaved={users.reload} />}
       {confirm && <Confirm {...confirm} onClose={() => setConfirm(null)} />}

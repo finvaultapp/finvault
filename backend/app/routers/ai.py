@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -7,7 +7,7 @@ from ..db import get_db
 from ..deps import current_user
 from ..models import User
 from ..security import encrypt
-from ..services import ai
+from ..services import ai, audit
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
 
@@ -35,7 +35,7 @@ class PersonalIn(BaseModel):
 
 
 @router.put("/personal")
-def set_personal(body: PersonalIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
+def set_personal(body: PersonalIn, request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
     if body.provider == "openai" and not settings_store.get(db, "ai_allow_personal_keys"):
         raise HTTPException(403, "Your admin hasn't allowed personal OpenAI keys on this server.")
     if body.api_key:
@@ -53,6 +53,8 @@ def set_personal(body: PersonalIn, user: User = Depends(current_user), db: Sessi
         user.ai_model = body.model.strip()
     user.ai_provider = body.provider
     db.commit()
+    if body.api_key:
+        audit.record(db, "ai.key_connected", request=request, user=user, provider="openai")
     return status(user, db)
 
 
@@ -70,10 +72,13 @@ def personal_models(user: User = Depends(current_user)):
 
 
 @router.delete("/personal")
-def remove_personal(user: User = Depends(current_user), db: Session = Depends(get_db)):
+def remove_personal(request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
     """Forget the member's OpenAI key and switch back to the household model."""
+    had_key = bool(user.ai_api_key)
     user.ai_api_key, user.ai_model, user.ai_provider = None, None, "server"
     db.commit()
+    if had_key:
+        audit.record(db, "ai.key_removed", request=request, user=user, provider="openai")
     return status(user, db)
 
 

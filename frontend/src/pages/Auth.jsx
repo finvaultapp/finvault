@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { FileDown, HardDrive, KeyRound, Loader2, ShieldCheck } from 'lucide-react'
+import { FileDown, HardDrive, KeyRound, Loader2, LogIn, ShieldCheck } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
 import { useI18n } from '../i18n'
@@ -8,6 +8,23 @@ import { t } from '../i18n'
 import { Field } from '../components/ui'
 import Logo from '../components/Logo'
 import { CURRENCIES } from '../lib/format'
+
+const SSO_ERRORS = {
+  no_account: 'Your sign-in worked, but there is no FinVault account with that email. Ask your admin to add you first.',
+  email_not_verified: 'Your provider says that email address isn’t verified yet.',
+  no_email: 'Your provider didn’t share an email address with FinVault.',
+  bad_state: 'That sign-in link expired or was opened in another browser. Try again.',
+  bad_nonce: 'That sign-in couldn’t be checked. Try again.',
+  invalid_token: 'The provider’s answer couldn’t be verified. Ask your admin to check the single sign-on settings.',
+  signup_closed: 'Registration is closed. Ask your admin to create an account for you.',
+  invite_required: 'You need an invite code to join. Open the invite link from your admin, then sign in again.',
+  inactive: 'This account is turned off. Ask your admin.',
+  disabled: 'Single sign-on isn’t turned on for this server.',
+}
+
+function ssoMessage(code) {
+  return t(SSO_ERRORS[code] || 'Single sign-on didn’t work. Try again, or ask your admin.')
+}
 
 export default function Auth({ mode }) {
   const { status, setUser, refreshUser } = useApp()
@@ -21,6 +38,10 @@ export default function Auth({ mode }) {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+  const sso = status?.oidc?.enabled ? status.oidc : null
+  const localAuth = status?.local_auth_enabled !== false
+  const ssoError = new URLSearchParams(location.search).get('sso_error')
+  const ssoHref = sso ? `${sso.login_url}?${new URLSearchParams({ next: '/', ...(form.invite_code ? { invite: form.invite_code } : {}) })}` : ''
 
   const submit = async (e) => {
     e.preventDefault()
@@ -58,7 +79,15 @@ export default function Auth({ mode }) {
             : registering ? (regMode === 'invite' ? t('Ask your household admin for an invite code.') : t('Your data stays on this server.'))
             : t('Welcome back. Your data stays on this server.')}
         </p>
-        <form onSubmit={submit}>
+        {!challenge && ssoError && <p className="error-text" role="alert">{ssoMessage(ssoError)}</p>}
+        {!challenge && sso && (
+          <div className="sso">
+            <a className="btn primary sso-btn" href={ssoHref}><LogIn />{t('Sign in with {provider}', { provider: sso.provider_name })}</a>
+            {localAuth && <div className="sso-or"><span>{t('or use your password')}</span></div>}
+          </div>
+        )}
+        {!localAuth && !challenge && !sso && <p className="error-text" role="alert">{t('Password sign-in is turned off and single sign-on isn’t set up. Ask your admin.')}</p>}
+        {(localAuth || challenge) && <form onSubmit={submit}>
           {challenge ? (
             <Field label={t('Authentication code')}>
               <input className="input" inputMode="numeric" autoComplete="one-time-code" autoFocus value={code} onChange={(e) => setCode(e.target.value)} placeholder="123 456" />
@@ -87,8 +116,8 @@ export default function Auth({ mode }) {
             {busy && <Loader2 size={16} className="spin" />}
             {challenge ? t('Verify') : registering ? t('Create account') : t('Sign in')}
           </button>
-        </form>
-        {!setup && !challenge && (
+        </form>}
+        {localAuth && !setup && !challenge && (
           <p className="muted small" style={{ marginTop: 18 }}>
             {registering ? <>{t('Already have an account?')} <Link to="/login">{t('Sign in')}</Link></>
               : regMode !== 'closed' ? <>{t('New to this household?')} <Link to="/register">{t('Create an account')}</Link></> : t('Accounts on this server are created by the admin.')}

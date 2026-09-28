@@ -1,7 +1,8 @@
 import secrets
+from types import SimpleNamespace
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -10,6 +11,7 @@ from .. import security, settings_store
 from ..db import get_db
 from ..deps import admin_user
 from ..models import Account, Invite, Transaction, User
+from ..services import audit
 from ..services.ai import is_local_url
 from ..services.ledger import seed_categories
 
@@ -34,7 +36,7 @@ class NewUserIn(BaseModel):
 
 
 @router.post("/users")
-def create_user(body: NewUserIn, _: User = Depends(admin_user), db: Session = Depends(get_db)):
+def create_user(body: NewUserIn, request: Request, me: User = Depends(admin_user), db: Session = Depends(get_db)):
     email = body.email.strip().lower()
     if db.scalar(select(User).where(User.email == email)):
         raise HTTPException(409, "An account with this email already exists.")
@@ -43,6 +45,7 @@ def create_user(body: NewUserIn, _: User = Depends(admin_user), db: Session = De
     db.flush()
     seed_categories(db, u)
     db.commit()
+    audit.record(db, "admin.member_created", request=request, user=me, target=u, via="admin", is_admin=u.is_admin)
     return {"id": u.id}
 
 
@@ -56,7 +59,7 @@ def _admins_left(db: Session, excluding: int) -> int:
 
 
 @router.patch("/users/{user_id}")
-def update_user(user_id: int, body: UserPatch, me: User = Depends(admin_user), db: Session = Depends(get_db)):
+def update_user(user_id: int, body: UserPatch, request: Request, me: User = Depends(admin_user), db: Session = Depends(get_db)):
     u = db.get(User, user_id)
     if not u:
         raise HTTPException(404, "User not found")
@@ -70,22 +73,25 @@ def update_user(user_id: int, body: UserPatch, me: User = Depends(admin_user), d
         if not body.is_active:
             u.token_version += 1
     db.commit()
+    audit.record(db, "admin.member_changed", request=request, user=me, target=u,
+                 **body.model_dump(exclude_none=True))
     return {"ok": True}
 
 
 @router.post("/users/{user_id}/reset-2fa")
-def reset_2fa(user_id: int, _: User = Depends(admin_user), db: Session = Depends(get_db)):
+def reset_2fa(user_id: int, request: Request, me: User = Depends(admin_user), db: Session = Depends(get_db)):
     u = db.get(User, user_id)
     if not u:
         raise HTTPException(404, "User not found")
     u.totp_enabled, u.totp_secret, u.recovery_codes = False, None, None
     u.token_version += 1
     db.commit()
+    audit.record(db, "admin.2fa_reset", request=request, user=me, target=u)
     return {"ok": True}
 
 
 @router.delete("/users/{user_id}")
-def delete_user(user_id: int, me: User = Depends(admin_user), db: Session = Depends(get_db)):
+def delete_user(user_id: int, request: Request, me: User = Depends(admin_user), db: Session = Depends(get_db)):
     if user_id == me.id:
         raise HTTPException(409, "You can't delete your own account here.")
     u = db.get(User, user_id)
@@ -93,8 +99,10 @@ def delete_user(user_id: int, me: User = Depends(admin_user), db: Session = Depe
         raise HTTPException(404, "User not found")
     if u.is_admin and _admins_left(db, u.id) == 0:
         raise HTTPException(409, "There must be at least one active admin.")
+    target = {"id": u.id, "email": u.email}
     db.delete(u)
     db.commit()
+    audit.record(db, "admin.member_deleted", request=request, user=me, target=SimpleNamespace(**target))
     return {"ok": True}
 
 
@@ -111,11 +119,12 @@ class InviteIn(BaseModel):
 
 
 @router.post("/invites")
-def create_invite(body: InviteIn, me: User = Depends(admin_user), db: Session = Depends(get_db)):
+def create_invite(body: InviteIn, request: Request, me: User = Depends(admin_user), db: Session = Depends(get_db)):
     inv = Invite(code=secrets.token_urlsafe(9), note=body.note[:200], created_by=me.id,
                  expires_at=datetime.now(timezone.utc) + timedelta(days=body.days))
     db.add(inv)
     db.commit()
+    audit.record(db, "admin.invite_created", request=request, user=me, invite_id=inv.id, days=body.days)
     return {"id": inv.id, "code": inv.code}
 
 
@@ -151,10 +160,15 @@ class SettingsIn(BaseModel):
 
 
 @router.patch("/settings")
-def update_settings(body: SettingsIn, _: User = Depends(admin_user), db: Session = Depends(get_db)):
-    for key, value in body.model_dump(exclude_none=True).items():
+def update_settings(body: SettingsIn, request: Request, _: User = Depends(admin_user), db: Session = Depends(get_db)):
+    changes = body.model_dump(exclude_none=True)
+    for key, value in changes.items():
         if key == "ai_base_url" and value and not value.startswith(("http://", "https://")):
             raise HTTPException(422, "The AI endpoint must start with http:// or https://")
         settings_store.set(db, key, value)
     db.commit()
+    if changes:
+        # Key names only, and new values only for plain on/off switches: never secret values.
+        audit.record(db, "admin.settings_changed", request=request, user=_, keys=sorted(changes),
+                     **{f"set_{k}": v for k, v in changes.items() if isinstance(v, bool)})
     return get_settings(_, db)

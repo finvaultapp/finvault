@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr t
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/app ./app
+COPY backend/scripts ./scripts
 COPY --from=web /web/dist ./static
 RUN useradd --system --uid 1000 finvault && mkdir -p /data /inbox && chown finvault /data /inbox
 USER finvault
