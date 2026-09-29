@@ -159,4 +159,17 @@ export default {
   "Pick the start month as year and month, like 2026-01.": "Indiquez le mois de départ en année et mois, comme 2026-01.",
   "Choose at least one payee.": "Choisissez au moins un bénéficiaire.",
   "Give the payee a name.": "Donnez un nom au bénéficiaire.",
+  // Move from another app (routers/migrate.py, importers/migrate.py, services/migrate.py)
+  "The move settings could not be read. Start again from the first step.": "Les réglages du déménagement sont illisibles. Recommencez à la première étape.",
+  "These files are larger than 50 MB together.": "Ensemble, ces fichiers dépassent 50 Mo.",
+  "No transactions were found in these files.": "Aucune transaction n'a été trouvée dans ces fichiers.",
+  "That is an app database, not an export. In Actual Budget, open All accounts and use Export to save the transactions as CSV.": "Il s'agit d'une base de données d'application, pas d'une exportation. Dans Actual Budget, ouvrez All accounts et utilisez Export pour enregistrer les transactions en CSV.",
+  "No CSV files were found. Upload the CSV export, or the zip that holds it.": "Aucun fichier CSV n'a été trouvé. Téléversez l'exportation CSV ou le zip qui la contient.",
+  "That zip file could not be opened.": "Impossible d'ouvrir ce fichier zip.",
+  "The zip holds more than 120 MB of files.": "Le zip contient plus de 120 Mo de fichiers.",
+  "Some rows were skipped because their date or amount could not be read.": "Des lignes ont été ignorées parce que leur date ou leur montant était illisible.",
+  "Choose a FinVault account for each account you're bringing in.": "Choisissez un compte FinVault pour chaque compte que vous importez.",
+  "Use a three-letter currency code, like CAD or USD.": "Utilisez un code de devise à trois lettres, comme CAD ou USD.",
+  "Choose at least one account to bring in.": "Choisissez au moins un compte à importer.",
+  "Choose a FinVault category for each category you're bringing in, or leave it uncategorized.": "Choisissez une catégorie FinVault pour chaque catégorie importée, ou laissez-la sans catégorie.",
 }

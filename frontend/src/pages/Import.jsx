@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { AlertTriangle, ArrowRight, CheckCircle2, FileUp, Info, Loader2, RotateCcw, ShieldCheck, Upload } from 'lucide-react'
+import { AlertTriangle, ArrowRight, CheckCircle2, FileUp, Info, Loader2, RotateCcw, ShieldCheck, Truck, Upload } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
 import { Confirm, Empty, Field, Loading, Money, PageHead, Switch, useData, useToast } from '../components/ui'
@@ -170,6 +170,17 @@ export default function Import() {
           </section>
         )}
       </div>
+
+      {!preview && (
+        <Link to="/import/move" className="card move-link">
+          <Truck aria-hidden="true" />
+          <div className="grow">
+            <div className="title">{t('Moving from another app?')}</div>
+            <div className="meta">{t('Bring your whole history in once from YNAB, Actual Budget, Mint, Monarch Money or another app, with accounts, categories and transfers.')}</div>
+          </div>
+          <ArrowRight aria-hidden="true" />
+        </Link>
+      )}
 
       <WatchedFolder />
 

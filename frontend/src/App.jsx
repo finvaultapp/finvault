@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard'
 const Transactions = lazy(() => import('./pages/Transactions'))
 const Accounts = lazy(() => import('./pages/Accounts'))
 const Import = lazy(() => import('./pages/Import'))
+const Migrate = lazy(() => import('./pages/Migrate'))
 const Reports = lazy(() => import('./pages/Reports'))
 const Assets = lazy(() => import('./pages/Assets'))
 const Budgets = lazy(() => import('./pages/Budgets'))
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="transactions" element={<Transactions />} />
           <Route path="accounts" element={<Accounts />} />
           <Route path="import" element={<Import />} />
+          <Route path="import/move" element={<Migrate />} />
           <Route path="reports" element={<Reports />} />
           <Route path="assets" element={<Assets />} />
           <Route path="budgets" element={<Budgets />} />

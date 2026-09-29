@@ -13,7 +13,7 @@ from .db import SessionLocal, migrate_schema
 from .models import SyncConnection
 from .routers import (accounts, admin, ai, assets, auth, categories, currency, extras, imports, planning, plans, reports,
                       sharing, sync, transactions)
-from .routers import audit_log, backups, investments, oidc, planahead
+from .routers import audit_log, backups, investments, migrate, oidc, planahead
 from .routers import organize, payees
 from .services import charge_alerts, inbox, invest, nightly, notify, receipts, recurring
 from .services.sync import SyncError, sync_connection
@@ -114,7 +114,7 @@ async def guard(request: Request, call_next):
 
 
 for r in (auth, admin, accounts, transactions, imports, categories, planning, assets, reports, currency, sync, ai,
-          plans, sharing, extras, planahead, audit_log, backups, oidc, investments, organize, payees):
+          plans, sharing, extras, planahead, audit_log, backups, oidc, investments, organize, payees, migrate):
     app.include_router(r.router)
 
 from .routers import ai_tools  # noqa: E402
