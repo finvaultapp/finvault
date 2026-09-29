@@ -6,6 +6,7 @@ import { useApp } from '../context'
 import { CategoryTile, Empty, Loading, Money, PageHead, Progress, useData, Warnings } from '../components/ui'
 import { money, monthLabel, shortMonth } from '../lib/format'
 import { t } from '../i18n'
+import { TagPill } from '../components/Tags'
 
 const RANGES = [[3, '3 months'], [6, '6 months'], [12, '12 months'], [24, '2 years']]
 
@@ -30,12 +31,13 @@ export default function Reports() {
           <button className={tab === 'ie' ? 'on' : ''} onClick={() => setTab('ie')}>{t('Income vs expenses')}</button>
           <button className={tab === 'nw' ? 'on' : ''} onClick={() => setTab('nw')}>{t('Net worth')}</button>
           <button className={tab === 'cat' ? 'on' : ''} onClick={() => setTab('cat')}>{t('Categories')}</button>
+          <button className={tab === 'tag' ? 'on' : ''} onClick={() => setTab('tag')}>{t('By tag')}</button>
         </div>
         <select className="input" style={{ width: 140 }} value={months} onChange={(e) => setMonths(Number(e.target.value))} aria-label={t('Range')}>
           {RANGES.map(([v, l]) => <option key={v} value={v}>{t(l)}</option>)}
         </select>
       </PageHead>
-      {tab === 'nw' ? <NetWorth r={nw} /> : !ie.data ? <Loading rows={6} /> : tab === 'ie' ? <IncomeExpense d={ie.data} /> : <CategoryReport d={ie.data} />}
+      {tab === 'tag' ? <TagReport start={rangeStart(months)} version={version} /> : tab === 'nw' ? <NetWorth r={nw} /> : !ie.data ? <Loading rows={6} /> : tab === 'ie' ? <IncomeExpense d={ie.data} /> : <CategoryReport d={ie.data} />}
     </>
   )
 }
@@ -190,6 +192,42 @@ function NetWorth({ r }) {
             </BarChart>
           </ResponsiveContainer>
         </div>
+      </section>
+    </div>
+  )
+}
+
+// Money in and out per tag over the chosen range. Splits and shared costs count as "your part", like every report.
+function TagReport({ start, version }) {
+  const r = useData(() => api.get(`/reports/tags${qs({ start })}`), [start, version])
+  if (!r.data) return <Loading rows={4} />
+  const d = r.data
+  const c = d.currency
+  return (
+    <div className="stack">
+      <Warnings items={d.warnings} />
+      <section className="card">
+        <div className="card-head"><div><h2>{t('By tag')}</h2><div className="sub">{t('Totals for tagged transactions since {date}. A transaction with two tags counts toward both.', { date: monthLabel(start.slice(0, 7)) })}</div></div></div>
+        {!d.items.length ? (
+          <Empty title={t('No tagged transactions in this range')}>{t('Add tags like “vacation 2026” or “reno” to transactions, then see what each one cost here.')}</Empty>
+        ) : (
+          <div className="table-wrap">
+            <table className="table">
+              <thead><tr><th>{t('Tag')}</th><th className="amount">{t('Transactions')}</th><th className="amount">{t('Money in')}</th><th className="amount">{t('Money out')}</th><th className="amount">{t('Net')}</th></tr></thead>
+              <tbody>
+                {d.items.map((i) => (
+                  <tr key={i.id}>
+                    <td><Link to={`/transactions${qs({ tag: i.id, start })}`} aria-label={t('Transactions tagged {name}', { name: i.name })}><TagPill name={i.name} /></Link></td>
+                    <td className="amount num">{i.count}</td>
+                    <td className="amount"><Money value={i.income} currency={c} className={i.income ? 'income' : 'muted'} /></td>
+                    <td className="amount"><Money value={i.expense} currency={c} className={i.expense ? 'expense' : 'muted'} /></td>
+                    <td className="amount"><Money value={i.net} currency={c} sign colored /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   )

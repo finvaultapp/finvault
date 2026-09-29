@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import { Dialog, Field, useToast } from './ui'
+import { Dialog, Field, useData, useToast } from './ui'
+import { TagInput } from './Tags'
 import { CategorySelect } from './TxDialog'
 import { money, date } from '../lib/format'
 import { t } from '../i18n'
@@ -19,15 +20,20 @@ export default function RuleDialog({ rule, suggestFrom, categories, accounts, on
     name: '', priority: 100, match_field: 'description', match_type: 'contains',
     pattern: suggestFrom ? suggestPattern(suggestFrom.tx.description) : '',
     amount_min: null, amount_max: null, account_id: null,
-    set_category_id: suggestFrom?.category_id ?? null, set_payee: '', is_active: true,
+    set_category_id: suggestFrom?.category_id ?? null, set_payee: '', set_tag_id: null, is_active: true,
   })
+  const known = useData(() => api.get('/tags'), [])
+  const [tagName, setTagName] = useState(null) // null: keep the rule's tag; [] or [name]: what the field shows
+  const currentTag = known.data?.find((x) => x.id === f.set_tag_id)?.name
+  const tagValue = tagName ?? (currentTag ? [currentTag] : [])
   const [apply, setApply] = useState(true)
   const [preview, setPreview] = useState(null)
   const [busy, setBusy] = useState(false)
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
 
   const body = () => ({ ...f, amount_min: f.amount_min === '' ? null : f.amount_min, amount_max: f.amount_max === '' ? null : f.amount_max,
-    account_id: f.account_id ? Number(f.account_id) : null, set_payee: f.set_payee || null, priority: Number(f.priority) || 100 })
+    account_id: f.account_id ? Number(f.account_id) : null, set_payee: f.set_payee || null, priority: Number(f.priority) || 100,
+    set_tag_id: tagName ? null : f.set_tag_id ?? null, set_tag: tagName?.[0] ?? null })
 
   useEffect(() => {
     if (!f.pattern) { setPreview(null); return }
@@ -51,16 +57,19 @@ export default function RuleDialog({ rule, suggestFrom, categories, accounts, on
     <Dialog wide title={rule?.id ? t('Edit rule') : t('New categorization rule')} onClose={onClose} footer={<>
       {!rule?.id && <label className="check" style={{ marginRight: 'auto' }}><input type="checkbox" checked={apply} onChange={(e) => setApply(e.target.checked)} />{t('Also apply to uncategorized transactions')}</label>}
       <button className="btn" onClick={onClose}>{t('Cancel')}</button>
-      <button className="btn primary" onClick={save} disabled={busy || !f.pattern || (!f.set_category_id && !f.set_payee)}>{t('Save rule')}</button>
+      <button className="btn primary" onClick={save} disabled={busy || !f.pattern || (!f.set_category_id && !f.set_payee && !tagValue.length)}>{t('Save rule')}</button>
     </>}>
       <div className="form-grid">
         <Field label={t('When the')}><select className="input" value={f.match_field} onChange={set('match_field')}>
           <option value="description">{t('description')}</option><option value="payee">{t('payee')}</option></select></Field>
         <Field label="…"><select className="input" value={f.match_type} onChange={set('match_type')}>
-          <option value="contains">{t('contains')}</option><option value="starts_with">{t('starts with')}</option><option value="equals">{t('is exactly')}</option><option value="regex">{t('matches pattern (regex)')}</option></select></Field>
+          <option value="contains">{t('contains')}</option><option value="starts_with">{t('starts with')}</option><option value="equals">{t('is exactly')}</option><option value="regex">{t('matches pattern (regex)')}</option><option value="merchant">{t('is the same merchant as')}</option></select></Field>
         <Field label={t('Text')} className="full" hint={t('Not case-sensitive. Keep it short, e.g. “loblaws” or “netflix”.')}><input className="input" autoFocus value={f.pattern} onChange={set('pattern')} /></Field>
         <Field label={t('Set category')}><CategorySelect categories={categories} value={f.set_category_id} onChange={(v) => setF({ ...f, set_category_id: v })} placeholder={t("Don't change")} /></Field>
         <Field label={t('Rename payee to')} hint={t('Optional')}><input className="input" value={f.set_payee ?? ''} onChange={set('set_payee')} placeholder={t('e.g. Loblaws')} /></Field>
+        <Field label={t('Add tag')} hint={t('Optional. Tags add up: every matching rule adds its tag.')}>
+          <TagInput single value={tagValue} onChange={setTagName} known={known.data ?? []} placeholder={t('e.g. reno')} label={t('Add tag')} />
+        </Field>
         <Field label={t('Only for account')}><select className="input" value={f.account_id ?? ''} onChange={set('account_id')}>
           <option value="">{t('Any account')}</option>{accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></Field>
         <Field label={t('Priority')} hint={t('Lower numbers win when several rules match.')}><input className="input" type="number" value={f.priority} onChange={set('priority')} /></Field>

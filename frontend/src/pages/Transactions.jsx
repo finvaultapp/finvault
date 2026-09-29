@@ -11,6 +11,7 @@ import TransferReview from '../components/TransferReview'
 import { date, money } from '../lib/format'
 import { AiChip, AiSuggestBar, AskBox, aiFiltersToParams, useAiReady, useAiSuggestions } from '../components/AiTools'
 import { t } from '../i18n'
+import { TagInput, TagList } from '../components/Tags'
 
 function monthRange(ym) {
   if (!ym) return {}
@@ -41,6 +42,7 @@ export default function Transactions() {
       q: params.get('q') || undefined,
       account_id: params.getAll('account').map(Number),
       category_id: params.getAll('category').map(Number),
+      tag_id: params.getAll('tag').map(Number),
       uncategorized: params.get('uncategorized') === '1',
       start: params.get('start') || month.start, end: params.get('end') || month.end,
       kind: params.get('kind') || undefined,
@@ -53,6 +55,7 @@ export default function Transactions() {
   const categories = useData(() => api.get('/categories'), [version])
   const list = useData(() => api.get(`/transactions${qs(filters)}`), [filters, version])
   const pairs = useData(() => api.get('/transfers/suggestions'), [version])
+  const tagList = useData(() => api.get('/tags'), [version])
 
   useEffect(() => {
     const timer = setTimeout(() => update({ q: q || null }), 300)
@@ -73,12 +76,14 @@ export default function Transactions() {
   }
 
   const cats = categories.data ?? []
+  const allTags = tagList.data ?? []
   const accts = accounts.data?.items ?? []
   const items = list.data?.items ?? []
   const ai = useAiSuggestions(filters.uncategorized ? items.filter((tx) => !tx.category_id).map((tx) => tx.id) : [], aiReady)
   const activeFilters = [
     ...filters.account_id.map((id) => ({ key: `a${id}`, label: accts.find((a) => a.id === id)?.name ?? t('Account'), clear: { account: filters.account_id.filter((x) => x !== id) } })),
     ...filters.category_id.map((id) => ({ key: `c${id}`, label: cats.find((c) => c.id === id)?.name ?? t('Category'), clear: { category: filters.category_id.filter((x) => x !== id) } })),
+    ...filters.tag_id.map((id) => ({ key: `t${id}`, label: t('Tag: {name}', { name: allTags.find((x) => x.id === id)?.name ?? '…' }), clear: { tag: filters.tag_id.filter((x) => x !== id) } })),
     filters.uncategorized && { key: 'u', label: t('Uncategorized'), clear: { uncategorized: null } },
     (filters.start || filters.end) && { key: 'd', label: `${filters.start ? date(filters.start) : '…'} – ${filters.end ? date(filters.end) : '…'}`, clear: { start: null, end: null, month: null } },
     filters.kind && { key: 'k', label: filters.kind === 'income' ? t('Money in') : t('Money out'), clear: { kind: null } },
@@ -122,6 +127,15 @@ export default function Transactions() {
     await api.post('/transactions/bulk', { ids, action, category_id })
     toast(action === 'delete' ? t('Deleted {n} transactions', { n: ids.length }) : t('Categorized {n} transactions', { n: ids.length }))
     list.reload(); bump()
+  }
+
+  const bulkTag = async (action, name) => {
+    const ids = [...selected]
+    try {
+      const r = await api.post('/tags/bulk', { ids, action, name })
+      toast(action === 'add' ? t('Tagged {n} transactions “{tag}”', { n: r.updated, tag: r.tag.name }) : t('Removed “{tag}” from {n} transactions', { n: r.updated, tag: r.tag.name }))
+      list.reload(); tagList.reload()
+    } catch (e) { toast(e.message, 'error') }
   }
 
   const exportUrl = (format) => `/api/transactions/export${qs({ ...filters, page: undefined, page_size: undefined, format })}`
@@ -170,6 +184,10 @@ export default function Transactions() {
                   onChange={(e) => e.target.value === 'none' ? update({ uncategorized: '1', category: [] }) : update({ category: e.target.value ? [e.target.value] : [], uncategorized: null })}>
                   <option value="">{t('All categories')}</option><option value="none">{t('Uncategorized')}</option>
                   {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select></label>
+              <label className="field"><span>{t('Tag')}</span>
+                <select className="input sm" value={filters.tag_id[0] ?? ''} onChange={(e) => update({ tag: e.target.value ? [e.target.value] : [] })}>
+                  <option value="">{t('Any tag')}</option>{allTags.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
                 </select></label>
               <label className="field"><span>{t('From')}</span><input className="input sm" type="date" value={filters.start ?? ''} onChange={(e) => update({ start: e.target.value, month: null })} /></label>
               <label className="field"><span>{t('To')}</span><input className="input sm" type="date" value={filters.end ?? ''} onChange={(e) => update({ end: e.target.value, month: null })} /></label>
@@ -222,6 +240,7 @@ export default function Transactions() {
             <strong>{t('{n} selected', { n: selected.size })}</strong>
             <div className="row wrap">
               <CategorySelect className="input sm" categories={cats} value={null} placeholder={t('Set category…')} onChange={(v) => v && bulk('categorize', v)} style={{ width: 200 }} />
+              <BulkTag known={allTags} onApply={bulkTag} />
               <button className="btn sm danger" onClick={() => setConfirm({ title: t('Delete {n} transactions?', { n: selected.size }), body: t('This removes them from FinVault. Re-importing the same file would bring them back.'), onConfirm: () => bulk('delete') })}><Trash2 />{t('Delete')}</button>
               <button className="btn sm ghost" onClick={() => setSelected(new Set())}>{t('Cancel')}</button>
             </div>
@@ -266,6 +285,7 @@ export default function Transactions() {
                           <div title={tx.description}>{tx.payee || tx.description}</div>
                           {tx.payee && tx.payee !== tx.description && <small>{tx.description}</small>}
                           {tx.notes && <small> · {tx.notes}</small>}
+                          {tx.tags?.length > 0 && <div className="tx-tags"><TagList tags={tx.tags} /></div>}
                         </div>
                         <span className="tx-flags">
                           {tx.transfer_id && <button className="flag" title={t('Matched transfer')} aria-label={t('Matched transfer')} onClick={() => setEditing({ ...tx, _tab: 'details' })}><ArrowLeftRight /></button>}
@@ -314,5 +334,18 @@ export default function Transactions() {
           onSaved={(r) => { list.reload(); bump(); if (r.applied) toast(t('Rule saved and applied to {n} more transactions', { n: r.applied })) }} />
       )}
     </>
+  )
+}
+
+// Bulk bar: pick or type a tag, then add it to (or remove it from) every selected transaction.
+function BulkTag({ known, onApply }) {
+  const [value, setValue] = useState([])
+  const name = value[0]
+  return (
+    <div className="bulk-tag">
+      <TagInput single value={value} onChange={setValue} known={known} placeholder={t('Tag…')} label={t('Tag for the selected transactions')} />
+      <button className="btn sm" disabled={!name} onClick={async () => { await onApply('add', name); setValue([]) }}>{t('Add tag')}</button>
+      <button className="btn sm" disabled={!name || !known.some((k) => k.name.toLowerCase() === name.toLowerCase())} onClick={async () => { await onApply('remove', name); setValue([]) }}>{t('Remove tag')}</button>
+    </div>
   )
 }

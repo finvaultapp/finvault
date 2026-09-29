@@ -6,6 +6,7 @@ import { serverText } from '../lib/serverText'
 import { Dialog, Field, Money, useData, useToast } from './ui'
 import { todayISO } from '../lib/format'
 import { TAX_TAGS } from '../lib/tax'
+import { TagInput } from './Tags'
 
 export function CategorySelect({ categories, value, onChange, className = 'input', placeholder, ...rest }) {
   const groups = { expense: t('Expenses'), income: t('Income'), transfer: t('Transfers') }
@@ -54,6 +55,9 @@ function Details({ tx, accounts, categories, onClose, onSaved }) {
   const [busy, setBusy] = useState(false)
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
   const tags = TAX_TAGS()
+  const startTags = (tx?.tags ?? []).map((x) => x.name)
+  const [labels, setLabels] = useState(startTags)
+  const known = useData(() => api.get('/tags'), [])
 
   const save = async (e) => {
     e?.preventDefault()
@@ -63,6 +67,7 @@ function Details({ tx, accounts, categories, onClose, onSaved }) {
     try {
       const saved = editing ? await api.patch(`/transactions/${tx.id}`, body) : await api.post('/transactions', body)
       if ((f.tax_tag || null) !== (tx?.tax_tag ?? null)) await api.put(`/transactions/${saved.id}/tax-tag`, { tax_tag: f.tax_tag || null })
+      if (labels.join('\n') !== startTags.join('\n')) await api.put(`/transactions/${saved.id}/tags`, { names: labels })
       toast(editing ? t('Transaction updated') : t('Transaction added'))
       onSaved()
       onClose()
@@ -88,6 +93,9 @@ function Details({ tx, accounts, categories, onClose, onSaved }) {
         <Field label={t('Category')}><CategorySelect categories={categories} value={f.category_id} onChange={(v) => setF({ ...f, category_id: v })} /></Field>
         <Field label={t('Payee')} hint={t('Optional clean name, e.g. “Loblaws”.')}><input className="input" value={f.payee} onChange={set('payee')} /></Field>
         <Field label={t('Notes')}><input className="input" value={f.notes} onChange={set('notes')} /></Field>
+        <Field label={t('Tags')} className="full" hint={t('Labels across categories, like “vacation 2026” or “reno”.')}>
+          <TagInput value={labels} onChange={setLabels} known={known.data ?? []} />
+        </Field>
         <Field label={t('Tax time')} className="full" hint={t('Overrides the category\'s tax tag for this one transaction.')}>
           <select className="input" value={f.tax_tag} onChange={set('tax_tag')}>
             <option value="">{t('Use the category\'s tag')}</option>

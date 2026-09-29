@@ -218,8 +218,12 @@ function Wall({ spending, budgets, currency, month, flash }) {
     const byId = new Map()
     for (const s of spending) if (s.category_id) byId.set(s.category_id, { id: s.category_id, name: s.name, color: s.color, spent: s.total, budget: s.budget })
     for (const b of budgets) if (!byId.has(b.category_id)) byId.set(b.category_id, { id: b.category_id, name: b.name, color: b.color, spent: 0, budget: b.budget })
+    // Rollover: the pocket fills toward this month's limit plus (or minus) what was carried in.
+    const carried = new Map(budgets.map((b) => [b.category_id, b.carried ?? 0]))
     return [...byId.values()]
-      .map((c) => ({ ...c, pct: c.budget ? c.spent / c.budget : null, over: c.budget != null && c.spent > c.budget }))
+      .map((c) => ({ ...c, carried: c.budget != null ? carried.get(c.id) ?? 0 : 0 }))
+      .map((c) => ({ ...c, limit: c.budget != null ? c.budget + c.carried : null }))
+      .map((c) => ({ ...c, pct: c.limit == null ? null : c.limit > 0 ? c.spent / c.limit : 1, over: c.limit != null && c.spent > c.limit }))
       .sort((a, b) => (b.budget != null) - (a.budget != null) || b.spent - a.spent)
   }, [spending, budgets])
 
@@ -235,7 +239,7 @@ function Wall({ spending, budgets, currency, month, flash }) {
               <div className="hole-label"><i />{c.name}</div>
               <div className="hole-body">
                 <div className="amt"><Money value={c.spent} currency={currency} /></div>
-                <div className="of">{c.budget != null ? <>{t('of')} <Money value={c.budget} currency={currency} /></> : t('no limit set')}{c.over && <span className="band">{t('over by')} <Money value={c.spent - c.budget} currency={currency} compact /></span>}</div>
+                <div className="of">{c.budget != null ? <>{t('of')} <Money value={c.budget} currency={currency} />{c.carried ? <span className="carried"> {c.carried > 0 ? '+' : '−'} <Money value={Math.abs(c.carried)} currency={currency} /> {t('carried')}</span> : null}</> : t('no limit set')}{c.over && <span className="band">{t('over by')} <Money value={c.spent - c.limit} currency={currency} compact /></span>}</div>
               </div>
               <div className={`slot ${c.pct == null ? 'open' : ''}`} aria-hidden="true">
                 {c.pct != null && <span style={{ transform: `scaleY(${Math.min(1, c.pct)})` }} />}

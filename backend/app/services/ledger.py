@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..importers import ParsedTxn, ParseResult, normalize_merchant
-from ..models import Account, Category, ImportBatch, Rule, Transaction, User
+from ..models import Account, Category, ImportBatch, Rule, Transaction, TransactionTag, User
 
 DEFAULT_CATEGORIES = [
     ("Salary", "income", "#3f8f5f"), ("Other income", "income", "#5fa37a"), ("Interest", "income", "#7bb68f"),
@@ -60,6 +60,11 @@ def account_balances(db: Session, user_id: int, on: date | None = None) -> dict[
 
 # --- Rules --------------------------------------------------------------------
 
+def merchant_key(text: str) -> str:
+    """normalize_merchant, falling back to the plain text when normalizing leaves nothing (e.g. "12345")."""
+    return normalize_merchant(text or "") or re.sub(r"\s+", " ", (text or "").upper()).strip()
+
+
 def rule_matches(rule: Rule, description: str, payee: str, amount: Decimal, account_id: int | None) -> bool:
     if not rule.is_active:
         return False
@@ -71,6 +76,8 @@ def rule_matches(rule: Rule, description: str, payee: str, amount: Decimal, acco
         return False
     text = (payee if rule.match_field == "payee" else description) or ""
     pattern = rule.pattern or ""
+    if rule.match_type == "merchant":  # the normalized merchant key, as the Payees page groups them
+        return merchant_key(text) == pattern.strip().upper()
     if rule.match_type == "regex":
         try:
             return re.search(pattern, text, re.I) is not None
@@ -119,10 +126,15 @@ class Categorizer:
         out = [cat for cat, _ in score.most_common() if kinds.get(cat) == want]
         return out[:limit]
 
+    def tags(self, description: str, payee: str, amount: Decimal, account_id: int | None) -> set[int]:
+        """Tag ids added by every matching rule (tags add up; they don't compete like categories)."""
+        return {r.set_tag_id for r in self.rules
+                if r.set_tag_id and rule_matches(r, description, payee, amount, account_id)}
+
     def apply(self, description: str, payee: str, amount: Decimal, account_id: int | None):
-        """Return (category_id, new_payee, source)."""
+        """Return (category_id, new_payee, source). Tag-only rules are skipped here; see tags()."""
         for r in self.rules:
-            if rule_matches(r, description, payee, amount, account_id):
+            if (r.set_category_id or r.set_payee) and rule_matches(r, description, payee, amount, account_id):
                 return r.set_category_id, r.set_payee, f"rule:{r.id}"
         key = normalize_merchant(description)
         if key and key in self.history:
@@ -163,18 +175,27 @@ def commit_import(db: Session, user: User, account: Account, result: ParseResult
     db.flush()
     cat = Categorizer(db, user.id)
     imported = skipped = 0
+    tagged: list[tuple[Transaction, set[int]]] = []
     for p in planned:
         if p["duplicate"]:
             skipped += 1
             continue
         t: ParsedTxn = p["txn"]
         category_id, new_payee, _ = cat.apply(t.description, t.payee, t.amount, account.id)
-        db.add(Transaction(
+        row = Transaction(
             user_id=user.id, account_id=account.id, date=t.date, amount=t.amount,
             description=t.description[:500], payee=(new_payee or t.payee or "")[:200],
             category_id=category_id, import_hash=p["hash"], external_id=t.external_id, import_batch_id=batch.id,
-        ))
+        )
+        db.add(row)
+        tags = cat.tags(t.description, t.payee, t.amount, account.id)
+        if tags:
+            tagged.append((row, tags))
         imported += 1
+    if tagged:
+        db.flush()
+        for row, tags in tagged:
+            db.add_all(TransactionTag(transaction_id=row.id, tag_id=tid) for tid in tags)
     batch.imported, batch.skipped = imported, skipped
     if result.preset and not account.import_preset:
         account.import_preset = result.preset
@@ -189,8 +210,13 @@ def apply_rules_to_existing(db: Session, user: User, only_uncategorized: bool = 
     if only_uncategorized:
         q = q.where(Transaction.category_id.is_(None))
     changed = 0
+    tag_rules = any(r.set_tag_id for r in cat.rules)
     for tx in db.scalars(q):
         category_id, new_payee, _ = cat.apply(tx.description, tx.payee, Decimal(tx.amount), tx.account_id)
+        if tag_rules:
+            have = set(db.scalars(select(TransactionTag.tag_id).where(TransactionTag.transaction_id == tx.id)))
+            for tid in cat.tags(tx.description, tx.payee, Decimal(tx.amount), tx.account_id) - have:
+                db.add(TransactionTag(transaction_id=tx.id, tag_id=tid))
         if category_id and category_id != tx.category_id:
             tx.category_id = category_id
             changed += 1

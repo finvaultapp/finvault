@@ -763,3 +763,40 @@ ol.howto { margin: 0; padding-left: 20px; display: flex; flex-direction: column;
 .forgot-link { align-self: flex-end; margin-top: -6px; color: var(--frame); font-weight: 600; }
 .reset-link-url { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: 13px; }
 .export-list { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--ink-2); }
+/* ==== Organize: tags, payees, budget rollover ==== */
+/* Tags wear the pigeonhole tab-label shape in ink tones; household colours stay with categories. */
+.tag { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 2px 10px 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 7%, var(--sheet)); color: var(--ink-2); font-size: 12.5px; font-weight: 650; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tag > i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); flex-shrink: 0; }
+.tag.sm { padding: 0 8px 0 7px; font-size: 12px; font-weight: 600; line-height: 18px; gap: 5px; }
+.tag.more { color: var(--ink-3); }
+.tag-x { display: inline-grid; place-items: center; width: 16px; height: 16px; margin: 0 -4px 0 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink-3); cursor: pointer; }
+.tag-x:hover { background: color-mix(in srgb, var(--ink) 12%, var(--sheet)); color: var(--ink); }
+.tag-x:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.tag-x svg { width: 11px; height: 11px; }
+.tag-list { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.table .desc .tx-tags { margin-top: 4px; overflow: visible; white-space: normal; font-weight: 400; }
+.tag-input { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; min-height: 40px; padding: 5px 10px; background: var(--sheet); border: 1px solid var(--rule-2); border-radius: var(--radius); cursor: text; }
+.tag-input:focus-within { border-color: var(--frame); box-shadow: 0 0 0 3px color-mix(in srgb, var(--frame) 18%, transparent); }
+.tag-input input { flex: 1; min-width: 90px; border: 0; outline: none; background: transparent; font: inherit; color: var(--ink); padding: 3px 0; }
+.tag-input input::placeholder { color: var(--ink-3); }
+.tag-menu { position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; right: 0; max-height: 240px; overflow-y: auto; margin: 0; padding: 5px; list-style: none; background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--float); }
+.tag-menu li { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+.tag-menu li.on { background: var(--frame-soft); color: var(--frame); }
+.bulk-tag { display: flex; align-items: center; gap: 6px; }
+.bulk-tag .tag-input { min-height: 32px; width: 190px; padding: 2px 8px; }
+.bulk-tag .tag-input input { padding: 2px 0; font-size: 13.5px; }
+.bulk-head { background: var(--frame-soft); border-top-left-radius: inherit; border-top-right-radius: inherit; }
+.tag-new { padding: 14px 20px; border-bottom: 1px solid var(--rule); }
+.tag-new .input { flex: 1; min-width: 200px; max-width: 360px; }
+.payee-table .desc { max-width: 340px; }
+.rollover-figs { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 6px; color: var(--ink-3); }
+.rollover-figs > span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.rollover-figs .money { color: var(--ink-2); }
+.rollover-figs .money.expense { color: var(--red); }
+.rollover-figs svg { color: var(--ink-3); }
+.hole-body .of .carried { white-space: nowrap; }
+@media (max-width: 860px) {
+  .bulk-tag { flex-wrap: wrap; }
+  .bulk-tag .tag-input { width: 100%; }
+  .rollover-figs { gap: 2px 12px; }
+}

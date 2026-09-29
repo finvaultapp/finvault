@@ -30,6 +30,7 @@ const YearReview = lazy(() => import('./pages/YearReview'))
 const Investments = lazy(() => import('./pages/Investments'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const Payees = lazy(() => import('./pages/Payees'))
 
 export default function App() {
   const { user } = useApp()
@@ -73,6 +74,7 @@ export default function App() {
           <Route path="debts" element={<Debts />} />
           <Route path="year-in-review" element={<YearReview />} />
           <Route path="investments" element={<Investments />} />
+          <Route path="payees" element={<Payees />} />
           {user.is_admin && <Route path="admin" element={<Admin />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

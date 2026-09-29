@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from ..deps import current_user, owned
 from ..models import Account, Category, Rule, Transaction, User
+from ..services import tags
 from ..services.ledger import apply_rules_to_existing, rule_matches
 
 router = APIRouter(prefix="/api", tags=["categories"])
@@ -72,20 +73,22 @@ def rule_out(r: Rule) -> dict:
             "amount_min": float(r.amount_min) if r.amount_min is not None else None,
             "amount_max": float(r.amount_max) if r.amount_max is not None else None,
             "account_id": r.account_id, "set_category_id": r.set_category_id, "set_payee": r.set_payee,
-            "is_active": r.is_active}
+            "set_tag_id": r.set_tag_id, "is_active": r.is_active}
 
 
 class RuleIn(BaseModel):
     name: str = Field(default="", max_length=120)
     priority: int = 100
     match_field: str = Field(default="description", pattern="^(description|payee)$")
-    match_type: str = Field(default="contains", pattern="^(contains|equals|starts_with|regex)$")
+    match_type: str = Field(default="contains", pattern="^(contains|equals|starts_with|regex|merchant)$")
     pattern: str = Field(min_length=1, max_length=300)
     amount_min: Decimal | None = None
     amount_max: Decimal | None = None
     account_id: int | None = None
     set_category_id: int | None = None
     set_payee: str | None = Field(default=None, max_length=200)
+    set_tag_id: int | None = None
+    set_tag: str | None = Field(default=None, max_length=80)  # a tag name; created if it's new
     is_active: bool = True
 
 
@@ -99,9 +102,13 @@ def _validate_rule(db: Session, user: User, body: RuleIn) -> dict:
         owned(db, Category, body.set_category_id, user)
     if body.account_id:
         owned(db, Account, body.account_id, user)
-    if not body.set_category_id and not body.set_payee:
-        raise HTTPException(422, "A rule needs to set a category or a payee.")
-    data = body.model_dump()
+    if body.set_tag and body.set_tag.strip():
+        body.set_tag_id = tags.get_or_create(db, user, body.set_tag).id
+    elif body.set_tag_id:
+        tags.owned_tag(db, user, body.set_tag_id)
+    if not body.set_category_id and not body.set_payee and not body.set_tag_id:
+        raise HTTPException(422, "A rule needs to set a category, a payee or a tag.")
+    data = body.model_dump(exclude={"set_tag"})
     return data
 
 
@@ -138,7 +145,8 @@ def delete_rule(rule_id: int, user: User = Depends(current_user), db: Session = 
 @router.post("/rules/test")
 def test_rule(body: RuleIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
     """Show which existing transactions a draft rule would match."""
-    data = _validate_rule(db, user, body) if (body.set_category_id or body.set_payee) else body.model_dump()
+    data = (_validate_rule(db, user, body) if (body.set_category_id or body.set_payee or body.set_tag_id)
+            else body.model_dump(exclude={"set_tag"}))
     draft = Rule(**{k: v for k, v in data.items()})
     matches, count = [], 0
     for t in db.scalars(select(Transaction).where(Transaction.user_id == user.id).order_by(Transaction.date.desc()).limit(5000)).unique():

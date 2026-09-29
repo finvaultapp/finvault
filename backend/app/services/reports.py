@@ -42,8 +42,11 @@ def _classify(amount: Decimal, kind: str | None) -> str | None:
     return "income" if amount > 0 else "expense"
 
 
-def effective_lines(db: Session, user: User, start: date, end: date, account_ids: list[int] | None = None):
+def effective_lines(db: Session, user: User, start: date, end: date, account_ids: list[int] | None = None,
+                    with_ids: bool = False):
     """(date, amount, category_id, currency, kind) as reports should count them.
+
+    with_ids=True appends the transaction id to each line (for per-transaction lookups such as tags).
 
     Split transactions contribute one line per split. Shares other people owe you are
     taken out, so a $100 dinner you split 50/50 counts as $50 of your spending. When a
@@ -75,7 +78,8 @@ def effective_lines(db: Session, user: User, start: date, end: date, account_ids
         ratio = (mine / total) if total else Decimal(1)
         parts = splits.get(r.id) or [(r.category_id, total)]
         for cat_id, amt in parts:
-            out.append((r.date, amt * ratio, cat_id, r.currency, kinds.get(cat_id)))
+            line = (r.date, amt * ratio, cat_id, r.currency, kinds.get(cat_id))
+            out.append(line + (r.id,) if with_ids else line)
     return out
 
 
@@ -195,15 +199,28 @@ def budgets_for_month(db: Session, user: User, y: int, m: int) -> dict:
         if v is not None:
             spent[cat_id] -= v  # spending is negative; refunds reduce it
     items = []
-    for b in db.scalars(select(Budget).where(Budget.user_id == user.id)):
+    rows = list(db.scalars(select(Budget).where(Budget.user_id == user.id)))
+    from .rollover import carried_amounts
+    carries = carried_amounts(db, user, rows, children, y, m, conv)
+    for b in rows:
         c = cats.get(b.category_id)
         if not c:
             continue
         total = spent[c.id] + sum((spent[k] for k in children[c.id]), Decimal(0))
         budget = Decimal(b.amount)
+        carried = carries.get(b.id, Decimal(0))
+        available = budget + carried  # the limit when rollover is off
+        if budget <= 0:
+            percent = None
+        elif available > 0:
+            percent = round(float(total / available * 100), 1)
+        else:  # overspending carried in used up the whole month: over by (spent - available) of the limit
+            percent = 100.0 if total <= available else round(100 + float((total - available) / budget * 100), 1)
         items.append({"id": b.id, "category_id": c.id, "name": c.name, "color": c.color, "budget": f2(budget),
-                      "spent": f2(max(total, Decimal(0))), "remaining": f2(budget - total),
-                      "percent": round(float(total / budget * 100), 1) if budget > 0 else None})
+                      "spent": f2(max(total, Decimal(0))), "remaining": f2(available - total),
+                      "percent": percent, "rollover": b.rollover or "off",
+                      "rollover_start": b.rollover_start.isoformat()[:7] if b.rollover_start else None,
+                      "carried": f2(carried), "available": f2(available)})
     items.sort(key=lambda i: -(i["percent"] or 0))
     # How far through the month we are, so the UI can show pace.
     today = date.today()
@@ -211,6 +228,8 @@ def budgets_for_month(db: Session, user: User, y: int, m: int) -> dict:
     return {"month": f"{y:04d}-{m:02d}", "currency": user.base_currency, "items": items,
             "total_budget": f2(sum((Decimal(str(i["budget"])) for i in items), Decimal(0))),
             "total_spent": f2(sum((Decimal(str(i["spent"])) for i in items), Decimal(0))),
+            "total_carried": f2(sum((Decimal(str(i["carried"])) for i in items), Decimal(0))),
+            "total_available": f2(sum((Decimal(str(i["available"])) for i in items), Decimal(0))),
             "month_progress": round(progress, 3), "warnings": conv.warnings()}
 
 

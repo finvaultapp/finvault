@@ -6,7 +6,7 @@ import { CategoryTile, Confirm, Empty, Loading, PageHead, Switch, useData, useTo
 import RuleDialog from '../components/RuleDialog'
 import { t } from '../i18n'
 
-const MATCH = { contains: 'contains', starts_with: 'starts with', equals: 'is', regex: 'matches' }
+const MATCH = { contains: 'contains', starts_with: 'starts with', equals: 'is', regex: 'matches', merchant: 'is the same merchant as' }
 
 export default function Rules() {
   const { version, bump } = useApp()
@@ -14,11 +14,13 @@ export default function Rules() {
   const rules = useData(() => api.get('/rules'), [version])
   const cats = useData(() => api.get('/categories'), [version])
   const accounts = useData(() => api.get('/accounts'), [])
+  const tags = useData(() => api.get('/tags'), [version])
   const [editing, setEditing] = useState(null)
   const [confirm, setConfirm] = useState(null)
 
   if (!rules.data || !cats.data) return <Loading />
   const catById = Object.fromEntries(cats.data.map((c) => [c.id, c]))
+  const tagById = Object.fromEntries((tags.data ?? []).map((x) => [x.id, x.name]))
 
   const runAll = async () => {
     const r = await api.post('/rules/apply', { only_uncategorized: true })
@@ -50,7 +52,7 @@ export default function Rules() {
                       {r.match_field === 'payee' ? t('Payee') : t('Description')} {t(MATCH[r.match_type])} “{r.pattern}”
                     </div>
                     <div className="meta">
-                      → {c ? c.name : t('category unchanged')}{r.set_payee ? ' · ' + t('rename to “{payee}”', { payee: r.set_payee }) : ''}
+                      → {c ? c.name : t('category unchanged')}{r.set_payee ? ' · ' + t('rename to “{payee}”', { payee: r.set_payee }) : ''}{r.set_tag_id && tagById[r.set_tag_id] ? ' · ' + t('tag “{tag}”', { tag: tagById[r.set_tag_id] }) : ''}
                       {(r.amount_min != null || r.amount_max != null) ? ' · ' + t('amount {min} to {max}', { min: r.amount_min ?? '…', max: r.amount_max ?? '…' }) : ''} · {t('priority {n}', { n: r.priority })}
                     </div>
                   </div>

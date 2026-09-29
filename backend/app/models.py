@@ -167,6 +167,7 @@ class Rule(Base):
     account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), nullable=True)
     set_category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id", ondelete="CASCADE"), nullable=True)
     set_payee: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    set_tag_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # tags.id; also adds this tag
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
@@ -177,6 +178,9 @@ class Budget(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id", ondelete="CASCADE"))
     amount: Mapped[Decimal] = mapped_column(Money)  # monthly, in the user's base currency
+    # off | carry (unspent money adds to next month) | carry_all (overspending also reduces next month)
+    rollover: Mapped[str] = mapped_column(String(12), default="off", server_default="off")
+    rollover_start: Mapped[date | None] = mapped_column(Date, nullable=True)  # first month that carries
 
 
 class Recurring(Base):
@@ -331,3 +335,4 @@ from .models_plan import *  # noqa: E402,F401,F403
 from .models_admin import *  # noqa: E402,F401,F403
 from .models_invest import *  # noqa: E402,F401,F403
 from .models_account import *  # noqa: E402,F401,F403
+from .models_organize import *  # noqa: E402,F401,F403

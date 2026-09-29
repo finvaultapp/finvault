@@ -14,8 +14,9 @@ from sqlalchemy.orm import Session
 
 from ..db import get_db
 from ..deps import current_user, owned
-from ..models import Account, Attachment, Category, Share, Transaction, TransactionSplit, User
+from ..models import Account, Attachment, Category, Share, Transaction, TransactionSplit, TransactionTag, User
 from ..services import receipts
+from ..services.tags import add_tags, names_by_transaction
 from ..services.ledger import Categorizer
 from ..services.reports import f2
 
@@ -52,8 +53,10 @@ def add_flags(db: Session, items: list[dict]) -> list[dict]:
 
 def _filtered(user: User, q: str | None, account_id: list[int] | None, category_id: list[int] | None,
               uncategorized: bool, start: date | None, end: date | None, min_amount: Decimal | None,
-              max_amount: Decimal | None, kind: str | None):
+              max_amount: Decimal | None, kind: str | None, tag_id: list[int] | None = None):
     stmt = select(Transaction).where(Transaction.user_id == user.id)
+    if tag_id:  # any of the chosen tags
+        stmt = stmt.where(Transaction.id.in_(select(TransactionTag.transaction_id).where(TransactionTag.tag_id.in_(tag_id))))
     if q:
         like = f"%{q.strip()}%"
         in_receipts = select(Attachment.transaction_id).where(Attachment.ocr_text.ilike(like))
@@ -82,9 +85,10 @@ def _filtered(user: User, q: str | None, account_id: list[int] | None, category_
 
 def _filters(q: str | None = None, account_id: list[int] | None = Query(None), category_id: list[int] | None = Query(None),
              uncategorized: bool = False, start: date | None = None, end: date | None = None,
-             min_amount: Decimal | None = None, max_amount: Decimal | None = None, kind: str | None = None):
+             min_amount: Decimal | None = None, max_amount: Decimal | None = None, kind: str | None = None,
+             tag_id: list[int] | None = Query(None)):
     return dict(q=q, account_id=account_id, category_id=category_id, uncategorized=uncategorized, start=start,
-                end=end, min_amount=min_amount, max_amount=max_amount, kind=kind)
+                end=end, min_amount=min_amount, max_amount=max_amount, kind=kind, tag_id=tag_id)
 
 
 @router.get("")
@@ -99,7 +103,7 @@ def list_transactions(f: dict = Depends(_filters), page: int = 1, page_size: int
     col = {"date": Transaction.date, "amount": Transaction.amount, "description": Transaction.description}.get(sort.lstrip("-"), Transaction.date)
     order = col.desc() if sort.startswith("-") else col.asc()
     rows = list(db.scalars(stmt.order_by(order, Transaction.id.desc()).offset((page - 1) * page_size).limit(page_size)).unique())
-    items = add_flags(db, [tx_out(t) for t in rows])
+    items = add_tags(db, add_flags(db, [tx_out(t) for t in rows]))
     if f.get("uncategorized"):
         cat = Categorizer(db, user.id)
         kinds = dict(db.execute(select(Category.id, Category.kind).where(Category.user_id == user.id)).all())
@@ -217,7 +221,7 @@ def export(f: dict = Depends(_filters), format: str = Query("csv", pattern="^(cs
     rows = list(db.scalars(_filtered(user, **f).order_by(Transaction.date, Transaction.id)).unique())
     stamp = date.today().isoformat()
     if format == "json":
-        body = json.dumps([tx_out(t) for t in rows], indent=2)
+        body = json.dumps(add_tags(db, [tx_out(t) for t in rows]), indent=2)
         return Response(body, media_type="application/json",
                         headers={"Content-Disposition": f'attachment; filename="finvault-{stamp}.json"'})
     if format == "ofx":
@@ -225,9 +229,11 @@ def export(f: dict = Depends(_filters), format: str = Query("csv", pattern="^(cs
                         headers={"Content-Disposition": f'attachment; filename="finvault-{stamp}.ofx"'})
     buf = io.StringIO()
     w = csv.writer(buf)
-    w.writerow(["Date", "Account", "Description", "Payee", "Category", "Amount", "Currency", "Notes"])
+    w.writerow(["Date", "Account", "Description", "Payee", "Category", "Amount", "Currency", "Notes", "Tags"])
+    tag_names = names_by_transaction(db, [t.id for t in rows])
     for t in rows:
         w.writerow([t.date.isoformat(), t.account.name, t.description, t.payee,
-                    t.category.name if t.category else "", f"{Decimal(t.amount):.2f}", t.account.currency, t.notes])
+                    t.category.name if t.category else "", f"{Decimal(t.amount):.2f}", t.account.currency, t.notes,
+                    "; ".join(x["name"] for x in tag_names.get(t.id, []))])
     return Response("﻿" + buf.getvalue(), media_type="text/csv",
                     headers={"Content-Disposition": f'attachment; filename="finvault-{stamp}.csv"'})

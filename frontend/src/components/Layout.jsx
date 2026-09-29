@@ -4,7 +4,7 @@ import {
   ArrowLeftRight, BarChart3, Bot, ChevronDown, Eye, EyeOff, Landmark, LayoutDashboard, LogOut, Menu, Moon, PiggyBank,
   Plug, Repeat, Search, Settings, Shield, SlidersHorizontal, Sun, Tag, Target, Upload, Wallet,
   CalendarDays, FileText, Users, BadgeDollarSign, LineChart,
-  CreditCard, Sparkles, TrendingUp,
+  CreditCard, Sparkles, TrendingUp, Store,
 } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
@@ -29,6 +29,7 @@ export const NAV = [
     { to: '/sync', label: 'Bank sync', icon: Plug, needsSync: true },
     { to: '/categories', label: 'Categories', icon: Tag },
     { to: '/rules', label: 'Rules', icon: SlidersHorizontal },
+    { to: '/payees', label: 'Payees', icon: Store },
   ] },
   { group: 'Look back', items: [
     { to: '/reports', label: 'Reports', icon: BarChart3 },

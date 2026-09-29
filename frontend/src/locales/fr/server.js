@@ -151,4 +151,12 @@ export default {
   "Too many reset requests. Wait an hour and try again.": "Trop de demandes de réinitialisation. Attendez une heure et réessayez.",
   "This reset link is invalid, already used or expired. Ask for a new one.": "Ce lien de réinitialisation est invalide, déjà utilisé ou expiré. Demandez-en un nouveau.",
   "That two-factor code didn't work. Enter a current code from your authenticator app, or a recovery code.": "Ce code à deux facteurs n'a pas fonctionné. Entrez un code actuel de votre application d'authentification, ou un code de récupération.",
+  // Tags, payees and budget rollover (routers/organize.py, routers/payees.py, services/tags.py, routers/categories.py)
+  "A rule needs to set a category, a payee or a tag.": "Une règle doit définir une catégorie, un bénéficiaire ou une étiquette.",
+  "Give the tag a name.": "Donnez un nom à l'étiquette.",
+  "Tag not found.": "Étiquette introuvable.",
+  "A tag with that name already exists. Merge the two instead.": "Une étiquette porte déjà ce nom. Fusionnez plutôt les deux.",
+  "Pick the start month as year and month, like 2026-01.": "Indiquez le mois de départ en année et mois, comme 2026-01.",
+  "Choose at least one payee.": "Choisissez au moins un bénéficiaire.",
+  "Give the payee a name.": "Donnez un nom au bénéficiaire.",
 }
