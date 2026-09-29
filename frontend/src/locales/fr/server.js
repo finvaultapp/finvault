@@ -144,4 +144,11 @@ export default {
 
   // Generic validation (pydantic)
   "Field required": "Champ obligatoire",
+
+  // Password reset links (routers/account.py)
+  "This member is turned off. Turn them back on first.": "Ce membre est désactivé. Réactivez-le d'abord.",
+  "Password reset by email isn't set up on this server. Ask your household admin for a reset link.": "La réinitialisation du mot de passe par courriel n'est pas configurée sur ce serveur. Demandez un lien de réinitialisation à l'administrateur de votre foyer.",
+  "Too many reset requests. Wait an hour and try again.": "Trop de demandes de réinitialisation. Attendez une heure et réessayez.",
+  "This reset link is invalid, already used or expired. Ask for a new one.": "Ce lien de réinitialisation est invalide, déjà utilisé ou expiré. Demandez-en un nouveau.",
+  "That two-factor code didn't work. Enter a current code from your authenticator app, or a recovery code.": "Ce code à deux facteurs n'a pas fonctionné. Entrez un code actuel de votre application d'authentification, ou un code de récupération.",
 }

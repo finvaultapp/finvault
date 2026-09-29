@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FileDown, HardDrive, KeyRound, Loader2, LogIn, ShieldCheck } from 'lucide-react'
 import { api } from '../api'
@@ -37,6 +37,8 @@ export default function Auth({ mode }) {
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [resetOpts, setResetOpts] = useState(null)
+  useEffect(() => { api.get('/password-reset/options').then(setResetOpts).catch(() => {}) }, [])
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
   const sso = status?.oidc?.enabled ? status.oidc : null
   const localAuth = status?.local_auth_enabled !== false
@@ -99,6 +101,7 @@ export default function Auth({ mode }) {
               <Field label={t('Password')} hint={registering ? t('At least 10 characters. A passphrase works well.') : null}>
                 <input className="input" type="password" required value={form.password} onChange={set('password')} autoComplete={registering ? 'new-password' : 'current-password'} />
               </Field>
+              {!registering && resetOpts?.smtp && <Link className="forgot-link small" to="/forgot-password">{t('Forgot password?')}</Link>}
               {registering && !setup && regMode === 'invite' && (
                 <Field label={t('Invite code')}><input className="input" required value={form.invite_code} onChange={set('invite_code')} /></Field>
               )}

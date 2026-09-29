@@ -28,21 +28,28 @@ const Forecast = lazy(() => import('./pages/Forecast'))
 const Debts = lazy(() => import('./pages/Debts'))
 const YearReview = lazy(() => import('./pages/YearReview'))
 const Investments = lazy(() => import('./pages/Investments'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 
 export default function App() {
   const { user } = useApp()
   if (user === undefined) return null
   if (!user) {
     return (
-      <Routes>
-        <Route path="/register" element={<Auth mode="register" />} />
-        <Route path="*" element={<Auth mode="login" />} />
-      </Routes>
+      <Suspense fallback={null}>
+        <Routes>
+          <Route path="/register" element={<Auth mode="register" />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="*" element={<Auth mode="login" />} />
+        </Routes>
+      </Suspense>
     )
   }
   return (
     <Suspense fallback={<div className="main"><Loading /></div>}>
       <Routes>
+        <Route path="reset-password" element={<ResetPassword />} />
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="transactions" element={<Transactions />} />

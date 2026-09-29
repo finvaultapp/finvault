@@ -330,3 +330,4 @@ from .models_ai import *  # noqa: E402,F401,F403
 from .models_plan import *  # noqa: E402,F401,F403
 from .models_admin import *  # noqa: E402,F401,F403
 from .models_invest import *  # noqa: E402,F401,F403
+from .models_account import *  # noqa: E402,F401,F403

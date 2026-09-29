@@ -7,9 +7,10 @@ import { date } from '../lib/format'
 import { t } from '../i18n'
 import Backups from '../components/admin/Backups'
 import AuditLog from '../components/admin/AuditLog'
+import ResetLinkButton from '../components/admin/ResetLink'
 
 export default function Admin() {
-  const { user, refreshUser } = useApp()
+  const { user, refreshUser, status } = useApp()
   const toast = useToast()
   const users = useData(() => api.get('/admin/users'), [])
   const invites = useData(() => api.get('/admin/invites'), [])
@@ -42,6 +43,7 @@ export default function Admin() {
                 <td><Switch checked={u.is_admin} label={t('Admin')} onChange={async (v) => { try { await api.patch(`/admin/users/${u.id}`, { is_admin: v }); users.reload() } catch (e) { toast(e.message, 'error') } }} /></td>
                 <td><Switch checked={u.is_active} label={t('Active')} onChange={async (v) => { try { await api.patch(`/admin/users/${u.id}`, { is_active: v }); users.reload() } catch (e) { toast(e.message, 'error') } }} /></td>
                 <td><div className="row" style={{ gap: 0, justifyContent: 'flex-end' }}>
+                  {status?.local_auth_enabled !== false && u.is_active && <ResetLinkButton member={u} />}
                   {u.totp_enabled && <button className="icon-btn" title={t('Reset two-factor')} aria-label={t('Reset two-factor')} onClick={() => setConfirm({ title: t('Reset two-factor for {email}?', { email: u.email }), body: t('Use this when a member lost their phone and recovery codes. They can sign in with just their password and set it up again.'), action: t('Reset'), onConfirm: async () => { await api.post(`/admin/users/${u.id}/reset-2fa`); users.reload() } })}><ShieldOff /></button>}
                   {u.id !== user.id && <button className="icon-btn" aria-label={t('Delete member')} onClick={() => setConfirm({ title: t('Delete {email}?', { email: u.email }), body: t('This permanently deletes their {accounts} accounts and {transactions} transactions.', { accounts: u.accounts, transactions: u.transactions }), onConfirm: async () => { await api.del(`/admin/users/${u.id}`); users.reload() } })}><Trash2 /></button>}
                 </div></td>

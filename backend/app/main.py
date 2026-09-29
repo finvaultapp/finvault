@@ -118,6 +118,8 @@ for r in (auth, admin, accounts, transactions, imports, categories, planning, as
 
 from .routers import ai_tools  # noqa: E402
 app.include_router(ai_tools.router)
+from .routers import account  # noqa: E402
+app.include_router(account.router)
 
 
 @app.get("/api/health")

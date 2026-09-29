@@ -7,6 +7,7 @@ import { Dialog, Field, Loading, PageHead, Switch, useData, useToast } from '../
 import { CURRENCIES, date, todayISO } from '../lib/format'
 import { LANGUAGES, t, useI18n } from '../i18n'
 import InstallApp from '../components/InstallApp'
+import DataExport from '../components/DataExport'
 
 export default function Settings() {
   const { hash } = useLocation()
@@ -18,6 +19,7 @@ export default function Settings() {
         <Profile />
         <Currency />
         <Security />
+        <DataExport />
         <AiOptIn />
         <InstallApp />
       </div>

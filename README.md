@@ -128,6 +128,7 @@ See [.env.example](.env.example) for the full list.
 | `BACKUP_S3_*` | empty | Optional S3-compatible copy of each backup. |
 | `OIDC_ENABLED` | `false` | Single sign-on; see below for the other `OIDC_*` settings. |
 | `LOCAL_AUTH_ENABLED` | `true` | Set to `false` to allow only single sign-on. |
+| `PUBLIC_URL` | empty | The address members open FinVault at. Needed (with SMTP) for "Forgot password?" emails. |
 | `AUDIT_RETENTION_DAYS` | `365` | How long audit events are kept. |
 
 ## Backups
