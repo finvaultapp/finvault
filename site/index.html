@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinVault · Household money, sorted at home</title>
+  <meta name="description" content="FinVault is a private, self-hosted money app for households. Import the statement files your bank already gives you, sort every line in a click, and keep it all on your own server. No bank passwords, ever.">
+  <meta name="theme-color" content="#F6F5F2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#101413" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Theme before paint: saved choice, else the OS.
+    try { const t = localStorage.getItem('fv.site.theme'); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+  </script>
+</head>
+<body>
+<a class="skip" href="#main" data-i18n="skip">Skip to content</a>
+
+<header class="top">
+  <div class="wrap top-row">
+    <a class="brand" href="#" aria-label="FinVault home">
+      <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect x="2.5" y="4.5" width="27" height="23" rx="2" stroke="currentColor" stroke-width="2"/>
+        <path d="M11.5 5v22M20.5 5v22M3 16h26" stroke="currentColor" stroke-width="2"/>
+        <rect x="13.5" y="8.5" width="5" height="5" fill="var(--tray)"/>
+      </svg>
+      FinVault
+    </a>
+    <nav class="links" aria-label="Main">
+      <a href="#features" data-i18n="nav.features">Features</a>
+      <a href="#canada" data-i18n="nav.canada">Made for Canada</a>
+      <a href="#look" data-i18n="nav.look">Take a look</a>
+      <a href="#install" data-i18n="nav.install">Install</a>
+      <a href="https://github.com/henilsarang/finvault" data-i18n="nav.code">Code</a>
+    </nav>
+    <div class="top-tools">
+      <div class="seg" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="fr" aria-pressed="false">FR</button>
+      </div>
+      <button type="button" class="icon-btn" id="theme" aria-label="Switch light or dark" data-i18n-label="theme">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path class="sun" d="M12 4V2m0 20v-2m8-8h2M2 12h2m13.66-5.66 1.41-1.41M4.93 19.07l1.41-1.41m0-11.32L4.93 4.93m14.14 14.14-1.41-1.41"/><circle class="sun" cx="12" cy="12" r="4"/><path class="moon" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+      </button>
+      <a class="btn primary small hide-sm" href="#install" data-i18n="cta.host">Self-host it</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- Hero -->
+  <section class="hero wrap">
+    <div class="hero-copy">
+      <h1 class="headline">
+        <span data-i18n="hero.l1">Chequing. Cards.</span>
+        <span data-i18n="hero.l2">TFSA. RRSP. FHSA.</span>
+        <span data-i18n="hero.l3">Bills. Budgets.</span>
+        <span class="accent" data-i18n="hero.l4">All sorted at home.</span>
+      </h1>
+      <p class="lede" data-i18n="hero.lede">FinVault is a private money app for your household that runs on your own computer or home server. Bring in the statement files your bank already gives you, sort every line with one click, and see where the money went.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="#install" data-i18n="cta.host">Self-host it</a>
+        <a class="btn" href="#look" data-i18n="cta.look">See the app</a>
+      </div>
+      <p class="facts" data-i18n="hero.eyebrow">Self-hosted · No bank passwords · English and French</p>
+    </div>
+
+    <div class="stage" aria-roledescription="carousel" aria-label="What FinVault shows you" data-i18n-label="stage.label">
+      <div class="stage-tabs" role="tablist" aria-label="Views">
+        <button role="tab" aria-selected="true" aria-controls="p-sort" id="t-sort" data-i18n="stage.sort">To sort</button>
+        <button role="tab" aria-selected="false" aria-controls="p-wall" id="t-wall" tabindex="-1" data-i18n="stage.wall">Where it went</button>
+        <button role="tab" aria-selected="false" aria-controls="p-room" id="t-room" tabindex="-1" data-i18n="stage.room">Registered room</button>
+        <button role="tab" aria-selected="false" aria-controls="p-share" id="t-share" tabindex="-1" data-i18n="stage.share">Shared</button>
+        <button role="tab" aria-selected="false" aria-controls="p-ask" id="t-ask" tabindex="-1" data-i18n="stage.ask">Ask</button>
+      </div>
+
+      <!-- To sort -->
+      <div class="panel" role="tabpanel" id="p-sort" aria-labelledby="t-sort">
+        <div class="panel-head">
+          <div>
+            <p class="kicker" data-i18n="p.month">September 2026</p>
+            <p class="figure"><span class="money" data-v="2408.61">$2,408.61</span></p>
+            <p class="muted" data-i18n="p.spent">spent so far this month</p>
+          </div>
+          <div class="postmark" aria-hidden="true"><span class="pm-ring" data-i18n="p.stamp">IMPORTED</span><b>29</b><small>SEP 2026</small></div>
+        </div>
+        <div class="tray">
+          <div class="tray-head">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+            <div><b data-i18n="p.tosort">To sort</b><small data-i18n="p.tosort.sub">New lines without a category</small></div>
+            <span class="count">3</span>
+          </div>
+          <div class="tray-item">
+            <div class="row"><b>COSTCO WHOLESALE #542</b><span class="out money" data-v="-184.27" data-signed>−$184.27</span></div>
+            <small class="muted" data-i18n="p.i1">Sep 28 · Cash Back Visa</small>
+            <div class="chips"><span class="chip likely" style="--c:#C7803A" data-i18n="cat.groceries">Groceries</span><span class="chip" style="--c:#6C8F3A" data-i18n="cat.shopping">Shopping</span><span class="chip other" data-i18n="cat.other">Other…</span></div>
+          </div>
+          <div class="tray-item">
+            <div class="row"><b>PETRO-CANADA 0417</b><span class="out money" data-v="-61.30" data-signed>−$61.30</span></div>
+            <small class="muted" data-i18n="p.i2">Sep 26 · Cash Back Visa</small>
+            <div class="chips"><span class="chip likely" style="--c:#3F7F86" data-i18n="cat.fuel">Fuel</span><span class="chip" style="--c:#C7803A" data-i18n="cat.groceries">Groceries</span><span class="chip other" data-i18n="cat.other">Other…</span></div>
+          </div>
+          <div class="tray-item">
+            <div class="row"><b>E-TRANSFER FROM SAM</b><span class="in money" data-v="212.40" data-signed>+$212.40</span></div>
+            <small class="muted" data-i18n="p.i3">Sep 25 · Everyday chequing</small>
+            <div class="chips"><span class="chip likely" style="--c:#5B5496" data-i18n="cat.settle">Settle up</span><span class="chip" style="--c:#1F8A5B" data-i18n="cat.income">Other income</span><span class="chip other" data-i18n="cat.other">Other…</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pigeonholes -->
+      <div class="panel" role="tabpanel" id="p-wall" aria-labelledby="t-wall" hidden>
+        <div class="panel-head">
+          <div>
+            <p class="kicker" data-i18n="p.wall.k">Where it went</p>
+            <p class="muted" data-i18n="p.wall.sub">Each pocket fills toward its monthly limit</p>
+          </div>
+        </div>
+        <div class="wall">
+          <div class="hole" style="--c:#C7803A;--f:70%"><span class="tab" data-i18n="cat.groceries">Groceries</span><b class="money" data-v="634.50">$634.50</b><small data-i18n="p.of900">of $900</small><span class="slot"><i></i></span></div>
+          <div class="hole" style="--c:#3F7F86;--f:68%"><span class="tab" data-i18n="cat.fuel">Fuel</span><b class="money" data-v="175.92">$175.92</b><small data-i18n="p.of260">of $260</small><span class="slot"><i></i></span></div>
+          <div class="hole over" style="--c:#D6455D;--f:100%"><span class="tab" data-i18n="cat.dining">Dining out</span><b class="money" data-v="391.20">$391.20</b><small data-i18n="p.of350">of $350 · over</small><span class="slot"><i></i></span><span class="ribbon" aria-hidden="true"></span></div>
+          <div class="hole" style="--c:#8A72C7;--f:82%"><span class="tab" data-i18n="cat.subs">Subscriptions</span><b class="money" data-v="32.98">$32.98</b><small data-i18n="p.of40">of $40</small><span class="slot"><i></i></span></div>
+        </div>
+      </div>
+
+      <!-- Registered room -->
+      <div class="panel" role="tabpanel" id="p-room" aria-labelledby="t-room" hidden>
+        <div class="panel-head">
+          <div>
+            <p class="kicker" data-i18n="p.room.k">Registered room · 2026</p>
+            <p class="figure"><span class="money" data-v="11350" data-d="0">$11,350</span></p>
+            <p class="muted" data-i18n="p.room.sub">room left across your plans</p>
+          </div>
+        </div>
+        <ul class="plans">
+          <li><div class="row"><b data-i18n="p.tfsa">TFSA</b><span><span class="money" data-v="4500" data-d="0">$4,500</span> <small data-i18n="p.of7000">of $7,000</small></span></div><span class="bar"><i style="width:64%"></i></span></li>
+          <li><div class="row"><b data-i18n="p.rrsp">RRSP</b><span><span class="money" data-v="6150" data-d="0">$6,150</span> <small data-i18n="p.of12000">of $12,000</small></span></div><span class="bar"><i style="width:51%"></i></span></li>
+          <li><div class="row"><b data-i18n="p.fhsa">FHSA</b><span><span class="money" data-v="8000" data-d="0">$8,000</span> <small data-i18n="p.of8000">of $8,000</small></span></div><span class="bar full"><i style="width:100%"></i></span></li>
+        </ul>
+        <p class="note" data-i18n="p.room.note">Copy your room from CRA My Account. FinVault counts the deposits.</p>
+      </div>
+
+      <!-- Shared -->
+      <div class="panel" role="tabpanel" id="p-share" aria-labelledby="t-share" hidden>
+        <div class="panel-head">
+          <div>
+            <p class="kicker" data-i18n="p.share.k">Shared this month</p>
+            <p class="figure"><span class="money" data-v="1286.40">$1,286.40</span></p>
+            <p class="muted" data-i18n="p.share.sub">split with 3 people · 11 costs</p>
+          </div>
+        </div>
+        <ul class="people">
+          <li><span class="av">S</span><b>Sam</b><span class="in" data-i18n="p.owes1">owes you $212.40</span></li>
+          <li><span class="av">P</span><b>Priya</b><span class="in" data-i18n="p.owes2">owes you $96.15</span></li>
+          <li><span class="av">J</span><b>Jordan</b><span class="out" data-i18n="p.owes3">you owe $44.00</span></li>
+        </ul>
+        <p class="note" data-i18n="p.share.note">Your share is what counts in budgets and reports.</p>
+      </div>
+
+      <!-- Ask -->
+      <div class="panel" role="tabpanel" id="p-ask" aria-labelledby="t-ask" hidden>
+        <div class="panel-head">
+          <div>
+            <p class="kicker" data-i18n="p.ask.k">Ask your own data</p>
+            <p class="muted" data-i18n="p.ask.sub">Optional, and off until you turn it on</p>
+          </div>
+        </div>
+        <div class="chat">
+          <p class="bubble me" data-i18n="p.q1">What did we spend on groceries this summer?</p>
+          <p class="bubble" data-i18n="p.a1">$1,903.20 from June to August, about 12% more than the spring. Most of the jump was in July.</p>
+          <p class="bubble me" data-i18n="p.q2">Restaurants over $50 last month</p>
+          <p class="bubble" data-i18n="p.a2">4 transactions, $311.85 in total. Sushi Moto is the largest at $97.46.</p>
+        </div>
+        <p class="note" data-i18n="p.ask.note">Runs on the model you choose, including one on your own hardware. You see what would be sent first.</p>
+      </div>
+
+      <p class="stage-foot" data-i18n="stage.foot">Illustration with made-up numbers</p>
+    </div>
+  </section>
+
+  <!-- Banks -->
+  <section class="banks">
+    <div class="wrap">
+      <h2 class="banks-title" data-i18n="banks.title">Works with the files Canadian banks already give you.</h2>
+      <ul class="bank-list" aria-label="Banks with ready-made presets or tested statement formats" data-i18n-label="banks.label">
+        <li>RBC</li><li>TD</li><li>BMO</li><li>Scotiabank</li><li>CIBC</li><li>National Bank</li><li>Desjardins</li>
+        <li>Tangerine</li><li>Simplii</li><li>EQ Bank</li><li>Wealthsimple</li><li>Neo Financial</li>
+        <li>Triangle</li><li>Rogers Bank</li><li>PC Financial</li><li>Amex Canada</li><li data-i18n="banks.cu">Credit unions</li>
+      </ul>
+      <p class="formats"><span>QFX</span><span>OFX</span><span>QBO</span><span>QIF</span><span>CSV</span><span data-i18n="banks.pdf">text PDF</span></p>
+    </div>
+  </section>
+
+  <!-- Architecture -->
+  <section class="section wrap" id="data">
+    <h2 class="h2" data-i18n="arch.title">Where your data lives</h2>
+    <p class="sub" data-i18n="arch.sub">FinVault never talks to your Canadian bank. You download a statement file, the way you already can, and bring it home. Nothing else crosses over.</p>
+
+    <div class="flow">
+      <div class="node">
+        <p class="node-k" data-i18n="arch.n1.k">Your bank</p>
+        <p class="node-t" data-i18n="arch.n1.t">Online banking</p>
+        <p class="node-d" data-i18n="arch.n1.d">You sign in on the bank's own website, as usual. Your password never leaves it.</p>
+      </div>
+      <div class="link"><span data-i18n="arch.l1">you download</span></div>
+      <div class="node file">
+        <p class="node-k" data-i18n="arch.n2.k">A statement file</p>
+        <p class="node-t">QFX · OFX · CSV · PDF</p>
+        <p class="node-d" data-i18n="arch.n2.d">An ordinary export. No keys, no tokens, no standing connection.</p>
+      </div>
+      <div class="link"><span data-i18n="arch.l2">you import</span></div>
+      <div class="node home">
+        <p class="node-k" data-i18n="arch.n3.k">Your server</p>
+        <p class="node-t" data-i18n="arch.n3.t">FinVault + your database</p>
+        <p class="node-d" data-i18n="arch.n3.d">SQLite or Postgres on your computer, NAS or home server. Backups are encrypted.</p>
+      </div>
+    </div>
+    <p class="boundary"><span data-i18n="arch.boundary">No bank password or bank connection, ever. Outside Canada, optional bank sync stays off until an admin turns it on.</span></p>
+  </section>
+
+  <!-- Take a look -->
+  <section class="section wrap" id="look">
+    <h2 class="h2" data-i18n="look.title">Calm screens for a monthly routine</h2>
+    <p class="sub" data-i18n="look.sub">Once a month: download, import, sort what's left in the tray. About two minutes per account.</p>
+
+    <div class="browser">
+      <div class="browser-bar">
+        <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="url">finvault.home:8000</span>
+        <div class="seg small" role="group" aria-label="Screenshot theme" data-i18n-label="look.themes">
+          <button type="button" data-shot-theme="light" aria-pressed="true" data-i18n="look.light">Light</button>
+          <button type="button" data-shot-theme="dark" aria-pressed="false" data-i18n="look.dark">Dark</button>
+        </div>
+      </div>
+      <div class="shot-tabs" role="tablist" aria-label="Screens" data-i18n-label="look.screens">
+        <button role="tab" aria-selected="true" data-shot="dashboard" data-i18n="look.dash">Dashboard</button>
+        <button role="tab" aria-selected="false" data-shot="import" tabindex="-1" data-i18n="look.import">Import</button>
+        <button role="tab" aria-selected="false" data-shot="transactions" tabindex="-1" data-i18n="look.tx">Transactions</button>
+        <button role="tab" aria-selected="false" data-shot="reports" tabindex="-1" data-i18n="look.reports">Reports</button>
+      </div>
+      <img id="shot" src="assets/dashboard.jpg" width="2880" height="1800" loading="lazy" decoding="async"
+           alt="The FinVault dashboard: a To sort tray of new transactions beside category pockets that fill toward their monthly limits." data-i18n-alt="alt.dashboard">
+    </div>
+    <p class="caption" data-i18n="look.caption">Real screens, filled with a made-up demo household.</p>
+  </section>
+
+  <!-- Features -->
+  <section class="section wrap" id="features">
+    <h2 class="h2" data-i18n="feat.title">Everything a household needs, in one place</h2>
+    <p class="sub" data-i18n="feat.sub">Accounts, budgets, bills, shared costs, investments and tax time. Nothing leaves your server unless you turn it on.</p>
+
+    <div class="case">
+      <section class="cell" aria-labelledby="g.bring">
+        <h3 class="cell-tab" id="g.bring" data-i18n="g.bring">Bring in and sort</h3>
+        <ul>
+          <li><b data-i18n="f.import.t">Statement import</b><span data-i18n="f.import.d">QFX, OFX, QBO, QIF, CSV and text PDFs, with bank presets. Duplicates are skipped and any import can be undone.</span></li>
+          <li><b data-i18n="f.sort.t">One-click sorting</b><span data-i18n="f.sort.d">New lines wait in a tray with likely categories. Rules and remembered merchants sort the rest for you.</span></li>
+          <li><b data-i18n="f.transfer.t">Transfers matched</b><span data-i18n="f.transfer.d">Paying off a card or moving money to savings doesn't count as spending twice.</span></li>
+          <li><b data-i18n="f.receipt.t">Receipts</b><span data-i18n="f.receipt.d">Attach photos and PDFs to transactions. Optional text reading runs on your own server.</span></li>
+        </ul>
+      </section>
+      <section class="cell" aria-labelledby="g.plan">
+        <h3 class="cell-tab" id="g.plan" data-i18n="g.plan">Plan ahead</h3>
+        <ul>
+          <li><b data-i18n="f.budget.t">Budgets</b><span data-i18n="f.budget.d">Monthly limits you can see filling up, with a clear mark when a pocket goes over.</span></li>
+          <li><b data-i18n="f.bills.t">Bills and reminders</b><span data-i18n="f.bills.d">Recurring bills laid out by day, reminders before each one is due, and alerts for price changes or new subscriptions.</span></li>
+          <li><b data-i18n="f.room.t">TFSA, RRSP and FHSA</b><span data-i18n="f.room.d">Track contributions against the room CRA gives you, so a busy year doesn't lead to an over-contribution.</span></li>
+        </ul>
+      </section>
+      <section class="cell" aria-labelledby="g.look">
+        <h3 class="cell-tab" id="g.look" data-i18n="g.look">Look back</h3>
+        <ul>
+          <li><b data-i18n="f.tax.t">Tax time</b><span data-i18n="f.tax.d">Medical, child care, donations, moving and home-office spending, gathered in one place.</span></li>
+          <li><b data-i18n="f.invest.t">Investments</b><span data-i18n="f.invest.d">Holdings from Wealthsimple and Questrade exports, with gains, allocation and adjusted cost base.</span></li>
+          <li><b data-i18n="f.fx.t">CAD and USD, honestly</b><span data-i18n="f.fx.d">Convert to your base currency, and see a warning when a rate is missing instead of a silent guess.</span></li>
+        </ul>
+      </section>
+      <section class="cell" aria-labelledby="g.home">
+        <h3 class="cell-tab" id="g.home" data-i18n="g.home">Your household</h3>
+        <ul>
+          <li><b data-i18n="f.share.t">Splits and shared costs</b><span data-i18n="f.share.d">Split a transaction across categories or people, see who owes whom, and count only your share.</span></li>
+          <li><b data-i18n="f.sec.t">Separate logins</b><span data-i18n="f.sec.d">Everyone in the household gets their own data and login, with two-factor sign-in, single sign-on and an audit log.</span></li>
+        </ul>
+      </section>
+    </div>
+    <p class="also" data-i18n="feat.also">Also: savings goals, assets and net worth, a cash-flow forecast, a debt payoff planner, year in review, a watched import folder, encrypted backups and a phone app you can install.</p>
+  </section>
+
+  <!-- Canada -->
+  <section class="canada" id="canada">
+    <div class="wrap canada-grid">
+      <div>
+        <h2 class="h2" data-i18n="ca.title">Built around how Canadian households bank</h2>
+        <p class="sub" data-i18n="ca.sub">Most money apps want your bank password. Canadian banks warn against sharing it, and many people don't trust it. FinVault takes the file your bank already offers instead.</p>
+      </div>
+      <ul class="ca-list">
+        <li><b data-i18n="ca.1.t">Never connects to Canadian banks</b><span data-i18n="ca.1.d">Direct sync is blocked for Canadian accounts by design. Import is the only way in.</span></li>
+        <li><b data-i18n="ca.2.t">English and French</b><span data-i18n="ca.2.d">The whole app, including default categories, in Canadian French.</span></li>
+        <li><b data-i18n="ca.3.t">Registered plans and tax time</b><span data-i18n="ca.3.d">TFSA, RRSP and FHSA room, plus the spending your accountant asks about.</span></li>
+        <li><b data-i18n="ca.4.t">Canadian mortgages</b><span data-i18n="ca.4.d">The debt planner uses semi-annual compounding, the way Canadian mortgages work.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section wrap narrow" id="faq">
+    <h2 class="h2" data-i18n="faq.title">Good to know</h2>
+    <details><summary data-i18n="faq.1.q">Do I need to give FinVault my bank password?</summary><p data-i18n="faq.1.a">No. You download a statement file from your bank's website and import it. FinVault never asks for bank credentials, and it never connects to Canadian banks.</p></details>
+    <details><summary data-i18n="faq.2.q">Where is my data stored?</summary><p data-i18n="faq.2.a">In a database on the machine you run it on: a laptop, a NAS or a home server. There is no FinVault cloud.</p></details>
+    <details><summary data-i18n="faq.3.q">Can my partner and I both use it?</summary><p data-i18n="faq.3.a">Yes. Each person gets their own login and data, and you can share individual costs. One person is the admin who invites everyone else.</p></details>
+    <details><summary data-i18n="faq.4.q">Do I have to use AI?</summary><p data-i18n="faq.4.a">No. AI features are off by default. If you want them, you can point FinVault at a model on your own hardware or connect your own OpenAI account.</p></details>
+  </section>
+
+  <!-- Install -->
+  <section class="section wrap" id="install">
+    <h2 class="h2" data-i18n="inst.title">Running in a few minutes</h2>
+    <p class="sub" data-i18n="inst.sub">You need Docker. Three steps, then open it in your browser.</p>
+
+    <ol class="steps">
+      <li>
+        <h3 data-i18n="inst.1">Get the code</h3>
+        <div class="code"><pre><code>git clone https://github.com/henilsarang/finvault.git
+cd finvault</code></pre><button type="button" class="copy" data-i18n="copy">Copy</button></div>
+      </li>
+      <li>
+        <h3 data-i18n="inst.2">Set it up</h3>
+        <div class="code"><pre><code>cp .env.example .env
+# optional: edit .env</code></pre><button type="button" class="copy" data-i18n="copy">Copy</button></div>
+      </li>
+      <li>
+        <h3 data-i18n="inst.3">Start it</h3>
+        <div class="code"><pre><code>docker compose up -d --build
+# open http://localhost:8000</code></pre><button type="button" class="copy" data-i18n="copy">Copy</button></div>
+      </li>
+    </ol>
+    <p class="caption" data-i18n="inst.foot">The first account you create becomes the admin. Your data lives in the finvault-data Docker volume.</p>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-row">
+    <div>
+      <p class="brand small">
+        <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect x="2.5" y="4.5" width="27" height="23" rx="2" stroke="currentColor" stroke-width="2"/><path d="M11.5 5v22M20.5 5v22M3 16h26" stroke="currentColor" stroke-width="2"/><rect x="13.5" y="8.5" width="5" height="5" fill="var(--tray)"/></svg>
+        FinVault
+      </p>
+      <p class="muted" data-i18n="foot.tag">Your statements. Your server. Your household.</p>
+    </div>
+    <p class="built"><span data-i18n="foot.built">Built with</span> FastAPI · SQLite / Postgres · React · Docker</p>
+    <nav class="foot-links" aria-label="Footer" data-i18n-label="foot.nav">
+      <a href="#features" data-i18n="nav.features">Features</a>
+      <a href="#install" data-i18n="nav.install">Install</a>
+      <a href="https://github.com/henilsarang/finvault" data-i18n="nav.code">Code</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="site.js"></script>
+</body>
+</html>
