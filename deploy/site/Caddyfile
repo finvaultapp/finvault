@@ -1,0 +1,21 @@
+# FinVault landing site: static files on port 8080.
+# Cloudflare Tunnel (or your LAN) connects to http://localhost:8080; Cloudflare adds HTTPS.
+:8080 {
+	root * /var/www/finvault-site
+	encode zstd gzip
+	file_server
+
+	header {
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+		-Server
+	}
+
+	# Screenshots and fonts rarely change; pages and scripts are re-checked each visit.
+	@static path /assets/* /fonts/* /favicon.svg
+	header @static Cache-Control "public, max-age=604800"
+	@pages path / /index.html /styles.css /site.js /theme-init.js
+	header @pages Cache-Control "no-cache"
+}

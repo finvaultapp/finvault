@@ -12,7 +12,7 @@
   var FR = {
     'skip': 'Aller au contenu',
     'nav.features': 'Fonctions', 'nav.canada': 'Pensé pour le Canada', 'nav.look': 'Aperçu', 'nav.install': 'Installer', 'nav.code': 'Code',
-    'theme': 'Passer au thème clair ou sombre',
+    'theme': 'Passer au thème clair ou sombre', 'menu': 'Menu',
     'cta.host': 'L’héberger chez soi', 'cta.look': 'Voir l’application',
     'hero.eyebrow': 'Hébergé chez vous · Aucun mot de passe bancaire · Français et anglais',
     'hero.l1': 'Comptes. Cartes.', 'hero.l2': 'CELI. REER. CELIAPP.', 'hero.l3': 'Factures. Budgets.', 'hero.l4': 'Tout trié, chez vous.',
@@ -20,7 +20,10 @@
     'stage.label': 'Ce que FinVault vous montre',
     'stage.sort': 'À trier', 'stage.wall': 'Où va l’argent', 'stage.room': 'Droits de cotisation', 'stage.share': 'Partagé', 'stage.ask': 'Questions',
     'stage.foot': 'Illustration avec des chiffres inventés',
-    'p.stamp': 'IMPORTÉ', 'p.month': 'Septembre 2026', 'p.spent': 'dépensés ce mois-ci', 'p.tosort': 'À trier', 'p.tosort.sub': 'Nouvelles lignes sans catégorie',
+    'p.stamp': 'IMPORTÉ', 'p.filed': 'Classé dans Épicerie. Costco se triera tout seul la prochaine fois.', 'p.built': 'intégré', 'p.optocr': 'OCR facultatif', 'p.optprice': 'cours facultatifs', 'p.off': 'facultatif · désactivé',
+    'f.ai.t': 'Interrogez vos données', 'f.ai.d': 'Questions en langage courant et suggestions de catégories, avec un modèle sur votre propre matériel ou votre propre compte OpenAI. Vous voyez d’abord ce qui serait envoyé.',
+    'arch.n2.t': 'QFX · OFX · CSV · PDF texte',
+    'p.month': 'Septembre 2026', 'p.spent': 'dépensés ce mois-ci', 'p.tosort': 'À trier', 'p.tosort.sub': 'Nouvelles lignes sans catégorie',
     'p.i1': '28 sept. · Visa remises', 'p.i2': '26 sept. · Visa remises', 'p.i3': '25 sept. · Compte courant',
     'cat.groceries': 'Épicerie', 'cat.shopping': 'Magasinage', 'cat.other': 'Autre…', 'cat.fuel': 'Essence', 'cat.settle': 'Remboursement', 'cat.income': 'Autres revenus', 'cat.dining': 'Restaurants', 'cat.subs': 'Abonnements',
     'p.wall.k': 'Où va l’argent', 'p.wall.sub': 'Chaque case se remplit vers sa limite mensuelle',
@@ -176,11 +179,28 @@
   var stage = document.querySelector('.stage')
   var index = 0, timer = null, DWELL = 6000
   stage.style.setProperty('--dwell', DWELL + 'ms')
-  var stageTabs = tablist(stage.querySelector('.stage-tabs'), function (tab, i) {
+  var tabRow = stage.querySelector('.stage-tabs')
+  var stageTabs = tablist(tabRow, function (tab, i) {
     index = i
     stage.querySelectorAll('[role="tabpanel"]').forEach(function (p) { p.hidden = p.id !== tab.getAttribute('aria-controls') })
+    tabRow.scrollTo({ left: Math.max(0, tab.offsetLeft - 24), behavior: reduced ? 'auto' : 'smooth' })
+    if (tab.id === 't-sort') playSort()
     schedule()
   })
+  function edge() { tabRow.classList.toggle('at-end', tabRow.scrollLeft + tabRow.clientWidth >= tabRow.scrollWidth - 4) }
+  tabRow.addEventListener('scroll', edge, { passive: true }); edge()
+
+  // The one authored motion: pick the likely chip, the line leaves the tray, the count drops.
+  var sortTimers = []
+  function playSort() {
+    var row = document.getElementById('sort-me'), chip = document.getElementById('sort-chip')
+    var count = document.getElementById('sort-count'), note = document.getElementById('sort-note')
+    sortTimers.forEach(clearTimeout); sortTimers = []
+    row.classList.remove('sorted'); chip.classList.remove('picked'); note.classList.remove('show'); count.textContent = '3'
+    if (reduced) return
+    sortTimers.push(setTimeout(function () { chip.classList.add('picked') }, 1400))
+    sortTimers.push(setTimeout(function () { row.classList.add('sorted'); count.textContent = '2'; note.classList.add('show') }, 2100))
+  }
   function schedule() {
     clearTimeout(timer)
     if (reduced || stage.classList.contains('paused') || stage.classList.contains('still')) return
@@ -195,18 +215,24 @@
   stage.addEventListener('focusin', function () { stage.classList.add('paused'); clearTimeout(timer) })
   stage.addEventListener('focusout', function () { stage.classList.remove('paused'); schedule() })
   document.addEventListener('visibilitychange', function () { if (document.hidden) clearTimeout(timer); else schedule() })
+  playSort()
   schedule()
 
   /* ---------- Screenshot viewer ---------- */
-  var shot = document.getElementById('shot')
+  var shot = document.getElementById('shot'), shotSm = document.getElementById('shot-sm')
+  var phoneMq = window.matchMedia('(max-width: 640px)')
   var current = { shot: 'dashboard', theme: isDark() ? 'dark' : 'light' }
   function showShot() {
-    var src = 'assets/' + current.shot + (current.theme === 'dark' ? '-dark' : '') + '.jpg'
-    if (shot.getAttribute('src') === src) return
+    var dark = current.theme === 'dark' ? '-dark' : ''
+    var src = 'assets/' + current.shot + dark + '.jpg'
+    var srcSm = 'assets/' + current.shot + '-phone' + dark + '.jpg'
+    if (shot.getAttribute('src') === src && shotSm.getAttribute('srcset') === srcSm) return
     shot.classList.add('swap')
     var img = new Image()
-    img.onload = img.onerror = function () { shot.src = src; shot.alt = ALT[lang][current.shot]; shot.classList.remove('swap') }
-    img.src = src
+    img.onload = img.onerror = function () {
+      shotSm.srcset = srcSm; shot.src = src; shot.alt = ALT[lang][current.shot]; shot.classList.remove('swap')
+    }
+    img.src = phoneMq.matches ? srcSm : src
   }
   function setShotTheme(t) {
     current.theme = t
@@ -218,6 +244,20 @@
     b.addEventListener('click', function () { setShotTheme(b.dataset.shotTheme) })
   })
   setShotTheme(current.theme)
+
+  /* ---------- Phone and tablet menu ---------- */
+  var menuBtn = document.getElementById('menu-btn'), menu = document.getElementById('menu')
+  function setMenu(open, focusBack) {
+    menu.hidden = !open
+    menuBtn.setAttribute('aria-expanded', String(open))
+    if (open) menu.querySelector('a').focus()
+    else if (focusBack) menuBtn.focus()
+  }
+  menuBtn.addEventListener('click', function () { setMenu(menu.hidden, false) })
+  menu.addEventListener('click', function (e) { if (e.target.closest('a')) setMenu(false, false) })
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) setMenu(false, true) })
+  document.addEventListener('click', function (e) { if (!menu.hidden && !e.target.closest('.top')) setMenu(false, false) })
+  window.matchMedia('(min-width: 1081px)').addEventListener('change', function (e) { if (e.matches) setMenu(false, false) })
 
   /* ---------- Copy buttons ---------- */
   document.querySelectorAll('.copy').forEach(function (b) {

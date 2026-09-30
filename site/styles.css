@@ -1,3 +1,7 @@
+/* Figtree, served from this site (OFL, see fonts/OFL.txt). No third-party requests. */
+@font-face { font-family: 'Figtree Variable'; font-style: normal; font-display: swap; font-weight: 300 900; src: url(fonts/figtree-latin-ext-wght-normal.woff2) format('woff2-variations'); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: 'Figtree Variable'; font-style: normal; font-display: swap; font-weight: 300 900; src: url(fonts/figtree-latin-wght-normal.woff2) format('woff2-variations'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+
 /* FinVault landing site. Same tokens as the app (DESIGN.md), turned up for a marketing page. */
 :root {
   --ground: #F6F5F2; --sheet: #FFFFFF; --sheet-2: #F7F6F3; --wall: #E6EFEC; --side: #EDF4F1;
@@ -9,7 +13,7 @@
   --shadow: 0 1px 2px rgba(27, 36, 48, .04), 0 2px 8px rgba(27, 36, 48, .04);
   --shadow-hover: 0 4px 16px rgba(27, 36, 48, .08);
   --float: 0 20px 44px -12px rgba(27, 36, 48, .28), 0 4px 10px -4px rgba(27, 36, 48, .08);
-  --font: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font: 'Figtree Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
   color-scheme: light;
 }
@@ -273,6 +277,31 @@ details p { padding: 0 20px 18px; color: var(--ink-2); }
 .foot-links a { color: var(--ink-2); text-decoration: none; font-weight: 550; font-size: 14.5px; }
 .foot-links a:hover { color: var(--frame); }
 
+/* Phone and tablet menu */
+.menu-btn { display: none; }
+.menu-btn .cross { display: none; }
+.menu-btn[aria-expanded="true"] .bars { display: none; }
+.menu-btn[aria-expanded="true"] .cross { display: inline; }
+.menu { display: grid; gap: 2px; padding: 8px 0 16px; }
+.menu[hidden] { display: none; }
+.menu a:not(.btn) { color: var(--ink); text-decoration: none; font-weight: 600; font-size: 16px; padding: 12px; border-radius: 10px; }
+.menu a:not(.btn):hover { background: var(--side); }
+.menu .btn { margin-top: 8px; }
+
+/* Status pills in the feature case */
+.li-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.pill { flex: none; font-size: 12px; font-weight: 650; padding: 1px 9px; border-radius: 999px; background: var(--sheet-2); color: var(--ink-3); border: 1px solid var(--rule); white-space: nowrap; }
+.pill.off { background: var(--post-bg); color: var(--post); border-color: transparent; }
+
+/* The tray sorts one line in the hero */
+.tray-item { transition: transform .45s cubic-bezier(.4, 0, .2, 1), opacity .45s, max-height .45s .3s, padding .45s .3s, border-color .45s .3s; max-height: 160px; overflow: hidden; }
+.tray-item.sorted { transform: translateX(60px) rotate(2deg); opacity: 0; max-height: 0; padding-block: 0; border-top-color: transparent; }
+.chip { transition: background .2s, border-color .2s, color .2s, box-shadow .2s; }
+.chip.picked { background: var(--frame-soft); border-color: var(--frame); color: var(--frame); box-shadow: 0 0 0 3px color-mix(in srgb, var(--frame) 18%, transparent); }
+.tray-note { display: flex; align-items: center; gap: 8px; margin: 0; padding: 0 16px; max-height: 0; opacity: 0; overflow: hidden; color: var(--green); font-size: 13.5px; font-weight: 600; background: var(--green-bg); transition: max-height .4s .6s, opacity .4s .6s, padding .4s .6s; }
+.tray-note.show { max-height: 60px; opacity: 1; padding: 11px 16px; }
+.tray-note svg { flex: none; }
+
 /* Reveal on scroll */
 .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease-out, transform .6s ease-out; }
 .reveal.seen { opacity: 1; transform: none; }
@@ -280,6 +309,7 @@ details p { padding: 0 20px 18px; color: var(--ink-2); }
 /* Responsive */
 @media (max-width: 1080px) {
   .links { display: none; }
+  .menu-btn { display: grid; }
   .hero { grid-template-columns: 1fr; gap: 40px; padding-top: 40px; }
   .stage { max-width: 620px; }
   .case { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -307,6 +337,10 @@ details p { padding: 0 20px 18px; color: var(--ink-2); }
   .browser-bar { flex-wrap: wrap; }
   .url { order: 3; flex-basis: 100%; }
   .browser-bar .seg { margin-left: auto; }
+  #shot { aspect-ratio: 1 / 2; }
+  .stage-tabs { -webkit-mask-image: linear-gradient(90deg, #000 84%, transparent); mask-image: linear-gradient(90deg, #000 84%, transparent); }
+  .stage-tabs.at-end { -webkit-mask-image: none; mask-image: none; }
+  .li-head { flex-wrap: wrap; }
   .canada { padding: 64px 0; margin-top: 80px; }
 }
 @media (prefers-reduced-motion: reduce) {
