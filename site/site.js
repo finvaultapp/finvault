@@ -12,7 +12,8 @@
   var FR = {
     'skip': 'Aller au contenu',
     'nav.features': 'Fonctions', 'nav.canada': 'Pensé pour le Canada', 'nav.look': 'Aperçu', 'nav.install': 'Installer', 'nav.code': 'Code',
-    'theme': 'Passer au thème clair ou sombre', 'menu': 'Menu',
+    'theme': 'Thème sombre', 'menu': 'Menu', 'brand.home': 'Accueil FinVault', 'nav.label': 'Principal', 'lang.label': 'Langue',
+    'stage.pause': 'Pause', 'stage.play': 'Lecture',
     'cta.host': 'L’héberger chez soi', 'cta.look': 'Voir l’application',
     'hero.eyebrow': 'Hébergé chez vous · Aucun mot de passe bancaire · Français et anglais',
     'hero.l1': 'Comptes. Cartes.', 'hero.l2': 'CELI. REER. CELIAPP.', 'hero.l3': 'Factures. Budgets.', 'hero.l4': 'Tout trié, chez vous.',
@@ -131,6 +132,7 @@
     document.querySelectorAll('[data-lang]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.lang === lang)) })
     shot.alt = ALT[lang][current.shot]
     formatMoney()
+    if (typeof playBtn !== 'undefined' && playBtn) playBtn.querySelector('span').textContent = stage.classList.contains('still') ? (lang === 'fr' ? FR['stage.play'] : 'Play') : (lang === 'fr' ? FR['stage.pause'] : 'Pause')
     store.set('fv.site.lang', lang)
   }
   document.querySelectorAll('[data-lang]').forEach(function (b) {
@@ -143,12 +145,16 @@
     if (t) return t === 'dark'
     return window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches
   }
-  document.getElementById('theme').addEventListener('click', function () {
+  var themeBtn = document.getElementById('theme')
+  function syncTheme() { themeBtn.setAttribute('aria-pressed', String(isDark())) }
+  themeBtn.addEventListener('click', function () {
     var next = isDark() ? 'light' : 'dark'
     root.dataset.theme = next
     store.set('fv.site.theme', next)
     setShotTheme(next)
+    syncTheme()
   })
+  syncTheme()
 
   /* ---------- Tabs helper (arrow keys, roving tabindex) ---------- */
   function tablist(list, onSelect) {
@@ -206,13 +212,21 @@
     if (reduced || stage.classList.contains('paused') || stage.classList.contains('still')) return
     timer = setTimeout(function () { stageTabs.select((index + 1) % stageTabs.count, false) }, DWELL)
   }
-  if (reduced) stage.classList.add('still')
+  var playBtn = document.getElementById('stage-play')
+  function setStill(still) {
+    stage.classList.toggle('still', still)
+    playBtn.setAttribute('aria-pressed', String(still))
+    playBtn.querySelector('span').textContent = still ? (lang === 'fr' ? FR['stage.play'] : 'Play') : (lang === 'fr' ? FR['stage.pause'] : 'Pause')
+    if (still) clearTimeout(timer); else schedule()
+  }
+  playBtn.addEventListener('click', function () { setStill(!stage.classList.contains('still')) })
+  if (reduced) setStill(true)
   // Any direct interaction stops the rotation for good; hover or focus pauses it.
-  stage.querySelector('.stage-tabs').addEventListener('click', function () { stage.classList.add('still'); clearTimeout(timer) })
-  stage.querySelector('.stage-tabs').addEventListener('keydown', function () { stage.classList.add('still'); clearTimeout(timer) })
+  tabRow.addEventListener('click', function () { setStill(true) })
+  tabRow.addEventListener('keydown', function () { setStill(true) })
   stage.addEventListener('mouseenter', function () { stage.classList.add('paused'); clearTimeout(timer) })
   stage.addEventListener('mouseleave', function () { stage.classList.remove('paused'); schedule() })
-  stage.addEventListener('focusin', function () { stage.classList.add('paused'); clearTimeout(timer) })
+  stage.addEventListener('focusin', function (e) { if (e.target === playBtn) return; stage.classList.add('paused'); clearTimeout(timer) })
   stage.addEventListener('focusout', function () { stage.classList.remove('paused'); schedule() })
   document.addEventListener('visibilitychange', function () { if (document.hidden) clearTimeout(timer); else schedule() })
   playSort()
@@ -239,7 +253,12 @@
     document.querySelectorAll('[data-shot-theme]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.shotTheme === t)) })
     showShot()
   }
-  tablist(document.querySelector('.shot-tabs'), function (tab) { current.shot = tab.dataset.shot; showShot() })
+  document.querySelectorAll('[data-shot]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('[data-shot]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)) })
+      current.shot = b.dataset.shot; showShot()
+    })
+  })
   document.querySelectorAll('[data-shot-theme]').forEach(function (b) {
     b.addEventListener('click', function () { setShotTheme(b.dataset.shotTheme) })
   })
@@ -266,6 +285,7 @@
         .split('\n').filter(function (l) { return l.trim() && l.trim()[0] !== '#' }).join('\n')
       var done = function () {
         b.textContent = copyDone[lang]; b.classList.add('done')
+        document.getElementById('live').textContent = copyDone[lang]
         setTimeout(function () { b.textContent = lang === 'fr' ? FR.copy : EN.copy; b.classList.remove('done') }, 1600)
       }
       if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, function () {})

@@ -17,7 +17,7 @@
 
 <header class="top">
   <div class="wrap top-row">
-    <a class="brand" href="#" aria-label="FinVault home">
+    <a class="brand" href="#" aria-label="FinVault home" data-i18n-label="brand.home">
       <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <rect x="2.5" y="4.5" width="27" height="23" rx="2" stroke="currentColor" stroke-width="2"/>
         <path d="M11.5 5v22M20.5 5v22M3 16h26" stroke="currentColor" stroke-width="2"/>
@@ -25,7 +25,7 @@
       </svg>
       FinVault
     </a>
-    <nav class="links" aria-label="Main">
+    <nav class="links" aria-label="Main" data-i18n-label="nav.label">
       <a href="#features" data-i18n="nav.features">Features</a>
       <a href="#canada" data-i18n="nav.canada">Made for Canada</a>
       <a href="#look" data-i18n="nav.look">Take a look</a>
@@ -33,11 +33,11 @@
       <a href="https://github.com/henilsarang/finvault" data-i18n="nav.code">Code</a>
     </nav>
     <div class="top-tools">
-      <div class="seg" role="group" aria-label="Language">
+      <div class="seg" role="group" aria-label="Language" data-i18n-label="lang.label">
         <button type="button" data-lang="en" aria-pressed="true">EN</button>
         <button type="button" data-lang="fr" aria-pressed="false">FR</button>
       </div>
-      <button type="button" class="icon-btn" id="theme" aria-label="Switch light or dark" data-i18n-label="theme">
+      <button type="button" class="icon-btn" id="theme" aria-pressed="false" aria-label="Dark theme" data-i18n-label="theme">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path class="sun" d="M12 4V2m0 20v-2m8-8h2M2 12h2m13.66-5.66 1.41-1.41M4.93 19.07l1.41-1.41m0-11.32L4.93 4.93m14.14 14.14-1.41-1.41"/><circle class="sun" cx="12" cy="12" r="4"/><path class="moon" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
       </button>
       <a class="btn primary small hide-sm" href="#install" data-i18n="cta.host">Self-host it</a>
@@ -75,7 +75,7 @@
       <p class="facts" data-i18n="hero.eyebrow">Self-hosted · No bank passwords · English and French</p>
     </div>
 
-    <div class="stage" aria-roledescription="carousel" aria-label="What FinVault shows you" data-i18n-label="stage.label">
+    <div class="stage" aria-roledescription="carousel" aria-label="What FinVault shows you" data-i18n-label="stage.label" aria-describedby="stage-note">
       <div class="stage-tabs" role="tablist" aria-label="Views">
         <button role="tab" aria-selected="true" aria-controls="p-sort" id="t-sort" data-i18n="stage.sort">To sort</button>
         <button role="tab" aria-selected="false" aria-controls="p-wall" id="t-wall" tabindex="-1" data-i18n="stage.wall">Where it went</button>
@@ -186,7 +186,13 @@
         <p class="note" data-i18n="p.ask.note">Runs on the model you choose, including one on your own hardware. You see what would be sent first.</p>
       </div>
 
-      <p class="stage-foot" data-i18n="stage.foot">Illustration with made-up numbers</p>
+      <div class="stage-foot">
+        <button type="button" class="play" id="stage-play" aria-pressed="false">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path class="i-pause" d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/><path class="i-play" d="M8 5v14l11-7z"/></svg>
+          <span data-i18n="stage.pause">Pause</span>
+        </button>
+        <p id="stage-note" data-i18n="stage.foot">Illustration with made-up numbers</p>
+      </div>
     </div>
   </section>
 
@@ -244,11 +250,11 @@
           <button type="button" data-shot-theme="dark" aria-pressed="false" data-i18n="look.dark">Dark</button>
         </div>
       </div>
-      <div class="shot-tabs" role="tablist" aria-label="Screens" data-i18n-label="look.screens">
-        <button role="tab" aria-selected="true" data-shot="dashboard" data-i18n="look.dash">Dashboard</button>
-        <button role="tab" aria-selected="false" data-shot="import" tabindex="-1" data-i18n="look.import">Import</button>
-        <button role="tab" aria-selected="false" data-shot="transactions" tabindex="-1" data-i18n="look.tx">Transactions</button>
-        <button role="tab" aria-selected="false" data-shot="reports" tabindex="-1" data-i18n="look.reports">Reports</button>
+      <div class="shot-tabs" role="group" aria-label="Screens" data-i18n-label="look.screens">
+        <button type="button" aria-pressed="true" data-shot="dashboard" data-i18n="look.dash">Dashboard</button>
+        <button type="button" aria-pressed="false" data-shot="import" data-i18n="look.import">Import</button>
+        <button type="button" aria-pressed="false" data-shot="transactions" data-i18n="look.tx">Transactions</button>
+        <button type="button" aria-pressed="false" data-shot="reports" data-i18n="look.reports">Reports</button>
       </div>
       <picture>
         <source id="shot-sm" media="(max-width: 640px)" srcset="assets/dashboard-phone.jpg" width="780" height="1560">
@@ -339,17 +345,17 @@
     <ol class="steps">
       <li>
         <h3 data-i18n="inst.1">Get the code</h3>
-        <div class="code"><pre><code>git clone https://github.com/henilsarang/finvault.git
+        <div class="code"><pre tabindex="0"><code>git clone https://github.com/henilsarang/finvault.git
 cd finvault</code></pre><button type="button" class="copy" data-i18n="copy">Copy</button></div>
       </li>
       <li>
         <h3 data-i18n="inst.2">Set it up</h3>
-        <div class="code"><pre><code>cp .env.example .env
+        <div class="code"><pre tabindex="0"><code>cp .env.example .env
 # optional: edit .env</code></pre><button type="button" class="copy" data-i18n="copy">Copy</button></div>
       </li>
       <li>
         <h3 data-i18n="inst.3">Start it</h3>
-        <div class="code"><pre><code>docker compose up -d --build
+        <div class="code"><pre tabindex="0"><code>docker compose up -d --build
 # open http://localhost:8000</code></pre><button type="button" class="copy" data-i18n="copy">Copy</button></div>
       </li>
     </ol>
@@ -375,6 +381,7 @@ cd finvault</code></pre><button type="button" class="copy" data-i18n="copy">Copy
   </div>
 </footer>
 
+<p class="sr-only" id="live" aria-live="polite"></p>
 <script src="site.js"></script>
 </body>
 </html>
