@@ -227,6 +227,12 @@ def export(f: dict = Depends(_filters), format: str = Query("csv", pattern="^(cs
     if format == "ofx":
         return Response(_ofx_export(rows), media_type="application/x-ofx",
                         headers={"Content-Disposition": f'attachment; filename="finvault-{stamp}.ofx"'})
+    return Response(csv_text(db, rows), media_type="text/csv",
+                    headers={"Content-Disposition": f'attachment; filename="finvault-{stamp}.csv"'})
+
+
+def csv_text(db: Session, rows: list[Transaction]) -> str:
+    """The CSV export, BOM included. "Download all my data" uses it too, so the two never drift apart."""
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(["Date", "Account", "Description", "Payee", "Category", "Amount", "Currency", "Notes", "Tags"])
@@ -235,5 +241,4 @@ def export(f: dict = Depends(_filters), format: str = Query("csv", pattern="^(cs
         w.writerow([t.date.isoformat(), t.account.name, t.description, t.payee,
                     t.category.name if t.category else "", f"{Decimal(t.amount):.2f}", t.account.currency, t.notes,
                     "; ".join(x["name"] for x in tag_names.get(t.id, []))])
-    return Response("﻿" + buf.getvalue(), media_type="text/csv",
-                    headers={"Content-Disposition": f'attachment; filename="finvault-{stamp}.csv"'})
+    return "﻿" + buf.getvalue()

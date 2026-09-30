@@ -18,14 +18,14 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
 
-from sqlalchemy import bindparam, insert, select, update
+from sqlalchemy import insert, select
 from sqlalchemy.orm import Session
 
 from ..importers.common import ParsedTxn, normalize_merchant
 from ..importers.migrate import CAT_SEP, SOURCE_NAMES, MigrationData, MigTxn, latest_budgets
 from ..importers.presets import PRESETS
-from ..models import Account, Budget, Category, ImportBatch, Transaction, User
-from . import transfers
+from ..models import Account, Budget, Category, ImportBatch, Transaction, TransactionTag, User
+from . import tags, transfers
 from .ledger import DEFAULT_CATEGORIES, FRENCH_NAMES, Categorizer, plan_import
 
 LIKELY_WINDOW_DAYS = 3
@@ -441,25 +441,29 @@ def _create_budgets(db: Session, user: User, data: MigrationData, cat_ids: dict[
     return created, kept
 
 
-def _label_note(notes: str, labels: list[str]) -> str:
-    line = "labels: " + ", ".join(labels)
-    return f"{notes}\n{line}" if notes else line
-
-
 def attach_labels(db: Session, user: User, labelled: list[tuple[int, str, list[str]]]) -> int:
-    """Keep the source app's labels / tags on the imported transactions.
+    """Keep the source app's labels / tags on the imported transactions as FinVault tags.
 
-    `labelled` is [(transaction id, its notes, labels)]. Today labels go into the notes as a
-    "labels: a, b" line. When FinVault has a Tag model, replace this body with "get or create each tag,
-    link it to the transaction"; nothing else in the move needs to change.
+    `labelled` is [(transaction id, its notes, labels)]. Each label becomes a tag (reusing one the member
+    already has, ignoring case) and is linked to the transaction in bulk.
     """
     if not labelled:
         return 0
-    table = Transaction.__table__
-    stmt = update(table).where(table.c.id == bindparam("tid")).values(notes=bindparam("new_notes"))
-    params = [{"tid": tid, "new_notes": _label_note(notes, labels)} for tid, notes, labels in labelled]
-    for i in range(0, len(params), INSERT_CHUNK):
-        db.connection().execute(stmt, params[i:i + INSERT_CHUNK])
+    tag_ids: dict[str, int] = {}
+    links = []
+    for tid, _notes, labels in labelled:
+        seen = set()
+        for label in labels:
+            name = tags.clean_name(label)
+            key = name.lower()
+            if not name or key in seen:
+                continue
+            seen.add(key)
+            if key not in tag_ids:
+                tag_ids[key] = tags.get_or_create(db, user, name).id
+            links.append({"transaction_id": tid, "tag_id": tag_ids[key]})
+    for i in range(0, len(links), INSERT_CHUNK):
+        db.execute(insert(TransactionTag), links[i:i + INSERT_CHUNK])
     return len(labelled)
 
 

@@ -16,8 +16,8 @@ const SOURCES = [
   { id: '', get label() { return t('Detect automatically') } },
   { id: 'ynab', label: 'YNAB', get help() { return t('In YNAB, open the budget menu and choose Export budget. Upload the zip as it is: it holds Register.csv and Budget.csv.') } },
   { id: 'actual', label: 'Actual Budget', get help() { return t('In Actual Budget, open All accounts, select the transactions and choose Export. Upload the CSV. A full budget backup (a zip with db.sqlite) cannot be read.') } },
-  { id: 'mint', label: 'Mint', get help() { return t('Use the transactions.csv you downloaded from Mint before it closed. Labels are kept in each transaction\'s notes.') } },
-  { id: 'monarch', label: 'Monarch Money', get help() { return t('In Monarch, open Transactions and choose Download CSV. Tags are kept in each transaction\'s notes.') } },
+  { id: 'mint', label: 'Mint', get help() { return t('Use the transactions.csv you downloaded from Mint before it closed. Labels become tags.') } },
+  { id: 'monarch', label: 'Monarch Money', get help() { return t('In Monarch, open Transactions and choose Download CSV. Tags come across as tags.') } },
   { id: 'generic', get label() { return t('Other app') }, get help() { return t('Any CSV with a date and an amount. Each file becomes one account named after the file; you can match its columns after uploading.') } },
 ]
 const ROLES = {
@@ -439,7 +439,7 @@ function DoneStep({ result, analysis, undone, askUndo, reset }) {
     result.categories_created ? (result.categories_created === 1 ? t('1 category created') : t('{n} categories created', { n: result.categories_created })) : null,
     result.transfers_matched ? (result.transfers_matched === 1 ? t('{n} transfer between your accounts matched.', { n: 1 }) : t('{n} transfers between your accounts matched.', { n: result.transfers_matched })) : null,
     result.budgets_created ? t('{n} monthly budgets set', { n: result.budgets_created }) : null,
-    result.labelled ? (result.labelled === 1 ? t('labels kept in the notes of 1 transaction') : t('labels kept in the notes of {n} transactions', { n: result.labelled })) : null,
+    result.labelled ? (result.labelled === 1 ? t('tags kept on 1 transaction') : t('tags kept on {n} transactions', { n: result.labelled })) : null,
   ].filter(Boolean)
   return (
     <section className="card">

@@ -237,7 +237,7 @@ def test_budgets_from_latest_month(client):
     assert again.json()["budgets_kept"] == 2 and again.json()["imported"] == 0
 
 
-def test_mint_labels_go_to_notes_and_card_payment_pairs(client):
+def test_mint_labels_become_tags_and_card_payment_pairs(client):
     register(client)
     upload = files(("transactions.csv", MINT))
     a = post(client, "analyze", upload).json()
@@ -252,9 +252,11 @@ def test_mint_labels_go_to_notes_and_card_payment_pairs(client):
     txs = client.get("/api/transactions").json()
     items = txs["items"] if isinstance(txs, dict) else txs
     pizza = next(t for t in items if t["description"] == "Imaginary Pizza")
-    assert pizza["notes"] == "labels: Date night, Shared"
+    assert [x["name"] for x in pizza["tags"]] == ["Date night", "Shared"] and not pizza["notes"]
     book = next(t for t in items if t["description"] == "Fake Books")
-    assert book["notes"] == "for Sam\nlabels: Gift"
+    assert book["notes"] == "for Sam" and [x["name"] for x in book["tags"]] == ["Gift"]
+    names = sorted(x["name"].lower() for x in client.get("/api/tags").json())
+    assert names == ["date night", "gift", "shared"]
 
 
 def test_monarch_and_actual_transfers_pair(client):

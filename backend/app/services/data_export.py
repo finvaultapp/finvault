@@ -16,7 +16,6 @@ The zip is written to a temporary file (receipts can be large) and streamed from
 """
 from __future__ import annotations
 
-import csv
 import datetime as dt
 import io
 import json
@@ -114,16 +113,11 @@ def left_out_columns() -> dict[str, list[str]]:
 
 
 def transactions_csv(db: Session, user_id: int) -> str:
-    """Same columns and format as /api/transactions/export?format=csv (with its BOM)."""
-    rows = db.scalars(select(Transaction).where(Transaction.user_id == user_id)
-                      .order_by(Transaction.date, Transaction.id)).unique()
-    buf = io.StringIO()
-    w = csv.writer(buf)
-    w.writerow(["Date", "Account", "Description", "Payee", "Category", "Amount", "Currency", "Notes"])
-    for t in rows:
-        w.writerow([t.date.isoformat(), t.account.name, t.description, t.payee,
-                    t.category.name if t.category else "", f"{Decimal(t.amount):.2f}", t.account.currency, t.notes])
-    return "﻿" + buf.getvalue()
+    """Exactly what /api/transactions/export?format=csv gives for all of this member's transactions."""
+    from ..routers.transactions import csv_text  # routers import services, so this one stays local
+    rows = list(db.scalars(select(Transaction).where(Transaction.user_id == user_id)
+                           .order_by(Transaction.date, Transaction.id)).unique())
+    return csv_text(db, rows)
 
 
 def _safe_name(name: str) -> str:
