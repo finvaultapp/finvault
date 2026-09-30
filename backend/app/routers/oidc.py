@@ -146,6 +146,11 @@ def oidc_callback(request: Request, code: str | None = None, state: str | None =
                 db.rollback()
                 return _fail(db, request, err, email=ident["email"])
             created = True
+        elif db.scalar(select(OidcIdentity.id).where(OidcIdentity.user_id == user.id,
+                                                     OidcIdentity.issuer == ident["issuer"])):
+            # This member is already linked to a different account at this provider. Matching by email again
+            # would let whoever holds that address at the provider now (a renamed or recycled account) in.
+            return _fail(db, request, "already_linked", email=ident["email"])
         link = OidcIdentity(user_id=user.id, issuer=ident["issuer"], subject=ident["sub"])
         db.add(link)
     if not user.is_active:

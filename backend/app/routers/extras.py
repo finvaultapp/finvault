@@ -201,4 +201,4 @@ def set_watch(aid: int, body: WatchIn, user: User = Depends(current_user), db: S
 def scan_now(user: User = Depends(current_user), db: Session = Depends(get_db)):
     if not inbox.enabled(db):
         raise HTTPException(403, "The watched import folder is turned off.")
-    return {"imported": inbox.scan(db)}
+    return {"imported": inbox.scan(db, user.id)}  # only this member's folders

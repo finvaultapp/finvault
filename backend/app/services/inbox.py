@@ -63,12 +63,16 @@ def _move(src: Path, dest_dir: Path) -> Path:
     return dest
 
 
-def scan(db: Session) -> int:
+def scan(db: Session, user_id: int | None = None) -> int:
+    """Import new files from every watched folder, or only one member's when user_id is given."""
     if not enabled(db):
         return 0
     root = config.IMPORT_WATCH_DIR.resolve()
     imported = 0
-    for account in db.scalars(select(Account).where(Account.watch_folder.is_(True), Account.is_archived.is_(False))):
+    q = select(Account).where(Account.watch_folder.is_(True), Account.is_archived.is_(False))
+    if user_id is not None:
+        q = q.where(Account.user_id == user_id)
+    for account in db.scalars(q):
         user = db.get(User, account.user_id)
         if not user or not user.is_active:
             continue
@@ -77,6 +81,10 @@ def scan(db: Session) -> int:
             continue  # never follow a folder outside the watch root
         for f in sorted(folder.iterdir()):
             if not f.is_file() or f.name.startswith(".") or f.suffix.lower() not in ALLOWED:
+                continue
+            # Only real files in this account's own folder: a link could point at another member's
+            # statements (or anything else the server can read) and import it into this account.
+            if f.is_symlink() or f.resolve().parent != folder:
                 continue
             # Skip files still being written (modified in the last 10 seconds).
             if datetime.now().timestamp() - f.stat().st_mtime < 10:

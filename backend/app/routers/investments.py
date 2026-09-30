@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from .. import settings_store
 from ..db import get_db
 from ..deps import current_user, owned
-from ..importers.holdings import InvestParseResult, parse_investment_file
+from ..importers.holdings import MAX_BYTES, InvestParseResult, parse_investment_file
 from ..models import Account, User
 from ..models_invest import (ACTIVITY_KINDS, ASSET_CLASSES, REGISTRATIONS, Holding, InvestAccountInfo, InvestImport,
                              InvestmentActivity, Security, SecurityPrice)
@@ -477,7 +477,7 @@ def _labels(result: InvestParseResult) -> list[str]:
 
 async def _parse(file: UploadFile, options: str | None) -> tuple[InvestParseResult, dict]:
     opts = json.loads(options) if options else {}
-    raw = await file.read()
+    raw = await file.read(MAX_BYTES + 1)  # enough to tell it's too big, without loading a huge upload into memory
     try:
         result = parse_investment_file(file.filename or "", raw, opts.get("source") or None)
     except ValueError as exc:

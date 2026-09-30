@@ -12,7 +12,10 @@ PRIVATE_HOSTS = {"localhost", "host.docker.internal"}
 def _ip_is_private(host: str) -> bool:
     try:
         ip = ipaddress.ip_address(host)
-        return ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast
+        # not is_global also covers shared address space (100.64.0.0/10, used by Tailscale and CGNAT),
+        # benchmarking and documentation ranges, which is_private leaves out.
+        return (not ip.is_global or ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved
+                or ip.is_multicast)
     except ValueError:
         return False
 

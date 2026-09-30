@@ -76,6 +76,11 @@ def _revoke_open(db: Session, user_id: int, now: datetime) -> None:
                .values(used_at=now).execution_options(synchronize_session=False))
 
 
+def revoke_open(db: Session, user_id: int) -> None:
+    """Cancel every unused link for this member (their password was changed another way). Caller commits."""
+    _revoke_open(db, user_id, datetime.now(timezone.utc))
+
+
 def issue(db: Session, user: User, *, via: str, hours: int, created_by: User | None = None) -> tuple[str, PasswordResetToken]:
     """Make a new link for `user`, cancelling any earlier unused one. Returns the raw token (shown once) and the row."""
     now = datetime.now(timezone.utc)

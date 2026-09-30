@@ -138,7 +138,13 @@ def _unzip(raw: bytes) -> list[tuple[str, str]]:
             size += m.file_size
             if size > MAX_UNZIPPED_BYTES:
                 raise ValueError("The zip holds more than 120 MB of files.")
-            out.append((m.filename.rsplit("/", 1)[-1], decode_bytes(zf.read(m))))
+            try:
+                data = zf.read(m)
+            except (zipfile.BadZipFile, RuntimeError, NotImplementedError, EOFError) as exc:
+                # A damaged, encrypted or wrongly sized member (sizes are enforced: a member that inflates past
+                # its stated size fails its CRC check here instead of filling memory).
+                raise ValueError("That zip file could not be opened.") from exc
+            out.append((m.filename.rsplit("/", 1)[-1], decode_bytes(data)))
     return out
 
 

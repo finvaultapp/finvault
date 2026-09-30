@@ -19,6 +19,7 @@ const SSO_ERRORS = {
   signup_closed: 'Registration is closed. Ask your admin to create an account for you.',
   invite_required: 'You need an invite code to join. Open the invite link from your admin, then sign in again.',
   inactive: 'This account is turned off. Ask your admin.',
+  already_linked: 'This FinVault account is already linked to a different account at your provider. Sign in with that one, or ask your admin.',
   disabled: 'Single sign-on isn’t turned on for this server.',
 }
 

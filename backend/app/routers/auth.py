@@ -1,5 +1,6 @@
 import json
 import re
+import secrets
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -11,7 +12,7 @@ from .. import config, config_admin, security, settings_store
 from ..db import get_db
 from ..deps import COOKIE_NAME, current_user
 from ..models import Invite, User
-from ..services import audit
+from ..services import audit, password_reset
 from ..services.ledger import seed_categories
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -93,6 +94,16 @@ def register(body: RegisterIn, request: Request, response: Response, db: Session
     return user_out(user)
 
 
+_dummy_hash: list[str] = []
+
+
+def _burn_password_check(password: str) -> None:
+    """Spend the same bcrypt time as a real check, so response time doesn't tell which emails have accounts."""
+    if not _dummy_hash:
+        _dummy_hash.append(security.hash_password(secrets.token_hex(16)))
+    security.verify_password(password, _dummy_hash[0])
+
+
 class LoginIn(BaseModel):
     email: str
     password: str
@@ -108,6 +119,8 @@ def login(body: LoginIn, request: Request, response: Response, db: Session = Dep
         audit.record(db, "auth.login_failed", request=request, email=email, reason="throttled")
         raise HTTPException(429, "Too many attempts. Wait 15 minutes and try again.")
     user = db.scalar(select(User).where(User.email == email))
+    if not user:
+        _burn_password_check(body.password)
     if not user or not security.verify_password(body.password, user.password_hash) or not user.is_active:
         security.login_throttle.hit(key)
         security.email_login_throttle.hit(email_key)
@@ -135,8 +148,11 @@ def login_2fa(body: TwoFactorIn, request: Request, response: Response, db: Sessi
     if not payload:
         raise HTTPException(401, "Sign-in expired. Enter your password again.")
     user = db.get(User, int(payload["sub"]))
+    # A password reset, "sign out everywhere" or turning the member off since the password step ends this sign-in.
+    if not user or not user.is_active or user.token_version != payload.get("tv") or not user.totp_enabled:
+        raise HTTPException(401, "Sign-in expired. Enter your password again.")
     key = f"2fa|{payload['sub']}"
-    if not user or security.login_throttle.blocked(key):
+    if security.login_throttle.blocked(key):
         raise HTTPException(429, "Too many attempts. Wait 15 minutes and try again.")
     secret = security.decrypt(user.totp_secret)
     ok = bool(secret) and security.verify_totp(secret, body.code)
@@ -211,6 +227,7 @@ def change_password(body: PasswordIn, request: Request, response: Response, user
     _check_password(body.new_password)
     user.password_hash = security.hash_password(body.new_password)
     user.token_version += 1  # sign out other devices
+    password_reset.revoke_open(db, user.id)  # a reset link made before the change stops working too
     db.commit()
     audit.record(db, "auth.password_changed", request=request, user=user)
     _set_session(response, user)

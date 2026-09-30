@@ -76,6 +76,7 @@ export default {
   "or use your password": "ou utilisez votre mot de passe",
   "Password sign-in is turned off and single sign-on isn’t set up. Ask your admin.": "La connexion par mot de passe est désactivée et l’authentification unique n’est pas configurée. Communiquez avec votre administrateur.",
   "Your sign-in worked, but there is no FinVault account with that email. Ask your admin to add you first.": "Votre connexion a fonctionné, mais aucun compte FinVault n’utilise ce courriel. Demandez d’abord à votre administrateur de vous ajouter.",
+  "This FinVault account is already linked to a different account at your provider. Sign in with that one, or ask your admin.": "Ce compte FinVault est déjà lié à un autre compte chez votre fournisseur. Connectez-vous avec celui-ci, ou communiquez avec votre administrateur.",
   "Your provider says that email address isn’t verified yet.": "Votre fournisseur indique que cette adresse courriel n’est pas encore vérifiée.",
   "Your provider didn’t share an email address with FinVault.": "Votre fournisseur n’a pas communiqué d’adresse courriel à FinVault.",
   "That sign-in link expired or was opened in another browser. Try again.": "Ce lien de connexion a expiré ou a été ouvert dans un autre navigateur. Réessayez.",
