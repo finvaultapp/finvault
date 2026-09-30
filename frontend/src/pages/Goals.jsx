@@ -61,8 +61,8 @@ export default function Goals() {
                   </div>
                   <div className="actions">
                     {!g.account_id && <button className="icon-btn" onClick={() => setAdding(g)} aria-label={t('Add money')} title={t('Add money')}><PlusCircle /></button>}
-                    <button className="icon-btn" onClick={() => setEditing(g)} aria-label={t('Edit')}><Pencil /></button>
-                    <button className="icon-btn" aria-label={t('Delete')} onClick={() => setConfirm({ title: t('Delete “{name}”?', { name: g.name }), body: t('Only the goal is removed; no transactions change.'), onConfirm: async () => { await api.del(`/goals/${g.id}`); bump() } })}><Trash2 /></button>
+                    <button className="icon-btn" onClick={() => setEditing(g)} aria-label={t('Edit {name}', { name: g.name })}><Pencil /></button>
+                    <button className="icon-btn" aria-label={t('Delete {name}', { name: g.name })} onClick={() => setConfirm({ title: t('Delete “{name}”?', { name: g.name }), body: t('Only the goal is removed; no transactions change.'), onConfirm: async () => { await api.del(`/goals/${g.id}`); bump() } })}><Trash2 /></button>
                   </div>
                 </div>
               )

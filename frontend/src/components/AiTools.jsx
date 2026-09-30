@@ -64,7 +64,7 @@ export function AiChip({ s, onAccept, onReject }) {
         title={t('Accept this suggestion ({pct}% sure)', { pct: Math.round(s.confidence * 100) })}>
         <Sparkles aria-hidden="true" /><span className="ai-chip-lead">{t('AI suggests:')}</span> {s.category_name}
       </button>
-      {onReject && <button type="button" className="ai-chip-x" onClick={onReject} aria-label={t('Reject suggestion')}><X /></button>}
+      {onReject && <button type="button" className="ai-chip-x" onClick={onReject} aria-label={t('Reject suggestion: {category}', { category: s.category_name })}><X /></button>}
     </span>
   )
 }
@@ -88,7 +88,7 @@ export function AiSuggestBar({ ai, onAcceptAll }) {
           : <strong>{t('Let AI suggest categories for unfamiliar merchants.')}</strong>}{' '}
         <span className="small">{t('Only descriptions, amounts and your category names are sent. Nothing changes until you accept.')}</span>
         {ai.asked && ai.asked.sent === 0 && n === 0 && <div className="small">{t('No new merchants to ask about. Rules and past choices already cover the rest.')}</div>}
-        {ai.error && <div className="small expense">{ai.error.message}</div>}
+        {ai.error && <div className="small expense" role="alert">{ai.error.message}</div>}
       </div>
       {n > 0 && <label className="check small"><input type="checkbox" checked={rules} onChange={(e) => setRules(e.target.checked)} />{t('Also create rules')}</label>}
       {ai.missing > 0 && <button className="btn sm" onClick={ai.ask} disabled={ai.busy}><Sparkles />{ai.busy ? t('Asking…') : t('Suggest with AI')}</button>}

@@ -148,7 +148,7 @@ function LinkDialog({ cid, accounts, onClose, onSaved }) {
   }
   return (
     <Dialog wide title={t('Link provider accounts')} onClose={onClose} footer={<button className="btn primary" onClick={onClose}>{t('Done')}</button>}>
-      {remote.error && <p className="error-text">{remote.error.message}</p>}
+      {remote.error && <p className="error-text" role="alert">{remote.error.message}</p>}
       {!remote.data ? <Loading rows={2} /> : remote.data.length === 0 ? <p className="muted">{t('The provider returned no accounts yet.')}</p> : (
         <div className="list card" style={{ boxShadow: 'none' }}>
           {remote.data.map((a) => (

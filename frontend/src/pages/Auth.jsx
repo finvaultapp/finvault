@@ -92,14 +92,14 @@ export default function Auth({ mode }) {
         {!localAuth && !challenge && !sso && <p className="error-text" role="alert">{t('Password sign-in is turned off and single sign-on isn’t set up. Ask your admin.')}</p>}
         {(localAuth || challenge) && <form onSubmit={submit}>
           {challenge ? (
-            <Field label={t('Authentication code')}>
-              <input className="input" inputMode="numeric" autoComplete="one-time-code" autoFocus value={code} onChange={(e) => setCode(e.target.value)} placeholder="123 456" />
+            <Field label={t('Authentication code')} error={error || undefined}>
+              <input className="input" inputMode="numeric" autoComplete="one-time-code" autoFocus required value={code} onChange={(e) => setCode(e.target.value)} placeholder="123 456" />
             </Field>
           ) : (
             <>
               {registering && <Field label={t('Your name')}><input className="input" value={form.name} onChange={set('name')} autoComplete="name" /></Field>}
               <Field label={t('Email')}><input className="input" type="email" required value={form.email} onChange={set('email')} autoComplete="email" autoFocus /></Field>
-              <Field label={t('Password')} hint={registering ? t('At least 10 characters. A passphrase works well.') : null}>
+              <Field label={t('Password')} hint={registering ? t('At least 10 characters. A passphrase works well.') : null} error={!registering && error ? error : undefined}>
                 <input className="input" type="password" required value={form.password} onChange={set('password')} autoComplete={registering ? 'new-password' : 'current-password'} />
               </Field>
               {!registering && resetOpts?.smtp && <Link className="forgot-link small" to="/forgot-password">{t('Forgot password?')}</Link>}
@@ -115,7 +115,8 @@ export default function Auth({ mode }) {
               )}
             </>
           )}
-          {error && <p className="error-text" role="alert">{error}</p>}
+          {/* Sign-in and code errors sit under their field; registration errors can be about any field. */}
+          {error && registering && !challenge && <p className="error-text" role="alert">{error}</p>}
           <button className="btn primary" disabled={busy} style={{ height: 40 }}>
             {busy && <Loader2 size={16} className="spin" />}
             {challenge ? t('Verify') : registering ? t('Create account') : t('Sign in')}

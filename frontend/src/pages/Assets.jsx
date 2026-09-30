@@ -48,8 +48,8 @@ export default function Assets() {
                   </div>
                   <div className="actions">
                     <button className="btn sm" onClick={() => setValuing(a)}>{t('Update value')}</button>
-                    <button className="icon-btn" onClick={() => setEditing(a)} aria-label={t('Edit')}><Pencil /></button>
-                    <button className="icon-btn" aria-label={t('Delete')} onClick={() => setConfirm({ title: t('Delete {name}?', { name: a.name }), body: t('Its value history is removed too.'), onConfirm: async () => { await api.del(`/assets/${a.id}`); bump() } })}><Trash2 /></button>
+                    <button className="icon-btn" onClick={() => setEditing(a)} aria-label={t('Edit {name}', { name: a.name })}><Pencil /></button>
+                    <button className="icon-btn" aria-label={t('Delete {name}', { name: a.name })} onClick={() => setConfirm({ title: t('Delete {name}?', { name: a.name }), body: t('Its value history is removed too.'), onConfirm: async () => { await api.del(`/assets/${a.id}`); bump() } })}><Trash2 /></button>
                   </div>
                 </div>
               )

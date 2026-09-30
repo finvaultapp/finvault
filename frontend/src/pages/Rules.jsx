@@ -56,11 +56,11 @@ export default function Rules() {
                       {(r.amount_min != null || r.amount_max != null) ? ' · ' + t('amount {min} to {max}', { min: r.amount_min ?? '…', max: r.amount_max ?? '…' }) : ''} · {t('priority {n}', { n: r.priority })}
                     </div>
                   </div>
-                  <Switch checked={r.is_active} onChange={(v) => toggle(r, v)} label={t('Active')} />
+                  <Switch checked={r.is_active} onChange={(v) => toggle(r, v)} label={t('Active: {name}', { name: r.pattern })} />
                   <div className="actions">
-                    <button className="icon-btn" onClick={() => setEditing(r)} aria-label={t('Edit')}><Pencil /></button>
+                    <button className="icon-btn" onClick={() => setEditing(r)} aria-label={t('Edit {name}', { name: r.pattern })}><Pencil /></button>
                     <button className="icon-btn" onClick={() => setConfirm({ title: t('Delete this rule?'), body: t('Transactions it already categorized keep their category.'),
-                      onConfirm: async () => { await api.del(`/rules/${r.id}`); rules.reload() } })} aria-label={t('Delete')}><Trash2 /></button>
+                      onConfirm: async () => { await api.del(`/rules/${r.id}`); rules.reload() } })} aria-label={t('Delete {name}', { name: r.pattern })}><Trash2 /></button>
                   </div>
                 </div>
               )

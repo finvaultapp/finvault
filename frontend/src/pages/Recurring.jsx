@@ -26,7 +26,7 @@ export default function Recurring() {
       <PageHead title={t('Recurring')} sub={t('Bills, subscriptions and paycheques. Turn on auto-post to have FinVault add them on the due date.')}>
         <button className="btn primary" onClick={() => setEditing({})}><Plus />{t('Add recurring')}</button>
       </PageHead>
-      <div className="grid-2" style={{ gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)' }}>
+      <div className="grid-2 wide-left">
         <div className="stack">
           <ChargeAlerts onAdd={setEditing} />
           <section className="card">
@@ -47,8 +47,8 @@ export default function Recurring() {
                       <Money value={r.amount} currency={r.currency} sign colored className="strong" />
                       <div className="actions">
                         <button className="icon-btn" title={t('Skip next')} aria-label={t('Skip next')} onClick={async () => { await api.post(`/recurring/${r.id}/skip`); rec.reload() }}><FastForward /></button>
-                        <button className="icon-btn" onClick={() => setEditing(r)} aria-label={t('Edit')}><Pencil /></button>
-                        <button className="icon-btn" aria-label={t('Delete')} onClick={() => setConfirm({ title: t('Delete “{name}”?', { name: r.name }), body: t('Transactions it already posted stay.'), onConfirm: async () => { await api.del(`/recurring/${r.id}`); bump() } })}><Trash2 /></button>
+                        <button className="icon-btn" onClick={() => setEditing(r)} aria-label={t('Edit {name}', { name: r.name })}><Pencil /></button>
+                        <button className="icon-btn" aria-label={t('Delete {name}', { name: r.name })} onClick={() => setConfirm({ title: t('Delete “{name}”?', { name: r.name }), body: t('Transactions it already posted stay.'), onConfirm: async () => { await api.del(`/recurring/${r.id}`); bump() } })}><Trash2 /></button>
                       </div>
                     </div>
                   )
@@ -109,8 +109,8 @@ function RecurringDialog({ item, accounts, cats, onClose, onSaved }) {
     <Dialog title={item.id && !item.suggested ? t('Edit recurring') : t('Add recurring')} onClose={onClose} footer={<><button className="btn" onClick={onClose}>{t('Cancel')}</button><button className="btn primary" onClick={save} disabled={!f.name || !f.amount}>{t('Save')}</button></>}>
       <div className="form-grid">
         <div className="full segmented" style={{ width: 'fit-content' }}>
-          <button type="button" className={f.kind === 'out' ? 'on' : ''} onClick={() => setF({ ...f, kind: 'out' })}>{t('Bill / money out')}</button>
-          <button type="button" className={f.kind === 'in' ? 'on' : ''} onClick={() => setF({ ...f, kind: 'in' })}>{t('Income')}</button>
+          <button type="button" aria-pressed={f.kind === 'out'} className={f.kind === 'out' ? 'on' : ''} onClick={() => setF({ ...f, kind: 'out' })}>{t('Bill / money out')}</button>
+          <button type="button" aria-pressed={f.kind === 'in'} className={f.kind === 'in' ? 'on' : ''} onClick={() => setF({ ...f, kind: 'in' })}>{t('Income')}</button>
         </div>
         <Field label={t('Name')} className="full"><input className="input" value={f.name} onChange={set('name')} placeholder={t('e.g. Rent, Netflix, Payroll')} /></Field>
         <Field label={t('Amount')}><input className="input" type="number" min="0" step="0.01" value={f.amount} onChange={set('amount')} /></Field>

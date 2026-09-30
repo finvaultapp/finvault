@@ -57,7 +57,7 @@ export default function Admin() {
           <div className="card-body stack" style={{ gap: 16 }}>
             <div className="segmented" style={{ width: 'fit-content' }}>
               {[['open', 'Anyone who can reach it'], ['invite', 'Invite code only'], ['closed', 'Closed']].map(([k, l]) => (
-                <button key={k} className={s.registration_mode === k ? 'on' : ''} onClick={() => patch({ registration_mode: k })}>{t(l)}</button>
+                <button key={k} aria-pressed={s.registration_mode === k} className={s.registration_mode === k ? 'on' : ''} onClick={() => patch({ registration_mode: k })}>{t(l)}</button>
               ))}
             </div>
             {s.registration_mode === 'open' && <div className="banner warn"><AlertTriangle /><div className="banner-body">{t('Anyone who can open this address can sign up. Only use this on a private home network.')}</div></div>}

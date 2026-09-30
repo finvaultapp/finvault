@@ -40,8 +40,8 @@ export default function Categories() {
                       </div>
                     </div>
                     <div className="actions">
-                      <button className="icon-btn" onClick={() => setEditing(c)} aria-label={t('Edit')}><Pencil /></button>
-                      <button className="icon-btn" aria-label={t('Delete')} onClick={() => setConfirm({ title: t('Delete “{name}”?', { name: c.name }),
+                      <button className="icon-btn" onClick={() => setEditing(c)} aria-label={t('Edit {name}', { name: c.name })}><Pencil /></button>
+                      <button className="icon-btn" aria-label={t('Delete {name}', { name: c.name })} onClick={() => setConfirm({ title: t('Delete “{name}”?', { name: c.name }),
                         body: c.transaction_count ? t(c.transaction_count === 1 ? '{n} transaction will become uncategorized.' : '{n} transactions will become uncategorized.', { n: c.transaction_count }) : t('No transactions use it.'),
                         onConfirm: async () => { await api.del(`/categories/${c.id}`); bump() } })}><Trash2 /></button>
                     </div>

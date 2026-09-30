@@ -433,7 +433,7 @@ function ImportDialog({ accounts, onClose, onDone }) {
           )}
           {Object.keys(preview.skipped_types).length > 0 && <p className="small muted">{t('Cash movements stay with the account’s transactions and were skipped here: {types}.', { types: Object.entries(preview.skipped_types).map(([k, n]) => `${k} (${n})`).join(', ') })}</p>}
           {preview.warnings.length > 0 && <div className="banner warn"><AlertTriangle /><div className="banner-body small">{preview.warnings.slice(0, 5).join(' ')}</div></div>}
-          <div className="table-wrap card" style={{ boxShadow: 'none', maxHeight: 280, overflowY: 'auto' }}>
+          <div className="table-wrap card" style={{ boxShadow: 'none', maxHeight: 280, overflowY: 'auto' }} tabIndex={0} role="region" aria-label={t('Preview')}>
             {preview.kind === 'activity' ? (
               <table className="table">
                 <thead><tr><th>{t('Date')}</th><th>{t('Activity')}</th><th>{t('Security')}</th><th className="amount">{t('Quantity')}</th><th className="amount">{t('Amount')}</th></tr></thead>

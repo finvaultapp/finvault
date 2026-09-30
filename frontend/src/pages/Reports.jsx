@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, ComposedChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { api, qs } from '../api'
 import { useApp } from '../context'
-import { CategoryTile, Empty, Loading, Money, PageHead, Progress, useData, Warnings } from '../components/ui'
+import { CategoryTile, ChartTable, Empty, Loading, Money, PageHead, Progress, useData, Warnings } from '../components/ui'
 import { money, monthLabel, shortMonth } from '../lib/format'
 import { t } from '../i18n'
 import { TagPill } from '../components/Tags'
@@ -27,11 +27,11 @@ export default function Reports() {
   return (
     <>
       <PageHead title={t('Reports')}>
-        <div className="segmented">
-          <button className={tab === 'ie' ? 'on' : ''} onClick={() => setTab('ie')}>{t('Income vs expenses')}</button>
-          <button className={tab === 'nw' ? 'on' : ''} onClick={() => setTab('nw')}>{t('Net worth')}</button>
-          <button className={tab === 'cat' ? 'on' : ''} onClick={() => setTab('cat')}>{t('Categories')}</button>
-          <button className={tab === 'tag' ? 'on' : ''} onClick={() => setTab('tag')}>{t('By tag')}</button>
+        <div className="segmented" role="group" aria-label={t('Report')}>
+          <button aria-pressed={tab === 'ie'} className={tab === 'ie' ? 'on' : ''} onClick={() => setTab('ie')}>{t('Income vs expenses')}</button>
+          <button aria-pressed={tab === 'nw'} className={tab === 'nw' ? 'on' : ''} onClick={() => setTab('nw')}>{t('Net worth')}</button>
+          <button aria-pressed={tab === 'cat'} className={tab === 'cat' ? 'on' : ''} onClick={() => setTab('cat')}>{t('Categories')}</button>
+          <button aria-pressed={tab === 'tag'} className={tab === 'tag' ? 'on' : ''} onClick={() => setTab('tag')}>{t('By tag')}</button>
         </div>
         <select className="input" style={{ width: 140 }} value={months} onChange={(e) => setMonths(Number(e.target.value))} aria-label={t('Range')}>
           {RANGES.map(([v, l]) => <option key={v} value={v}>{t(l)}</option>)}
@@ -86,6 +86,8 @@ function IncomeExpense({ d }) {
             </ComposedChart>
           </ResponsiveContainer>
         </div>
+        <ChartTable caption={t('Month by month')} columns={[t('Month'), t('Income'), t('Expenses'), t('Net')]}
+          rows={d.series.map((x) => [monthLabel(x.month), money(x.income, c), money(x.expense, c), money(x.net, c, { sign: true })])} />
       </section>
       <div className="grid-2">
         <Breakdown title={t('Where the money went')} items={d.expense_by_category} total={totals.expense} currency={c} />
@@ -138,6 +140,8 @@ function CategoryReport({ d }) {
               </ResponsiveContainer>
             </div>
           )}
+          <ChartTable caption={t('Spending share')} columns={[t('Category'), t('Amount'), t('Share of spending')]}
+            rows={data.map((x) => [x.name, money(x.total, c), d.totals.expense ? `${Math.round((x.total / d.totals.expense) * 100)}%` : '—'])} />
         </section>
         <Breakdown title={t('Top categories')} items={d.expense_by_category} total={d.totals.expense} currency={c} />
       </div>
@@ -177,6 +181,7 @@ function NetWorth({ r }) {
             </AreaChart>
           </ResponsiveContainer>
         </div>
+        <ChartTable caption={t('Net worth over time')} columns={[t('Month'), t('Net worth')]} rows={d.series.map((x) => [monthLabel(x.month), money(x.net, c)])} />
       </section>
       <section className="card chart-card">
         <div className="card-head"><h2>{t('Assets and liabilities')}</h2></div>
@@ -192,6 +197,8 @@ function NetWorth({ r }) {
             </BarChart>
           </ResponsiveContainer>
         </div>
+        <ChartTable caption={t('Assets and liabilities')} columns={[t('Month'), t('Assets'), t('Liabilities')]}
+          rows={d.series.map((x) => [monthLabel(x.month), money(x.assets, c), money(-x.liabilities, c)])} />
       </section>
     </div>
   )
@@ -213,7 +220,7 @@ function TagReport({ start, version }) {
         ) : (
           <div className="table-wrap">
             <table className="table">
-              <thead><tr><th>{t('Tag')}</th><th className="amount">{t('Transactions')}</th><th className="amount">{t('Money in')}</th><th className="amount">{t('Money out')}</th><th className="amount">{t('Net')}</th></tr></thead>
+              <thead><tr><th scope="col">{t('Tag')}</th><th scope="col" className="amount">{t('Transactions')}</th><th scope="col" className="amount">{t('Money in')}</th><th scope="col" className="amount">{t('Money out')}</th><th scope="col" className="amount">{t('Net')}</th></tr></thead>
               <tbody>
                 {d.items.map((i) => (
                   <tr key={i.id}>

@@ -1,17 +1,33 @@
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { FileText, Paperclip, Plus, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { api } from '../api'
 import { t } from '../i18n'
 import { serverText } from '../lib/serverText'
-import { Dialog, Field, Money, useData, useToast } from './ui'
+import { Dialog, Field, Money, activateOnKey, useData, useToast } from './ui'
 import { todayISO } from '../lib/format'
 import { TAX_TAGS } from '../lib/tax'
 import { TagInput } from './Tags'
 
-export function CategorySelect({ categories, value, onChange, className = 'input', placeholder, ...rest }) {
+// `commitOnLeave`: for selects that act at once (sorting a line, a bulk change). Browsing the options with the
+// arrow keys on a closed select fires change events in some browsers, so keyboard changes wait for Enter or for
+// focus to leave the select; mouse and touch picks still act at once.
+export function CategorySelect({ categories, value, onChange, className = 'input', placeholder, commitOnLeave, ...rest }) {
   const groups = { expense: t('Expenses'), income: t('Income'), transfer: t('Transfers') }
+  const [draft, setDraft] = useState(undefined)
+  const keyed = useRef(false)
+  const toValue = (v) => (v ? Number(v) : null)
+  const commit = () => { if (draft !== undefined) { setDraft(undefined); if (draft !== (value ?? null)) onChange(draft) } }
+  const keys = commitOnLeave ? {
+    onKeyDown: (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); commit() } else if (e.key !== 'Tab') keyed.current = true
+    },
+    onBlur: commit,
+  } : {}
   return (
-    <select className={className} value={value ?? ''} onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)} {...rest}>
+    <select className={className} value={draft !== undefined ? draft ?? '' : value ?? ''} {...keys}
+      onChange={(e) => {
+        if (commitOnLeave && keyed.current) { keyed.current = false; setDraft(toValue(e.target.value)) } else onChange(toValue(e.target.value))
+      }} {...rest}>
       <option value="">{placeholder ?? t('Uncategorized')}</option>
       {Object.entries(groups).map(([k, label]) => (
         <optgroup key={k} label={label}>
@@ -21,6 +37,7 @@ export function CategorySelect({ categories, value, onChange, className = 'input
     </select>
   )
 }
+CategorySelect.field = true // Field may tie its hint and error to it
 
 export default function TxDialog({ tx, accounts, categories, onClose, onSaved, initialTab = 'details' }) {
   const editing = !!tx?.id
@@ -28,17 +45,31 @@ export default function TxDialog({ tx, accounts, categories, onClose, onSaved, i
   const tabs = editing
     ? [['details', t('Details')], ['split', t('Split')], ...(tx.amount < 0 ? [['share', t('Share')]] : []), ['receipts', t('Receipts')]]
     : [['details', t('Details')]]
+  const id = useId()
+  // Tabs: arrow keys, Home and End move between them (WAI-ARIA tabs pattern, selection follows focus).
+  const onTabKey = (e) => {
+    const i = tabs.findIndex(([k]) => k === tab)
+    const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key]
+    if (next === undefined) return
+    e.preventDefault()
+    const k = tabs[(next + tabs.length) % tabs.length][0]
+    setTab(k)
+    document.getElementById(`${id}-tab-${k}`)?.focus()
+  }
+  const panel = editing ? { role: 'tabpanel', id: `${id}-panel`, 'aria-labelledby': `${id}-tab-${tab}` } : {}
   return (
     <Dialog wide={tab !== 'details'} title={editing ? t('Edit transaction') : t('Add transaction')} onClose={onClose}>
       {editing && (
-        <div className="segmented" style={{ marginBottom: 16 }} role="tablist">
-          {tabs.map(([k, label]) => <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{label}</button>)}
+        <div className="segmented" style={{ marginBottom: 16 }} role="tablist" aria-label={t('Transaction sections')} onKeyDown={onTabKey}>
+          {tabs.map(([k, label]) => <button key={k} id={`${id}-tab-${k}`} role="tab" aria-selected={tab === k} aria-controls={`${id}-panel`} tabIndex={tab === k ? 0 : -1} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{label}</button>)}
         </div>
       )}
-      {tab === 'details' && <Details tx={tx} accounts={accounts} categories={categories} onClose={onClose} onSaved={onSaved} />}
-      {tab === 'split' && <SplitEditor tx={tx} categories={categories} onSaved={onSaved} />}
-      {tab === 'share' && <ShareEditor tx={tx} onSaved={onSaved} />}
-      {tab === 'receipts' && <Receipts tx={tx} onSaved={onSaved} />}
+      <div {...panel}>
+        {tab === 'details' && <Details tx={tx} accounts={accounts} categories={categories} onClose={onClose} onSaved={onSaved} />}
+        {tab === 'split' && <SplitEditor tx={tx} categories={categories} onSaved={onSaved} />}
+        {tab === 'share' && <ShareEditor tx={tx} onSaved={onSaved} />}
+        {tab === 'receipts' && <Receipts tx={tx} onSaved={onSaved} />}
+      </div>
     </Dialog>
   )
 }
@@ -78,22 +109,22 @@ function Details({ tx, accounts, categories, onClose, onSaved }) {
   return (
     <>
       <form className="form-grid" onSubmit={save}>
-        <div className="full segmented" style={{ width: 'fit-content' }}>
-          <button type="button" className={f.kind === 'out' ? 'on' : ''} onClick={() => setF({ ...f, kind: 'out' })}>{t('Money out')}</button>
-          <button type="button" className={f.kind === 'in' ? 'on' : ''} onClick={() => setF({ ...f, kind: 'in' })}>{t('Money in')}</button>
+        <div className="full segmented" style={{ width: 'fit-content' }} role="group" aria-label={t('Direction')}>
+          <button type="button" aria-pressed={f.kind === 'out'} className={f.kind === 'out' ? 'on' : ''} onClick={() => setF({ ...f, kind: 'out' })}>{t('Money out')}</button>
+          <button type="button" aria-pressed={f.kind === 'in'} className={f.kind === 'in' ? 'on' : ''} onClick={() => setF({ ...f, kind: 'in' })}>{t('Money in')}</button>
         </div>
         <Field label={t('Amount')}><input className="input" type="number" step="0.01" min="0" required value={f.amount} onChange={set('amount')} /></Field>
         <Field label={t('Date')}><input className="input" type="date" required value={f.date} onChange={set('date')} /></Field>
         <Field label={t('Description')} className="full"><input className="input" required value={f.description} onChange={set('description')} /></Field>
         <Field label={t('Account')}>
-          <select className="input" value={f.account_id} onChange={set('account_id')}>
+          <select className="input" required value={f.account_id} onChange={set('account_id')}>
             {accounts.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.currency})</option>)}
           </select>
         </Field>
         <Field label={t('Category')}><CategorySelect categories={categories} value={f.category_id} onChange={(v) => setF({ ...f, category_id: v })} /></Field>
         <Field label={t('Payee')} hint={t('Optional clean name, e.g. “Loblaws”.')}><input className="input" value={f.payee} onChange={set('payee')} /></Field>
         <Field label={t('Notes')}><input className="input" value={f.notes} onChange={set('notes')} /></Field>
-        <Field label={t('Tags')} className="full" hint={t('Labels across categories, like “vacation 2026” or “reno”.')}>
+        <Field group label={t('Tags')} className="full" hint={t('Labels across categories, like “vacation 2026” or “reno”.')}>
           <TagInput value={labels} onChange={setLabels} known={known.data ?? []} />
         </Field>
         <Field label={t('Tax time')} className="full" hint={t('Overrides the category\'s tax tag for this one transaction.')}>
@@ -137,16 +168,17 @@ function SplitEditor({ tx, categories, onSaved }) {
       <p className="small muted">{t('Divide this transaction across categories, like groceries and household items on one receipt.')} <Money value={Math.abs(tx.amount)} currency={tx.currency} className="strong" /></p>
       {rows.map((r, i) => (
         <div key={i} className="row wrap" style={{ alignItems: 'flex-end' }}>
-          <Field label={i === 0 ? t('Category') : ''} className="grow"><CategorySelect categories={categories} value={r.category_id} onChange={(v) => update(i, { category_id: v })} /></Field>
-          <Field label={i === 0 ? t('Amount') : ''}><input className="input" style={{ width: 120 }} type="number" min="0" step="0.01" value={r.amount} onChange={(e) => update(i, { amount: e.target.value })} /></Field>
-          <Field label={i === 0 ? t('Note') : ''}><input className="input" style={{ width: 160 }} value={r.note} onChange={(e) => update(i, { note: e.target.value })} /></Field>
-          <button className="icon-btn" aria-label={t('Remove line')} disabled={rows.length <= 2} onClick={() => setLines(rows.filter((_, n) => n !== i))}><Trash2 /></button>
+          {/* Every row is labelled; after the first, the labels are for screen readers only. */}
+          <Field label={i === 0 ? t('Category') : t('Category, line {n}', { n: i + 1 })} className={`grow ${i ? 'sr-label' : ''}`}><CategorySelect categories={categories} value={r.category_id} onChange={(v) => update(i, { category_id: v })} /></Field>
+          <Field label={i === 0 ? t('Amount') : t('Amount, line {n}', { n: i + 1 })} className={i ? 'sr-label' : ''}><input className="input" style={{ width: 120 }} type="number" min="0" step="0.01" value={r.amount} onChange={(e) => update(i, { amount: e.target.value })} /></Field>
+          <Field label={i === 0 ? t('Note') : t('Note, line {n}', { n: i + 1 })} className={i ? 'sr-label' : ''}><input className="input" style={{ width: 160 }} value={r.note} onChange={(e) => update(i, { note: e.target.value })} /></Field>
+          <button className="icon-btn" aria-label={t('Remove line {n}', { n: i + 1 })} disabled={rows.length <= 2} onClick={() => setLines(rows.filter((_, n) => n !== i))}><Trash2 /></button>
         </div>
       ))}
       <div className="row wrap">
         <button className="btn sm" onClick={() => setLines([...rows, { category_id: null, amount: Math.max(left, 0), note: '' }])}><Plus />{t('Add a line')}</button>
         <span className="spacer" />
-        <span className={`small strong ${left === 0 ? 'income' : 'expense'}`}>{left === 0 ? t('Adds up') : t('{amount} left to assign', { amount: left.toFixed(2) })}</span>
+        <span className={`small strong ${left === 0 ? 'income' : 'expense'}`} role="status">{left === 0 ? t('Adds up') : t('{amount} left to assign', { amount: left.toFixed(2) })}</span>
       </div>
       <div className="row" style={{ justifyContent: 'flex-end' }}>
         {detail.data.splits.length > 0 && <button className="btn danger" onClick={() => save(true)}>{t('Remove split')}</button>}
@@ -192,7 +224,7 @@ function ShareEditor({ tx, onSaved }) {
         </div>
       ))}
       <div className="row">
-        <input className="input" placeholder={t('Add someone new…')} value={newName} onChange={(e) => setNewName(e.target.value)} />
+        <input className="input" placeholder={t('Add someone new…')} aria-label={t('Add someone new…')} value={newName} onChange={(e) => setNewName(e.target.value)} />
         <button className="btn" onClick={addPerson} disabled={!newName.trim()}><Plus />{t('Add')}</button>
       </div>
       <div className="row wrap">
@@ -209,6 +241,7 @@ function Receipts({ tx, onSaved }) {
   const toast = useToast()
   const files = useData(() => api.get(`/transactions/${tx.id}/attachments`), [tx.id])
   const input = useRef(null)
+  const id = useId()
   const [busy, setBusy] = useState(false)
   const upload = async (file) => {
     const fd = new FormData()
@@ -219,11 +252,11 @@ function Receipts({ tx, onSaved }) {
   }
   return (
     <div className="stack" style={{ gap: 12 }}>
-      <div className="dropzone" role="button" tabIndex={0} onClick={() => input.current?.click()} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && input.current?.click()}
+      <div className="dropzone" role="button" tabIndex={0} aria-describedby={`${id}-hint`} onClick={() => input.current?.click()} onKeyDown={activateOnKey(() => input.current?.click())}
         onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); e.dataTransfer.files[0] && upload(e.dataTransfer.files[0]) }}>
         <Upload size={22} style={{ marginBottom: 6 }} />
         <div><strong>{busy ? t('Uploading…') : t('Add a receipt photo or PDF')}</strong></div>
-        <div className="small">{t('Up to 10 MB. Stored on this server only.')}</div>
+        <div className="small" id={`${id}-hint`}>{t('Up to 10 MB. Stored on this server only.')}</div>
         <input ref={input} type="file" hidden accept="image/jpeg,image/png,image/webp,image/heic,application/pdf" capture="environment" onChange={(e) => e.target.files[0] && upload(e.target.files[0])} />
       </div>
       {(files.data ?? []).map((a) => (
@@ -243,7 +276,7 @@ function Receipts({ tx, onSaved }) {
             </div>
             <div className="row" style={{ gap: 0 }}>
               {a.ocr_status !== 'none' && <button className="icon-btn" title={t('Read text again')} aria-label={t('Read text again')} onClick={async () => { try { await api.post(`/attachments/${a.id}/ocr`); files.reload() } catch (e) { toast(e.message, 'error') } }}><RefreshCw /></button>}
-              <button className="icon-btn" aria-label={t('Delete')} onClick={async () => { await api.del(`/attachments/${a.id}`); files.reload(); onSaved() }}><Trash2 /></button>
+              <button className="icon-btn" aria-label={t('Delete {name}', { name: a.filename })} onClick={async () => { await api.del(`/attachments/${a.id}`); files.reload(); onSaved() }}><Trash2 /></button>
             </div>
           </div>
         </div>

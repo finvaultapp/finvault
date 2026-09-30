@@ -160,8 +160,8 @@ export default function Transactions() {
           <div className="row wrap">
             {aiReady && (
               <div className="segmented" role="group" aria-label={t('Search mode')}>
-                <button className={mode === 'search' ? 'on' : ''} onClick={() => switchMode('search')}>{t('Search')}</button>
-                <button className={mode === 'ask' ? 'on' : ''} onClick={() => switchMode('ask')}>{t('Ask in plain words')}</button>
+                <button aria-pressed={mode === 'search'} className={mode === 'search' ? 'on' : ''} onClick={() => switchMode('search')}>{t('Search')}</button>
+                <button aria-pressed={mode === 'ask'} className={mode === 'ask' ? 'on' : ''} onClick={() => switchMode('ask')}>{t('Ask in plain words')}</button>
               </div>
             )}
             {mode === 'ask' && aiReady ? <AskBox onResult={applyAsk} /> : (
@@ -170,11 +170,11 @@ export default function Transactions() {
                 <input className="input" placeholder={t('Search descriptions, payees and notes…')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('Search transactions')} />
               </div>
             )}
-            <button className={`btn ${showFilters ? 'primary' : ''}`} onClick={() => setShowFilters((s) => !s)}><Filter />{t('Filters')}</button>
+            <button className={`btn ${showFilters ? 'primary' : ''}`} onClick={() => setShowFilters((s) => !s)} aria-expanded={showFilters} aria-controls="tx-filters"><Filter />{t('Filters')}</button>
             {activeFilters.length > 0 && <button className="btn ghost sm" onClick={() => setParams({}, { replace: true })}>{t('Clear filters')}</button>}
           </div>
           {showFilters && (
-            <div className="form-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', marginTop: 14 }}>
+            <div className="form-grid" id="tx-filters" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', marginTop: 14 }}>
               <label className="field"><span>{t('Account')}</span>
                 <select className="input sm" value={filters.account_id[0] ?? ''} onChange={(e) => update({ account: e.target.value ? [e.target.value] : [] })}>
                   <option value="">{t('All accounts')}</option>{accts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -203,7 +203,7 @@ export default function Transactions() {
               {mode === 'ask' && understood && <span className="small muted">{t('Understood as')}</span>}
               {activeFilters.map((f) => (
                 <span key={f.key} className="pill indigo" style={{ padding: '3px 6px 3px 10px' }}>{f.label}
-                  <button className="icon-btn" style={{ width: 18, height: 18 }} onClick={() => update(f.clear)} aria-label={t('Remove {label} filter', { label: f.label })}><X size={12} /></button>
+                  <button className="icon-btn pill-x" onClick={() => update(f.clear)} aria-label={t('Remove {label} filter', { label: f.label })}><X size={12} /></button>
                 </span>
               ))}
             </div>
@@ -236,10 +236,10 @@ export default function Transactions() {
       )}
       <section className="card">
         {selected.size > 0 ? (
-          <div className="card-head" style={{ background: 'var(--accent)', borderTopLeftRadius: 'inherit', borderTopRightRadius: 'inherit' }}>
-            <strong>{t('{n} selected', { n: selected.size })}</strong>
+          <div className="card-head bulk-head" role="group" aria-label={t('Bulk actions')}>
+            <strong role="status">{t('{n} selected', { n: selected.size })}</strong>
             <div className="row wrap">
-              <CategorySelect className="input sm" categories={cats} value={null} placeholder={t('Set category…')} onChange={(v) => v && bulk('categorize', v)} style={{ width: 200 }} />
+              <CategorySelect className="input sm" commitOnLeave categories={cats} value={null} placeholder={t('Set category…')} onChange={(v) => v && bulk('categorize', v)} style={{ width: 200 }} aria-label={t('Set a category for the selected transactions')} />
               <BulkTag known={allTags} onApply={bulkTag} />
               <button className="btn sm danger" onClick={() => setConfirm({ title: t('Delete {n} transactions?', { n: selected.size }), body: t('This removes them from FinVault. Re-importing the same file would bring them back.'), onConfirm: () => bulk('delete') })}><Trash2 />{t('Delete')}</button>
               <button className="btn sm ghost" onClick={() => setSelected(new Set())}>{t('Cancel')}</button>
@@ -267,10 +267,11 @@ export default function Transactions() {
         ) : (
           <div className="table-wrap">
             <table className="table">
+              <caption className="sr">{t('Transactions')}</caption>
               <thead><tr>
-                <th style={{ width: 36 }}><input type="checkbox" checked={allSelected} aria-label={t('Select all')}
+                <th scope="col" style={{ width: 36 }}><input type="checkbox" checked={allSelected} aria-label={t('Select all')}
                   onChange={() => setSelected(allSelected ? new Set() : new Set(items.map((tx) => tx.id)))} /></th>
-                <th>{t('Date')}</th><th>{t('Description')}</th><th className="hide-sm">{t('Account')}</th><th>{t('Category')}</th><th className="amount">{t('Amount')}</th><th style={{ width: 72 }} />
+                <th scope="col">{t('Date')}</th><th scope="col">{t('Description')}</th><th scope="col" className="hide-sm">{t('Account')}</th><th scope="col">{t('Category')}</th><th scope="col" className="amount">{t('Amount')}</th><th scope="col" style={{ width: 72 }}><span className="sr">{t('Actions')}</span></th>
               </tr></thead>
               <tbody>
                 {items.map((tx) => (
@@ -297,16 +298,16 @@ export default function Transactions() {
                     </td>
                     <td className="hide-sm muted">{tx.account_name}</td>
                     <td>
-                      <CategorySelect className={`cat-select ${tx.category_id ? '' : 'unset'}`} categories={cats} value={tx.category_id}
-                        onChange={(v) => setCategory(tx, v)} aria-label={t('Category')} />
+                      <CategorySelect className={`cat-select ${tx.category_id ? '' : 'unset'}`} commitOnLeave categories={cats} value={tx.category_id}
+                        onChange={(v) => setCategory(tx, v)} aria-label={t('Category for {name}', { name: tx.payee || tx.description })} />
                       {ai.map[tx.id] && <div style={{ marginTop: 5 }}><AiChip s={ai.map[tx.id]} onAccept={() => acceptOne(tx, ai.map[tx.id])} onReject={() => ai.reject(ai.map[tx.id])} /></div>}
                     </td>
                     <td className="amount"><Money value={tx.amount} currency={tx.currency} sign colored /></td>
                     <td>
                       <div className="row" style={{ gap: 0, justifyContent: 'flex-end' }}>
-                        <button className="icon-btn" onClick={() => setEditing(tx)} aria-label={t('Edit')}><Pencil /></button>
+                        <button className="icon-btn" onClick={() => setEditing(tx)} aria-label={t('Edit {name}', { name: tx.payee || tx.description })}><Pencil /></button>
                         <button className="icon-btn" onClick={() => setConfirm({ title: t('Delete this transaction?'), body: tx.description,
-                          onConfirm: async () => { await api.del(`/transactions/${tx.id}`); list.reload(); bump() } })} aria-label={t('Delete')}><Trash2 /></button>
+                          onConfirm: async () => { await api.del(`/transactions/${tx.id}`); list.reload(); bump() } })} aria-label={t('Delete {name}', { name: tx.payee || tx.description })}><Trash2 /></button>
                       </div>
                     </td>
                   </tr>
@@ -316,13 +317,13 @@ export default function Transactions() {
           </div>
         )}
         {pages > 1 && (
-          <div className="pager">
+          <nav className="pager" aria-label={t('Pages')}>
             <span>{t('Page {page} of {pages}', { page: filters.page, pages })}</span>
             <div className="row">
               <button className="btn sm" disabled={filters.page <= 1} onClick={() => update({ page: filters.page - 1 })}>{t('Previous')}</button>
               <button className="btn sm" disabled={filters.page >= pages} onClick={() => update({ page: filters.page + 1 })}>{t('Next')}</button>
             </div>
-          </div>
+          </nav>
         )}
       </section>
 

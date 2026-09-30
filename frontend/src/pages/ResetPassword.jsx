@@ -84,8 +84,8 @@ export default function ResetPassword() {
         <Field label={t('New password')} hint={t('At least 10 characters. A passphrase works well.')}>
           <input className="input" type="password" required autoFocus autoComplete="new-password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} />
         </Field>
-        <Field label={t('New password again')} hint={mismatch ? t('The two passwords don’t match yet.') : null}>
-          <input className="input" type="password" required autoComplete="new-password" value={f.confirm} onChange={(e) => setF({ ...f, confirm: e.target.value })} aria-invalid={mismatch || undefined} />
+        <Field label={t('New password again')} error={mismatch ? t('The two passwords don’t match yet.') : undefined}>
+          <input className="input" type="password" required autoComplete="new-password" value={f.confirm} onChange={(e) => setF({ ...f, confirm: e.target.value })} />
         </Field>
         {info.needs_2fa && (
           <Field label={t('Two-factor code')} hint={t('This account uses two-factor login. Enter the 6-digit code from your authenticator app, or one of your recovery codes. Lost both? Ask your admin to reset two-factor first.')}>

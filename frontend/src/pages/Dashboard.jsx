@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Area, AreaChart, CartesianGrid, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ArrowRight, Check, Clock, Inbox, Sparkles, Upload } from 'lucide-react'
 import { api, qs } from '../api'
 import { useApp } from '../context'
 import { t } from '../i18n'
-import { Empty, ErrorNote, Loading, Money, Progress, useData, useToast, Warnings } from '../components/ui'
+import { ChartTable, Empty, ErrorNote, Loading, Money, Progress, useAnnounce, useData, usePageTitle, useToast, Warnings } from '../components/ui'
 import { CategorySelect } from '../components/TxDialog'
 import Postmark from '../components/Postmark'
 import { AiChip, useAiReady, useAiSuggestions } from '../components/AiTools'
@@ -23,6 +23,7 @@ export default function Dashboard() {
   const cats = useData(() => api.get('/categories'), [version])
   const batches = useData(() => api.get('/imports/batches'), [version])
   const goals = useData(() => api.get('/goals'), [version])
+  usePageTitle(t('Dashboard'))
 
   if (error) return <ErrorNote error={error} />
   if (!data) return <Loading rows={6} />
@@ -123,13 +124,13 @@ function MonthPockets({ month, onChange }) {
   const months = Array.from({ length: 6 }, (_, i) => addMonths(now, i - 5))
   if (!months.includes(month)) months.unshift(month)
   return (
-    <div className="pockets" role="tablist" aria-label={t('Month')}>
+    <div className="pockets" role="group" aria-label={t('Month')}>
       {months.map((m) => (
-        <button key={m} role="tab" aria-selected={m === month} className={m === month ? 'on' : ''} onClick={() => onChange(m)}>
+        <button key={m} aria-pressed={m === month} className={m === month ? 'on' : ''} onClick={() => onChange(m)}>
           {shortMonth(m)}{m.slice(0, 4) !== now.slice(0, 4) ? ` ${m.slice(2, 4)}` : ''}
         </button>
       ))}
-      <button className="pocket-older" onClick={() => onChange(addMonths(months[0], -1))} title={t('Go back another month')}>{t('Earlier')}</button>
+      <button className="pocket-older" onClick={() => onChange(addMonths(months[0], -1))} title={t('Go back another month')} aria-label={t('Earlier: go back another month')}>{t('Earlier')}</button>
     </div>
   )
 }
@@ -153,6 +154,9 @@ function MonthTotals({ data, currency, month }) {
 // The "to sort" tray: uncategorized lines with suggested categories, sorted in one click.
 function Tray({ items, total, cats, onSorted }) {
   const toast = useToast()
+  const announce = useAnnounce()
+  const body = useRef(null)
+  const head = useRef(null)
   const [leaving, setLeaving] = useState(new Set())
   const aiReady = useAiReady()
   const ai = useAiSuggestions(items.map((tx) => tx.id), aiReady)
@@ -164,9 +168,16 @@ function Tray({ items, total, cats, onSorted }) {
 
   const sort = async (tx, categoryId) => {
     if (!categoryId) return
+    // Keyboard focus was on the chip that is about to slide away: move it to the next line waiting, or the tray heading.
+    const here = body.current?.querySelector(`[data-tx="${tx.id}"]`)
+    const hadFocus = here?.contains(document.activeElement)
+    let next = here?.nextElementSibling
+    while (next && !next.matches('.tray-item:not(.sorted)')) next = next.nextElementSibling
     setLeaving((s) => new Set(s).add(tx.id))
+    if (hadFocus) (next?.querySelector('button, select') ?? head.current)?.focus()
     try {
       await api.patch(`/transactions/${tx.id}`, { category_id: categoryId })
+      announce(t('Sorted {name} into {category}', { name: tx.description, category: byId[categoryId]?.name ?? '' }))
       setTimeout(() => onSorted(categoryId), 340)
     } catch (e) {
       toast(e.message, 'error')
@@ -176,31 +187,33 @@ function Tray({ items, total, cats, onSorted }) {
 
   return (
     <section className="tray" aria-label={t('Transactions to sort')}>
-      <div className="tray-head"><Inbox size={18} /><div><h2>{t('To sort')}</h2><div className="tray-sub">{t('New lines without a category')}</div></div><span className="count">{total}</span></div>
+      <div className="tray-head"><Inbox size={18} /><div><h2 ref={head} tabIndex={-1}>{t('To sort')}</h2><div className="tray-sub">{t('New lines without a category')}</div></div>
+        {/* The amber badge is a bare number; screen readers get it in words. */}
+        <span className="count" aria-hidden="true">{total}</span><span className="sr">{total === 1 ? t('{n} line to sort', { n: total }) : t('{n} lines to sort', { n: total })}</span></div>
       {items.length === 0 ? (
         <div className="tray-empty"><Check size={22} style={{ color: 'var(--green)' }} /><div className="strong" style={{ color: 'var(--ink)', marginTop: 6 }}>{t('All sorted')}</div><div className="small">{t('Every transaction has a category.')}</div></div>
       ) : (
-        <div className="tray-body">
+        <div className="tray-body" ref={body}>
           {aiReady && (ai.missing > 0 || ai.error) && (
             <div className="ai-tray-ask">
               <button className="btn ghost sm" onClick={ai.ask} disabled={ai.busy}><Sparkles />{ai.busy ? t('Asking…') : t('Suggest with AI')}</button>
-              {ai.error && <span className="small expense">{ai.error.message}</span>}
+              {ai.error && <span className="small expense" role="alert">{ai.error.message}</span>}
             </div>
           )}
           {items.map((tx) => {
             const aiPick = ai.map[tx.id]
             const picks = [...new Set([...(tx.suggestions ?? []), ...(tx.amount < 0 ? fallback.expense : fallback.income)])].filter((id) => byId[id] && id !== aiPick?.category_id).slice(0, aiPick ? 1 : 2)
             return (
-              <div key={tx.id} className={`tray-item ${leaving.has(tx.id) ? 'sorted' : ''}`}>
+              <div key={tx.id} data-tx={tx.id} className={`tray-item ${leaving.has(tx.id) ? 'sorted' : ''}`} inert={leaving.has(tx.id) || undefined}>
                 <div className="top"><span className="desc" title={tx.description}>{tx.description}</span><Money value={tx.amount} currency={tx.currency} sign colored className="strong" /></div>
                 <div className="when">{date(tx.date, { month: 'short', day: 'numeric' })} · {tx.account_name}</div>
-                <div className="sort-row">
+                <div className="sort-row" role="group" aria-label={t('Sort {name}', { name: tx.description })}>
                   {aiPick && <AiChip s={aiPick} onAccept={() => sort(tx, aiPick.category_id)} onReject={() => ai.reject(aiPick)} />}
                   {picks.map((id, i) => {
                     const likely = i === 0 && tx.suggestions?.[0] === id
-                    return <button key={id} className={`sort-chip ${likely ? 'likely' : ''}`} onClick={() => sort(tx, id)} style={{ '--c': byId[id].color }} title={likely ? t('Where this merchant usually goes') : undefined}><i />{byId[id].name}</button>
+                    return <button key={id} className={`sort-chip ${likely ? 'likely' : ''}`} onClick={() => sort(tx, id)} style={{ '--c': byId[id].color }} title={likely ? t('Where this merchant usually goes') : undefined}><i />{byId[id].name}{likely && <span className="sr"> ({t('usual')})</span>}</button>
                   })}
-                  <CategorySelect className="sort-other" categories={cats} value={null} placeholder={t('Other…')} onChange={(v) => sort(tx, v)} aria-label={t('Category for {name}', { name: tx.description })} />
+                  <CategorySelect className="sort-other" commitOnLeave categories={cats} value={null} placeholder={t('Other…')} onChange={(v) => sort(tx, v)} aria-label={t('Category for {name}', { name: tx.description })} />
                 </div>
               </div>
             )
@@ -271,6 +284,8 @@ function BalanceFlow({ flow, currency, month }) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      <ChartTable caption={t('Balance through the month')} columns={[t('Day'), monthLabel(month), monthLabel(addMonths(month, -1))]}
+        rows={flow.series.filter((p) => p.current != null || p.previous != null).map((p) => [p.day, p.current != null ? money(p.current, currency) : '—', p.previous != null ? money(p.previous, currency) : '—'])} />
     </section>
   )
 }
@@ -303,7 +318,7 @@ function Welcome() {
             <div key={s.t} className="hole" style={{ '--c': 'var(--tray)', minHeight: 200 }}>
               <div className="hole-label"><i />{t('Step {n}', { n: i + 1 })}</div>
               <div className="hole-body" style={{ marginTop: 8 }}>
-                <h3 style={{ marginBottom: 6 }}>{s.t}</h3>
+                <h2 className="step-title">{s.t}</h2>
                 <p className="small" style={{ color: 'var(--ink-2)', marginBottom: 12 }}>{s.d}</p>
                 <Link to={s.to} className="btn sm">{i === 1 && <Upload />}{s.a}</Link>
               </div>

@@ -62,13 +62,13 @@ export default function RuleDialog({ rule, suggestFrom, categories, accounts, on
       <div className="form-grid">
         <Field label={t('When the')}><select className="input" value={f.match_field} onChange={set('match_field')}>
           <option value="description">{t('description')}</option><option value="payee">{t('payee')}</option></select></Field>
-        <Field label="…"><select className="input" value={f.match_type} onChange={set('match_type')}>
+        <Field label="…"><select className="input" aria-label={t('How the text matches')} value={f.match_type} onChange={set('match_type')}>
           <option value="contains">{t('contains')}</option><option value="starts_with">{t('starts with')}</option><option value="equals">{t('is exactly')}</option><option value="regex">{t('matches pattern (regex)')}</option><option value="merchant">{t('is the same merchant as')}</option></select></Field>
         <Field label={t('Text')} className="full" hint={t('Not case-sensitive. Keep it short, e.g. “loblaws” or “netflix”.')}><input className="input" autoFocus value={f.pattern} onChange={set('pattern')} /></Field>
         <Field label={t('Set category')}><CategorySelect categories={categories} value={f.set_category_id} onChange={(v) => setF({ ...f, set_category_id: v })} placeholder={t("Don't change")} /></Field>
         <Field label={t('Rename payee to')} hint={t('Optional')}><input className="input" value={f.set_payee ?? ''} onChange={set('set_payee')} placeholder={t('e.g. Loblaws')} /></Field>
-        <Field label={t('Add tag')} hint={t('Optional. Tags add up: every matching rule adds its tag.')}>
-          <TagInput single value={tagValue} onChange={setTagName} known={known.data ?? []} placeholder={t('e.g. reno')} label={t('Add tag')} />
+        <Field group label={t('Add tag')} hint={t('Optional. Tags add up: every matching rule adds its tag.')}>
+          <TagInput single value={tagValue} onChange={setTagName} known={known.data ?? []} placeholder={t('e.g. reno')} />
         </Field>
         <Field label={t('Only for account')}><select className="input" value={f.account_id ?? ''} onChange={set('account_id')}>
           <option value="">{t('Any account')}</option>{accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></Field>

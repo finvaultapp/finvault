@@ -10,9 +10,10 @@ colors:
   side-2: "#E1ECE8"
   ink: "#1B2430"
   ink-2: "#4B5563"
-  ink-3: "#6F7784"
+  ink-3: "#5F6773"
   rule: "#ECE9E3"
   rule-2: "#DCD8D0"
+  field: "#8F8A80"
   frame: "#1F5E57"
   frame-2: "#184B45"
   frame-soft: "#E4F0EC"
@@ -22,9 +23,9 @@ colors:
   tray-ink: "#8A5A0C"
   post: "#5B5496"
   post-bg: "#EFEDF8"
-  green: "#1F8A5B"
+  green: "#187550"
   green-bg: "#E6F5EC"
-  red: "#D6455D"
+  red: "#BE3050"
   red-bg: "#FDECEF"
 typography:
   display:
@@ -124,6 +125,7 @@ components:
   input:
     backgroundColor: "{colors.sheet}"
     textColor: "{colors.ink}"
+    borderColor: "{colors.field}"
     typography: "{typography.body}"
     rounded: "{rounded.md}"
     padding: "0 12px"
@@ -175,7 +177,7 @@ components:
     padding: "14px 18px"
   tray-count:
     backgroundColor: "{colors.tray}"
-    textColor: "#FFFFFF"
+    textColor: "#1B2430"
     rounded: "{rounded.full}"
     height: "30px"
   sort-chip:
@@ -246,7 +248,7 @@ A warm neutral room with one teal voice and three small semantic lamps (amber, v
 - **Sorting-Case Teal** (frame): primary buttons, links, focus rings, checked switches and checkboxes, the active nav item's text and icon, the active month pocket, dropzone hover, and the user's chat bubbles. Its hover step is **Deep Case Teal** (frame-2). **Teal Mist** (frame-soft) is its quiet tint for hovered sort chips, the selected palette row, the avatar, and the Canadian-import banner.
 
 ### Secondary
-- **Tray Amber** (tray): the unsorted tray only. The tray header sits on **Tray Cream** (tray-bg) with **Tray Brown** (tray-ink) text, the count badge is solid amber with white numerals, and the same trio marks an unset category select, the nav's unsorted count, stale-account notes, warning banners, and text selection.
+- **Tray Amber** (tray): the unsorted tray only. The tray header sits on **Tray Cream** (tray-bg) with **Tray Brown** (tray-ink) text, the count badge is solid amber with dark ink numerals (#1B2430 in both themes; white on amber is only 2.2:1), and the same trio marks an unset category select, the nav's unsorted count, stale-account notes, warning banners, and text selection.
 
 ### Tertiary
 - **Postmark Violet** (post): postmark stamps on received statements, the "last imported" stamp, savings-goal bars, and info pills and banners on **Violet Wash** (post-bg).
@@ -262,7 +264,10 @@ A warm neutral room with one teal voice and three small semantic lamps (amber, v
 - **Pigeonhole Wall** (wall): the pale teal wall behind the pigeonholes and the sign-in aside.
 - **Sidebar Tint** (side) with **Sidebar Hover** (side-2): the soft light sidebar and mobile bar.
 - **Ink** (ink), **Ink Soft** (ink-2), **Ink Quiet** (ink-3): primary text, secondary text and nav, then labels, meta and placeholders.
-- **Hairline** (rule) and **Hairline Firm** (rule-2): card borders and row dividers, then control borders and the month-pocket baseline.
+- **Hairline** (rule) and **Hairline Firm** (rule-2): card borders and row dividers, then button borders and the month-pocket baseline.
+- **Field Line** (field, dark #66726F): the border of inputs, selects, the tag input and the off switch track. It holds 3:1 against the sheet so a field can be found without its label; the softer hairlines stay for sheets and rows.
+
+**Contrast.** Every text pair meets WCAG 2.2 AA (4.5:1, 3:1 for large text) in both themes, and control boundaries, icons and focus rings meet 3:1. Quiet ink (#5F6773) holds 4.7:1 or more on every light surface it sits on, including the sidebar hover and the pigeonhole wall; rose (#BE3050) and green (#187550) hold 4.6:1 or more on their washes and on white. In dark mode, white text never sits on rose or amber: the error toast and the over-budget band use dark ink.
 
 ### Named Rules
 **The Lamp Rule.** Amber, violet, green and rose are lamps, not paint. Each one appears only where its meaning applies (unsorted, received, in, out/over); never as decoration, section colour, or a second brand accent.
@@ -352,9 +357,9 @@ Soft, confident, and small-radius; 38px tall (32px small) with 7px icon gaps.
 - **Internal Padding:** 20px (16px on phones).
 
 ### Inputs / Fields
-- **Style:** 40px tall (34px small), white, firm hairline, 10px radius, 12px side padding; selects carry a quiet chevron.
+- **Style:** 40px tall (34px small), white, field-line border, 10px radius, 12px side padding; selects carry a quiet chevron.
 - **Focus:** border turns teal plus a 3px teal halo at 18 percent. Hover darkens the border slightly.
-- **Labels:** 13px/600 in ink soft above the control, 6px gap; hints are 12.5px quiet ink.
+- **Labels:** 13px/600 in ink soft above the control, 6px gap; hints are 12.5px quiet ink. Required fields add a quiet asterisk; errors sit under the field in rose 600 and turn the border rose.
 - **Switch:** 38 by 22 full-round track, teal when on.
 
 ### Navigation
@@ -387,7 +392,8 @@ Dialogs are white, 18px radius, 540px (780px wide variant), Float shadow, over a
 - **Do** tint category colours softly with `color-mix` into the sheet; let the household's colours live inside pigeonholes and chips.
 - **Do** keep all interface text in Figtree, sentence case, with tabular numerals and right-aligned money.
 - **Do** lift only on hover (2px, Hover shadow) and give Float only to dialogs, toasts, tooltips and the drawer.
-- **Do** respect reduced motion; every animation and transition collapses to near zero under `prefers-reduced-motion`.
+- **Do** respect reduced motion; every animation and transition collapses to near zero under `prefers-reduced-motion`, hover lifts stay put, and scripted scrolling jumps instead of gliding. Recharts follows the setting on its own.
+- **Do** give every focusable thing a visible 2px teal ring that follows its shape, and every chart a "Show as a table" disclosure with the same numbers.
 - **Do** define every new colour for both themes; dark mode is a full mirror, not an afterthought.
 
 ### Don't:

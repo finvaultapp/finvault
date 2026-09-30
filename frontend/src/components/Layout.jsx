@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowLeftRight, BarChart3, Bot, ChevronDown, Eye, EyeOff, Landmark, LayoutDashboard, LogOut, Menu, Moon, PiggyBank,
   Plug, Repeat, Search, Settings, Shield, SlidersHorizontal, Sun, Tag, Target, Upload, Wallet,
   CalendarDays, FileText, Users, BadgeDollarSign, LineChart,
-  CreditCard, Sparkles, TrendingUp, Store,
+  CreditCard, Sparkles, TrendingUp, Store, X,
 } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
@@ -61,7 +61,29 @@ export default function Layout() {
   const dash = useData(() => api.get('/transactions?uncategorized=true&page_size=1'), [version])
   const sync = useData(() => api.get('/sync/status').catch(() => null), [])
 
+  const menuBtn = useRef(null)
+  const sideRef = useRef(null)
+  const firstPath = useRef(location.pathname)
+
   useEffect(() => setNavOpen(false), [location.pathname])
+  // A new page: put focus at the top of its content, so keyboard and screen-reader users start there.
+  useEffect(() => {
+    if (firstPath.current === location.pathname) return
+    firstPath.current = null
+    document.getElementById('main')?.focus({ preventScroll: true })
+  }, [location.pathname])
+  // The phone drawer: focus goes in when it opens, Escape closes it, and focus goes back to the menu button.
+  useEffect(() => {
+    if (!navOpen) return
+    sideRef.current?.querySelector('a[href], button')?.focus()
+    const onKey = (e) => { if (e.key === 'Escape') setNavOpen(false) }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      const inside = sideRef.current?.contains(document.activeElement) || document.activeElement === document.body
+      if (inside) menuBtn.current?.focus()
+    }
+  }, [navOpen])
   useEffect(() => {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette(true) }
@@ -91,22 +113,24 @@ export default function Layout() {
 
   return (
     <div className={`shell ${navOpen ? 'nav-open' : ''}`}>
+      <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus() }}>{t('Skip to main content')}</a>
       {navOpen && <div className="nav-scrim" onClick={() => setNavOpen(false)} />}
-      <aside className="sidebar" aria-label={t('Main navigation')}>
+      <aside className="sidebar" id="sidebar" ref={sideRef} aria-label={t('Sidebar')}>
         <div className="sidebar-head">
           <Link to="/" className="brand"><Logo />FinVault</Link>
+          <button className="icon-btn nav-close" onClick={() => setNavOpen(false)} aria-label={t('Close menu')}><X /></button>
         </div>
-        <button className="search-trigger" onClick={() => setPalette(true)}>
-          <Search size={15} /> {t('Search everything…')} <kbd>Ctrl K</kbd>
+        <button className="search-trigger" onClick={() => setPalette(true)} aria-keyshortcuts="Control+K">
+          <Search size={15} /> {t('Search everything…')} <kbd aria-hidden="true">Ctrl K</kbd>
         </button>
-        <nav className="nav">
+        <nav className="nav" aria-label={t('Main navigation')}>
           {NAV.map((g) => (
             <div className="nav-group" key={g.group ?? 'top'}>
               {g.group && <div className="nav-label">{t(g.group)}</div>}
               {g.items.filter((i) => !i.hidden && (!i.needsAi || aiOn) && (!i.needsSync || syncOn)).map((i) => (
                 <NavLink key={i.to} to={i.to} end={i.end}>
                   <i.icon />{t(i.label)}
-                  {i.badge === 'uncategorized' && uncategorized > 0 && <span className="count" title={t('Need a category')}>{uncategorized}</span>}
+                  {i.badge === 'uncategorized' && uncategorized > 0 && <span className="count" title={t('Need a category')}>{uncategorized}<span className="sr"> {t('need a category')}</span></span>}
                 </NavLink>
               ))}
             </div>
@@ -126,7 +150,7 @@ export default function Layout() {
               </Link>
             ))}
             {items.length > 4 && (
-              <button className="link-btn small" style={{ padding: '6px 10px' }} onClick={() => setShowAllAccounts((v) => !v)}>
+              <button className="link-btn small" style={{ padding: '6px 10px' }} onClick={() => setShowAllAccounts((v) => !v)} aria-expanded={showAllAccounts}>
                 {showAllAccounts ? t('Show fewer') : t('+{n} more', { n: items.length - 4 })} <ChevronDown size={14} style={{ transform: showAllAccounts ? 'rotate(180deg)' : '' }} />
               </button>
             )}
@@ -155,15 +179,15 @@ export default function Layout() {
         </div>
       </aside>
 
-      <div>
-        <div className="mobile-bar">
-          <button className="icon-btn" onClick={() => setNavOpen(true)} aria-label={t('Open menu')}><Menu /></button>
+      <div inert={navOpen || undefined}>
+        <header className="mobile-bar">
+          <button className="icon-btn" ref={menuBtn} onClick={() => setNavOpen(true)} aria-label={t('Open menu')} aria-expanded={navOpen} aria-controls="sidebar"><Menu /></button>
           <Link to="/" className="brand"><Logo />FinVault</Link>
           <span className="spacer" />
           <button className="icon-btn" onClick={() => setPalette(true)} aria-label={t('Search')}><Search /></button>
           <button className="icon-btn" onClick={toggleHidden} aria-label={hidden ? t('Show amounts') : t('Hide amounts')}>{hidden ? <EyeOff /> : <Eye />}</button>
-        </div>
-        <main className="main"><div className="page"><OfflineBanner /><Outlet /></div></main>
+        </header>
+        <main className="main" id="main" tabIndex={-1}><div className="page"><OfflineBanner /><Outlet /></div></main>
       </div>
       {palette && <CommandPalette onClose={() => setPalette(false)} aiOn={aiOn} />}
     </div>

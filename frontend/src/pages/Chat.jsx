@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Bot, Loader2, SendHorizontal } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
-import { Empty, Loading, PageHead, useData } from '../components/ui'
+import { Empty, Loading, PageHead, reducedMotion, useData } from '../components/ui'
 import { t } from '../i18n'
 
 const STARTERS = [
@@ -21,7 +21,7 @@ export default function Chat() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const logRef = useRef(null)
-  useEffect(() => { logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' }) }, [messages, busy])
+  useEffect(() => { logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: reducedMotion() ? 'auto' : 'smooth' }) }, [messages, busy])
 
   if (!status.data) return <Loading />
   const st = status.data
@@ -43,11 +43,11 @@ export default function Chat() {
     <>
       <PageHead title={t('Ask AI')} sub={st.provider === 'openai' ? t('Answers come from {model} on your OpenAI account, using your own data. It can be wrong; check the numbers that matter.', { model: st.model }) : t('Answers come from {model}, using your own data. It can be wrong; check the numbers that matter.', { model: st.model })} />
       <section className="card chat">
-        <div className="chat-log" ref={logRef}>
+        <div className="chat-log" ref={logRef} role="log" aria-live="polite" aria-label={t('Conversation')} tabIndex={0}>
           {messages.length === 0 && (
             <div className="empty" style={{ margin: 'auto' }}>
               <Bot className="empty-icon" aria-hidden="true" />
-              <h3>{t('Ask about your money')}</h3>
+              <h2>{t('Ask about your money')}</h2>
               <div className="row wrap" style={{ justifyContent: 'center', gap: 8, marginTop: 8 }}>
                 {STARTERS.map((s) => <button key={s} className="btn sm" onClick={() => send(t(s))}>{t(s)}</button>)}
               </div>
@@ -55,7 +55,7 @@ export default function Chat() {
           )}
           {messages.map((m, i) => <div key={i} className={`msg ${m.role}`}>{m.content}</div>)}
           {busy && <div className="msg assistant row muted"><Loader2 size={15} className="spin" />{t('Thinking…')}</div>}
-          {error && <div className="error-text">{error}</div>}
+          {error && <div className="error-text" role="alert">{error}</div>}
         </div>
         <form className="chat-input" onSubmit={(e) => { e.preventDefault(); input.trim() && send(input.trim()) }}>
           <input className="input" placeholder={t('Ask a question about your finances…')} value={input} onChange={(e) => setInput(e.target.value)} disabled={busy} aria-label={t('Message')} />

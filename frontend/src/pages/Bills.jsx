@@ -46,13 +46,15 @@ export default function Bills() {
               const d = i + 1
               const iso = `${month}-${String(d).padStart(2, '0')}`
               return (
-                <div key={d} className={`cal-day ${iso === today ? 'today' : ''}`}>
-                  <span className="cal-n">{d}</span>
+                <div key={d} className={`cal-day ${iso === today ? 'today' : ''}`} aria-current={iso === today ? 'date' : undefined}>
+                  <span className="cal-n">{d}{iso === today && <span className="sr"> ({t('Today')})</span>}</span>
                   {(byDay[d] ?? []).map((b) => (
                     <div key={b.recurring_id + b.date} className={`cal-bill ${b.amount > 0 ? 'in' : ''}`} title={`${b.name} · ${b.account_name ?? ''}`}>
                       {b.remind_days != null && <Bell size={10} />}
                       <span className="cal-name">{b.name}</span>
-                      <Money value={Math.abs(b.amount)} currency={b.currency ?? 'CAD'} compact />
+                      {/* The tint says in or out; the sign and the hidden words say it too. */}
+                      <span className="sr">{b.amount > 0 ? t('Money in') : t('Money out')}</span>
+                      <Money value={b.amount} currency={b.currency ?? 'CAD'} sign compact />
                     </div>
                   ))}
                 </div>

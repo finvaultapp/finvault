@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { AlertTriangle, ArrowRight, CheckCircle2, FileUp, Info, Loader2, RotateCcw, ShieldCheck, Truck, Upload } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
-import { Confirm, Empty, Field, Loading, Money, PageHead, Switch, useData, useToast } from '../components/ui'
+import { Confirm, Empty, Field, Loading, Money, PageHead, Switch, activateOnKey, useData, useToast } from '../components/ui'
 import { AccountDialog } from './Accounts'
 import Postmark from '../components/Postmark'
 import WatchedFolder from '../components/WatchedFolder'
@@ -42,6 +42,7 @@ export default function Import() {
   const [confirm, setConfirm] = useState(null)
   const [over, setOver] = useState(false)
   const inputRef = useRef(null)
+  const doneRef = useRef(null)
 
   const accts = (accounts.data?.items ?? []).filter((a) => !a.is_archived)
   const account = accts.find((a) => String(a.id) === String(accountId))
@@ -49,6 +50,8 @@ export default function Import() {
   const preset = presetList.find((p) => p.id === (options.preset || account?.import_preset))
 
   useEffect(() => { if (!accountId && accts.length === 1) setAccountId(String(accts[0].id)) }, [accts, accountId])
+  // The "imported" card replaces the button that was pressed: put focus on its heading.
+  useEffect(() => { if (done) doneRef.current?.focus() }, [done])
 
   const form = (opts) => {
     const fd = new FormData()
@@ -99,17 +102,20 @@ export default function Import() {
         </div>
       </div>
 
-      <div className="steps" style={{ marginBottom: 16 }}>
-        <span className={`step ${step === 1 ? 'on' : 'done'}`}><b>1</b>{t('Choose account & file')}</span><span className="step-sep" />
-        <span className={`step ${step === 2 ? 'on' : step > 2 ? 'done' : ''}`}><b>2</b>{t('Check the preview')}</span><span className="step-sep" />
-        <span className={`step ${step === 3 ? 'on' : ''}`}><b>3</b>{t('Done')}</span>
-      </div>
+      <ol className="steps move-steps" style={{ marginBottom: 16 }} aria-label={t('Steps')}>
+        {[t('Choose account & file'), t('Check the preview'), t('Done')].map((l, i) => (
+          <li key={l} className="row" style={{ gap: 8 }}>
+            {i > 0 && <span className="step-sep" aria-hidden="true" />}
+            <span className={`step ${step === i + 1 ? 'on' : step > i + 1 ? 'done' : ''}`} aria-current={step === i + 1 ? 'step' : undefined}><b>{i + 1}</b>{l}{step > i + 1 && <span className="sr"> ({t('done')})</span>}</span>
+          </li>
+        ))}
+      </ol>
 
       {done && (
         <section className="card card-body row wrap" style={{ marginBottom: 20, gap: 16 }}>
           <Postmark top={account?.name ?? t('Statement')} date={new Date().toISOString()} bottom={t('SORTED')} />
           <div className="grow">
-            <h3>{done.imported === 1 ? t('Imported {n} transaction', { n: done.imported }) : t('Imported {n} transactions', { n: done.imported })}</h3>
+            <h2 ref={doneRef} tabIndex={-1}>{done.imported === 1 ? t('Imported {n} transaction', { n: done.imported }) : t('Imported {n} transactions', { n: done.imported })}</h2>
             <p className="muted">{done.skipped ? t('{n} already in FinVault were skipped.', { n: done.skipped }) + ' ' : ''}{done.transfers_matched ? (done.transfers_matched === 1 ? t('{n} transfer between your accounts matched.', { n: done.transfers_matched }) : t('{n} transfers between your accounts matched.', { n: done.transfers_matched })) + ' ' : ''}{t('Rules and remembered merchants categorized what they could.')}</p>
           </div>
           <Link to={`/transactions?uncategorized=1&account=${accountId}`} className="btn">{t('Review uncategorized')}</Link>
@@ -117,7 +123,7 @@ export default function Import() {
         </section>
       )}
 
-      <div className="grid-2" style={{ gridTemplateColumns: preview ? '1fr' : undefined }}>
+      <div className="grid-2" style={{ gridTemplateColumns: preview ? 'minmax(0, 1fr)' : undefined }}>
         {!done && (
           <section className="card">
             <div className="card-head"><h2>{preview ? t('Preview') : t('Account and file')}</h2>{preview && <button className="btn sm ghost" onClick={() => { setPreview(null); setFile(null) }}>{t('Choose another file')}</button>}</div>
@@ -126,27 +132,29 @@ export default function Import() {
                 <>
                   <Field label={t('Import into')}>
                     <div className="row">
-                      <select className="input" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
+                      <select className="input" required value={accountId} onChange={(e) => setAccountId(e.target.value)}
+                        aria-invalid={!accountId && file ? true : undefined} aria-describedby={!accountId && file ? 'import-account-error' : undefined}>
                         <option value="">{t('Choose an account…')}</option>
                         {accts.map((a) => <option key={a.id} value={a.id}>{a.name}{a.institution ? ` · ${a.institution}` : ''}</option>)}
                       </select>
                       <button className="btn" onClick={() => setAdding(true)}>{t('New account')}</button>
                     </div>
                   </Field>
-                  <div className={`dropzone ${over ? 'over' : ''}`} role="button" tabIndex={0}
-                    onClick={() => inputRef.current?.click()} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && inputRef.current?.click()}
+                  {/* Works without dragging: it is a button that opens the file picker (Enter or Space). */}
+                  <div className={`dropzone ${over ? 'over' : ''}`} role="button" tabIndex={0} aria-describedby="import-drop-hint"
+                    onClick={() => inputRef.current?.click()} onKeyDown={activateOnKey(() => inputRef.current?.click())}
                     onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)}
                     onDrop={(e) => { e.preventDefault(); setOver(false); if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]) }}>
                     <FileUp size={28} style={{ marginBottom: 8 }} />
                     <div><strong>{file ? file.name : t('Drop your statement file here')}</strong></div>
-                    <div className="small">{file ? t('Reading…') : t('or click to choose · QFX, OFX, QBO, QIF, CSV, PDF')}</div>
+                    <div className="small" id="import-drop-hint">{file ? t('Reading…') : t('or click to choose · QFX, OFX, QBO, QIF, CSV, PDF')}</div>
                     <input ref={inputRef} type="file" hidden accept=".qfx,.ofx,.qbo,.qif,.csv,.txt,.tsv,.pdf,application/pdf" onChange={(e) => e.target.files[0] && setFile(e.target.files[0])} />
                   </div>
-                  {!accountId && file && <p className="error-text">{t('Choose which account this file belongs to.')}</p>}
+                  {!accountId && file && <p className="error-text" id="import-account-error" role="alert">{t('Choose which account this file belongs to.')}</p>}
                 </>
               )}
-              {busy && !preview && <div className="row muted"><Loader2 className="spin" size={16} />{t('Reading the file…')}</div>}
-              {error && <div className="banner warn"><AlertTriangle /><div className="banner-body">{error}</div></div>}
+              <div role="status">{busy && !preview && <div className="row muted"><Loader2 className="spin" size={16} />{t('Reading the file…')}</div>}</div>
+              {error && <div className="banner warn" role="alert"><AlertTriangle /><div className="banner-body">{error}</div></div>}
               {preview && <Preview p={preview} account={account} options={options} change={change} setRole={setRole} roleByCol={roleByCol} presets={presetList} busy={busy} commit={commit} />}
             </div>
           </section>
@@ -195,7 +203,7 @@ export default function Import() {
                   <div className="title">{b.filename}</div>
                   <div className="meta">{b.account_name} · {b.format.toUpperCase()} · {date(b.created_at)} · {t('{n} added', { n: b.imported })}{b.skipped ? t(', {n} skipped', { n: b.skipped }) : ''}</div>
                 </div>
-                <button className="btn sm ghost" onClick={() => setConfirm({ title: t('Undo this import?'), body: t('Removes the {n} transactions that came from {file}. Edits you made to them are lost.', { n: b.imported, file: b.filename }), action: t('Undo import'),
+                <button className="btn sm ghost" aria-label={t('Undo import of {file}', { file: b.filename })} onClick={() => setConfirm({ title: t('Undo this import?'), body: t('Removes the {n} transactions that came from {file}. Edits you made to them are lost.', { n: b.imported, file: b.filename }), action: t('Undo import'),
                   onConfirm: async () => { const r = await api.del(`/imports/batches/${b.id}`); toast(t('Removed {n} transactions', { n: r.removed })); bump() } })}><RotateCcw size={14} />{t('Undo')}</button>
               </div>
             ))}
@@ -222,6 +230,7 @@ function Preview({ p, account, options, change, setRole, roleByCol, presets, bus
         {p.statement_balance != null && <div><small>{t('Statement balance')}</small><strong><Money value={p.statement_balance} currency={account?.currency} /></strong></div>}
       </div>
 
+      <p className="sr" role="status">{t('Preview ready: {n} new of {total}.', { n: p.new, total: p.total })}</p>
       {p.warnings.map((w) => <div className="banner warn" key={w}><AlertTriangle /><div className="banner-body">{serverText(w)}</div></div>)}
 
       <div className="row wrap" style={{ gap: 18 }}>
@@ -244,7 +253,7 @@ function Preview({ p, account, options, change, setRole, roleByCol, presets, bus
           <Switch checked={p.inverted} onChange={(v) => change({ invert: v })} label={t('Flip signs')} />
           <span><span className="strong">{t('Flip signs')}</span><br /><span className="small muted">{t('Use when purchases show up as money in.')}</span></span>
         </label>
-        {p.format === 'csv' && <button className="link-btn" style={{ marginTop: 20 }} onClick={() => setShowMapping((s) => !s)}>{showMapping ? t('Hide column mapping') : t('Edit column mapping')}</button>}
+        {p.format === 'csv' && <button className="link-btn" style={{ marginTop: 20 }} aria-expanded={showMapping} onClick={() => setShowMapping((s) => !s)}>{showMapping ? t('Hide column mapping') : t('Edit column mapping')}</button>}
       </div>
 
       {showMapping && p.format === 'csv' && (
@@ -265,9 +274,9 @@ function Preview({ p, account, options, change, setRole, roleByCol, presets, bus
         </div>
       )}
 
-      <div className="table-wrap card" style={{ boxShadow: 'none', maxHeight: 460, overflowY: 'auto' }}>
+      <div className="table-wrap card" style={{ boxShadow: 'none', maxHeight: 460, overflowY: 'auto' }} tabIndex={0} role="region" aria-label={t('Preview')}>
         <table className="table">
-          <thead><tr><th>{t('Date')}</th><th>{t('Description')}</th><th className="hide-sm">{t('Category')}</th><th className="amount">{t('Amount')}</th><th /></tr></thead>
+          <thead><tr><th scope="col">{t('Date')}</th><th scope="col">{t('Description')}</th><th scope="col" className="hide-sm">{t('Category')}</th><th scope="col" className="amount">{t('Amount')}</th><th scope="col"><span className="sr">{t('Status')}</span></th></tr></thead>
           <tbody>
             {p.rows.map((r, i) => (
               <tr key={i} className={r.duplicate ? 'dup' : ''}>

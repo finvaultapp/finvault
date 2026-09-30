@@ -5,7 +5,7 @@ import { AlertTriangle, CalendarClock, Info, TrendingDown } from 'lucide-react'
 import { api, qs } from '../api'
 import { useApp } from '../context'
 import { t } from '../i18n'
-import { Empty, ErrorNote, Field, Loading, Money, PageHead, useData, useToast, Warnings } from '../components/ui'
+import { ChartTable, Empty, ErrorNote, Field, Loading, Money, PageHead, useData, useToast, Warnings } from '../components/ui'
 import { date, money } from '../lib/format'
 import { warningSentence } from '../lib/forecast'
 
@@ -59,8 +59,8 @@ export default function Forecast() {
   return (
     <>
       <PageHead title={t('Cash-flow forecast')} sub={t('Where your balances are heading over the next three months, from your recurring bills and paycheques plus your usual day-to-day spending.')}>
-        <div className="segmented" role="tablist" aria-label={t('Range')}>
-          {RANGES.map((r) => <button key={r} role="tab" aria-selected={range === r} className={range === r ? 'on' : ''} onClick={() => setRange(r)}>{t('{n} days', { n: r })}</button>)}
+        <div className="segmented" role="group" aria-label={t('Range')}>
+          {RANGES.map((r) => <button key={r} aria-pressed={range === r} className={range === r ? 'on' : ''} onClick={() => setRange(r)}>{t('{n} days', { n: r })}</button>)}
         </div>
         <select className="input" style={{ width: 200 }} value={scope} onChange={(e) => setScope(e.target.value)} aria-label={t('Account')}>
           <option value="total">{t('All accounts')}</option>
@@ -118,6 +118,8 @@ export default function Forecast() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
+          <ChartTable caption={t('Projected balance')} columns={[t('Date'), t('Balance')]}
+            rows={view.series.map((p) => [date(p.date), money(p.value, view.currency)])} />
         </section>
 
         <div className="grid-2">
@@ -142,7 +144,7 @@ export default function Forecast() {
           <div className="stack">
             <section className="card">
               <div className="card-head"><h2 className="row" style={{ gap: 8 }}><TrendingDown size={16} />{t('By account')}</h2></div>
-              <div className="table-wrap">
+              <div className="table-wrap" tabIndex={0} role="region" aria-label={t('By account')}>
                 <table className="table">
                   <thead><tr><th>{t('Account')}</th><th className="amount">{t('Today')}</th><th className="amount">{t('In {n} days', { n: range })}</th><th className="amount hide-sm">{t('Lowest')}</th><th className="amount hide-sm">{t('Per day')}</th></tr></thead>
                   <tbody>

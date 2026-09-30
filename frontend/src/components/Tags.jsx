@@ -27,11 +27,13 @@ export function TagList({ tags, max = 3 }) {
 }
 
 // Chips plus a text box with suggestions from the household's tags. Enter or comma adds; a new name creates a tag on save.
-export function TagInput({ value, onChange, known = [], placeholder, single = false, label }) {
+// It follows the ARIA combobox pattern: the list is announced as it opens, arrows move the active option.
+export function TagInput({ value, onChange, known = [], placeholder, single = false, label, labelledBy, describedBy }) {
   const [text, setText] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1) // -1: nothing picked with the arrow keys, Enter takes the typed text
   const input = useRef(null)
+  const closing = useRef(null)
   const listId = useId()
   const suggestions = useMemo(() => {
     const q = text.trim().toLowerCase()
@@ -55,29 +57,36 @@ export function TagInput({ value, onChange, known = [], placeholder, single = fa
       add(active >= 0 ? options[active] : text)
     } else if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); setActive((a) => Math.min(a + 1, options.length - 1)) }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(a - 1, -1)) }
-    else if (e.key === 'Escape' && open) { e.stopPropagation(); setOpen(false) }
+    else if (e.key === 'Escape' && open && options.length) { e.stopPropagation(); setOpen(false); setActive(-1) }
     else if (e.key === 'Backspace' && !text && value.length) onChange(value.slice(0, -1))
   }
 
+  const expanded = open && options.length > 0
+  const remove = (v) => {
+    onChange(value.filter((x) => x !== v))
+    requestAnimationFrame(() => input.current?.focus()) // the chip and its button are gone; stay in the box
+  }
   return (
-    <div className="tag-input" onClick={() => input.current?.focus()}>
-      {value.map((v) => <TagPill key={v} name={v} onRemove={() => onChange(value.filter((x) => x !== v))} />)}
+    <div className="tag-input" onClick={(e) => e.target === e.currentTarget && input.current?.focus()}>
+      {value.map((v) => <TagPill key={v} name={v} onRemove={() => remove(v)} />)}
       {!(single && value.length) && (
-        <input ref={input} value={text} placeholder={value.length ? '' : (placeholder ?? t('Add a tag…'))} aria-label={label ?? t('Tags')}
-          role="combobox" aria-expanded={open && options.length > 0} aria-controls={listId} aria-autocomplete="list"
+        <input ref={input} value={text} placeholder={value.length ? '' : (placeholder ?? t('Add a tag…'))}
+          aria-label={labelledBy ? undefined : label ?? t('Tags')} aria-labelledby={labelledBy} aria-describedby={describedBy}
+          role="combobox" aria-expanded={expanded} aria-controls={listId} aria-autocomplete="list"
+          aria-activedescendant={expanded && active >= 0 ? `${listId}-${active}` : undefined}
           onChange={(e) => { setText(e.target.value); setOpen(true); setActive(-1) }} onKeyDown={onKey}
-          onFocus={() => setOpen(true)} onBlur={() => { if (text.trim()) add(text); setTimeout(() => setOpen(false), 120) }} />
+          onFocus={() => { clearTimeout(closing.current); setOpen(true) }}
+          onBlur={() => { if (text.trim()) add(text); closing.current = setTimeout(() => setOpen(false), 120) }} />
       )}
-      {open && options.length > 0 && (
-        <ul className="tag-menu" id={listId} role="listbox">
-          {options.map((o, i) => (
-            <li key={o} role="option" aria-selected={i === active} className={i === active ? 'on' : ''}
+      {/* Always in the page so aria-controls points at something; hidden while closed. */}
+      <ul className="tag-menu" id={listId} role="listbox" aria-label={t('Tag suggestions')} hidden={!expanded}>
+        {expanded && options.map((o, i) => (
+            <li key={o} id={`${listId}-${i}`} role="option" aria-selected={i === active} className={i === active ? 'on' : ''}
               onMouseDown={(e) => { e.preventDefault(); add(o) }} onMouseEnter={() => setActive(i)}>
               {showCreate && i === options.length - 1 ? <>{t('Create tag')} <TagPill name={o} small /></> : <TagPill name={o} small />}
             </li>
           ))}
-        </ul>
-      )}
+      </ul>
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, Copy, Download, Eye, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
-import { Dialog, Field, Loading, PageHead, Switch, useData, useToast } from '../components/ui'
+import { Dialog, Field, Loading, PageHead, Switch, reducedMotion, useData, useToast } from '../components/ui'
 import { CURRENCIES, date, todayISO } from '../lib/format'
 import { LANGUAGES, t, useI18n } from '../i18n'
 import InstallApp from '../components/InstallApp'
@@ -11,7 +11,7 @@ import DataExport from '../components/DataExport'
 
 export default function Settings() {
   const { hash } = useLocation()
-  useEffect(() => { if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }) }, [hash])
+  useEffect(() => { if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth' }) }, [hash])
   return (
     <>
       <PageHead title={t('Settings')} />

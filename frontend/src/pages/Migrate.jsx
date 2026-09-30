@@ -1,11 +1,11 @@
 // Move from another app: a one-time wizard that brings a household's history in from YNAB, Actual Budget,
 // Mint, Monarch Money or another app's CSV. The files stay in the browser and go with each step.
-import { Fragment, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, ArrowRight, ChevronDown, ChevronRight, FileUp, Loader2, RotateCcw, Truck, X } from 'lucide-react'
 import { api } from '../api'
 import { useApp } from '../context'
-import { Confirm, Field, Loading, PageHead, Switch, useData, useToast } from '../components/ui'
+import { Confirm, Field, Loading, PageHead, Switch, activateOnKey, useAnnounce, useData, useToast } from '../components/ui'
 import Postmark from '../components/Postmark'
 import { ACCOUNT_TYPES, CURRENCIES, date } from '../lib/format'
 import { t } from '../i18n'
@@ -46,6 +46,15 @@ export default function Migrate() {
   const [error, setError] = useState('')
   const [confirm, setConfirm] = useState(null)
   const [undone, setUndone] = useState({})
+  const stepRef = useRef(null)
+  const firstStep = useRef(true)
+  const announce = useAnnounce()
+  // Each step replaces the last one: move focus to its heading so keyboard and screen-reader users land on it.
+  useEffect(() => {
+    if (firstStep.current) { firstStep.current = false; return }
+    const h = stepRef.current?.querySelector('h2')
+    if (h) { h.tabIndex = -1; h.focus() }
+  }, [step])
 
   const form = (extra = {}) => {
     const fd = new FormData()
@@ -71,6 +80,7 @@ export default function Migrate() {
       categories: Object.fromEntries(a.categories.map((x) => [x.key, p.categories[x.key] ?? x.suggestion])),
     }))
     if (!source) setSource(a.source)
+    announce(a.total === 1 ? t('Read {n} transaction', { n: a.total }) : t('Read {n} transactions', { n: a.total }))
   })
 
   const runPreview = () => run(async () => { setPreview(await api.upload('/migrate/preview', form({ plan }))); setStep(4) })
@@ -107,13 +117,14 @@ export default function Migrate() {
         {labels.map((l, i) => (
           <li key={l} className="row" style={{ gap: 8 }}>
             {i > 0 && <span className="step-sep" aria-hidden="true" />}
-            <span className={`step ${step === i + 1 ? 'on' : step > i + 1 ? 'done' : ''}`} aria-current={step === i + 1 ? 'step' : undefined}><b>{i + 1}</b>{l}</span>
+            <span className={`step ${step === i + 1 ? 'on' : step > i + 1 ? 'done' : ''}`} aria-current={step === i + 1 ? 'step' : undefined}><b>{i + 1}</b>{l}{step > i + 1 && <span className="sr"> ({t('done')})</span>}</span>
           </li>
         ))}
       </ol>
 
       {error && <div className="banner warn" role="alert" style={{ marginBottom: 16 }}><AlertTriangle /><div className="banner-body">{error}</div></div>}
 
+      <div ref={stepRef}>
       {step === 1 && (
         <UploadStep files={files} setFiles={(f) => { setFiles(f); setAnalysis(null) }} source={source} setSource={setSource}
           dateFormat={dateFormat} setDateFormat={setDateFormat} analysis={analysis} generic={generic} setGeneric={setGeneric}
@@ -134,6 +145,7 @@ export default function Migrate() {
         <DoneStep result={result} analysis={analysis} undone={undone} reset={reset}
           askUndo={(ids, title, body) => setConfirm({ title, body, action: t('Undo'), onConfirm: () => undo(ids) })} />
       )}
+      </div>
       {confirm && <Confirm {...confirm} onClose={() => setConfirm(null)} />}
     </>
   )
@@ -161,17 +173,17 @@ function UploadStep({ files, setFiles, source, setSource, dateFormat, setDateFor
               {SOURCES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
             </select>
           </Field>
-          <div className={`dropzone ${over ? 'over' : ''}`} role="button" tabIndex={0}
-            onClick={() => inputRef.current?.click()} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && inputRef.current?.click()}
+          <div className={`dropzone ${over ? 'over' : ''}`} role="button" tabIndex={0} aria-describedby="move-drop-hint"
+            onClick={() => inputRef.current?.click()} onKeyDown={activateOnKey(() => inputRef.current?.click())}
             onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)}
             onDrop={(e) => { e.preventDefault(); setOver(false); add(e.dataTransfer.files) }}>
             <FileUp size={28} style={{ marginBottom: 8 }} />
             <div><strong>{t('Drop the export here')}</strong></div>
-            <div className="small">{t('or click to choose · a zip or one or more CSV files')}</div>
+            <div className="small" id="move-drop-hint">{t('or click to choose · a zip or one or more CSV files')}</div>
             <input ref={inputRef} type="file" hidden multiple accept=".zip,.csv,.tsv,.txt,application/zip,text/csv" onChange={(e) => { add(e.target.files); e.target.value = '' }} />
           </div>
           {files.length > 0 && (
-            <ul className="move-files">
+            <ul className="move-files" aria-label={t('Chosen files')}>
               {files.map((f) => (
                 <li key={f.name}><FileUp size={15} aria-hidden="true" /><span className="grow">{f.name}</span>
                   <button className="icon-btn" aria-label={t('Remove {file}', { file: f.name })} onClick={() => setFiles(files.filter((g) => g !== f))}><X size={15} /></button></li>
@@ -386,7 +398,7 @@ function PreviewStep({ preview, busy, back, commit }) {
       </div>
       <div className="table-wrap">
         <table className="table move-table">
-          <thead><tr><th>{t('Account')}</th><th className="hide-sm">{t('Dates')}</th><th className="amount">{t('New')}</th><th className="amount">{t('Already here')}</th><th className="amount hide-sm">{t('Probably already here')}</th><th /></tr></thead>
+          <thead><tr><th scope="col">{t('Account')}</th><th scope="col" className="hide-sm">{t('Dates')}</th><th scope="col" className="amount">{t('New')}</th><th scope="col" className="amount">{t('Already here')}</th><th scope="col" className="amount hide-sm">{t('Probably already here')}</th><th scope="col"><span className="sr">{t('Skipped rows')}</span></th></tr></thead>
           <tbody>
             {preview.accounts.map((a) => (
               <Fragment key={a.source}>
@@ -399,12 +411,13 @@ function PreviewStep({ preview, busy, back, commit }) {
                   <td className="amount muted hide-sm">{a.likely_duplicates}</td>
                   <td>{a.duplicates.length > 0 && (
                     <button className="btn sm ghost" aria-expanded={open === a.source} onClick={() => setOpen(open === a.source ? null : a.source)}>
-                      {open === a.source ? <ChevronDown size={14} /> : <ChevronRight size={14} />}{t('Show skipped')}
+                      {open === a.source ? <ChevronDown size={14} /> : <ChevronRight size={14} />}{t('Show skipped')}<span className="sr"> · {a.name}</span>
                     </button>)}</td>
                 </tr>
                 {open === a.source && (
                   <tr key={`${a.source}-dups`} className="move-dups"><td colSpan={6}>
                     <table className="table">
+                      <caption className="sr">{t('Skipped rows for {account}', { account: a.name })}</caption>
                       <tbody>
                         {a.duplicates.map((d, i) => (
                           <tr key={i}><td className="num">{date(d.date)}</td><td>{d.description}</td><td className="amount">{d.amount.toFixed(2)}</td>
@@ -446,7 +459,7 @@ function DoneStep({ result, analysis, undone, askUndo, reset }) {
       <div className="card-body row wrap" style={{ gap: 16 }}>
         <Postmark top={analysis?.source_name ?? t('Moved')} date={new Date().toISOString()} bottom={t('SORTED')} />
         <div className="grow">
-          <h3>{result.imported === 1 ? t('Moved {n} transaction', { n: 1 }) : t('Moved {n} transactions', { n: result.imported })}</h3>
+          <h2>{result.imported === 1 ? t('Moved {n} transaction', { n: 1 }) : t('Moved {n} transactions', { n: result.imported })}</h2>
           <p className="muted">{result.skipped ? t('{n} already in FinVault were skipped.', { n: result.skipped }) + ' ' : ''}{extras.join(' · ')}</p>
         </div>
         <Link to="/transactions" className="btn">{t('See transactions')}</Link>
@@ -461,7 +474,7 @@ function DoneStep({ result, analysis, undone, askUndo, reset }) {
               <div className="meta">{undone[a.batch_id] ? t('Undone') : `${t('{n} added', { n: a.imported })}${a.skipped ? t(', {n} skipped', { n: a.skipped }) : ''}`}{a.date_range ? ` · ${date(a.date_range[0])} – ${date(a.date_range[1])}` : ''}</div>
             </div>
             {!undone[a.batch_id] && a.imported > 0 && (
-              <button className="btn sm ghost" onClick={() => askUndo([a.batch_id], t('Undo this account?'), t('Removes the {n} transactions this move added to {account}. Edits you made to them are lost.', { n: a.imported, account: a.name }))}>
+              <button className="btn sm ghost" aria-label={t('Undo {account}', { account: a.name })} onClick={() => askUndo([a.batch_id], t('Undo this account?'), t('Removes the {n} transactions this move added to {account}. Edits you made to them are lost.', { n: a.imported, account: a.name }))}>
                 <RotateCcw size={14} />{t('Undo')}
               </button>
             )}

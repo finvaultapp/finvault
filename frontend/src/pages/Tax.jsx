@@ -35,7 +35,7 @@ export default function Tax() {
       <div className="stack">
         <div className="banner info"><Info /><div className="banner-body">{t('FinVault doesn\'t decide what CRA accepts. Keep your receipts and confirm eligibility with your accountant or the CRA guides.')}</div></div>
         <Warnings items={s.warnings} />
-        <div className="grid-2" style={{ gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)' }}>
+        <div className="grid-2 wide-left">
           <section className="card" style={{ alignSelf: 'start' }}>
             <div className="card-head"><h2>{t('{year} summary', { year })}</h2><strong><Money value={s.total} currency={s.currency} /></strong></div>
             {s.groups.length === 0 ? (
@@ -44,7 +44,7 @@ export default function Tax() {
               <div className="list">
                 {s.groups.map((g) => (
                   <div key={g.tag}>
-                    <button className="cat-row" style={{ width: '100%', border: 0, background: 'none', font: 'inherit', cursor: 'pointer', textAlign: 'left' }} onClick={() => setOpen(open === g.tag ? null : g.tag)}>
+                    <button className="cat-row" style={{ width: '100%', border: 0, background: 'none', font: 'inherit', cursor: 'pointer', textAlign: 'left' }} onClick={() => setOpen(open === g.tag ? null : g.tag)} aria-expanded={open === g.tag}>
                       <div className="grow"><div className="line"><span className="name">{tags[g.tag] ?? g.label}</span><Money value={g.total} currency={s.currency} className="strong" /></div>
                         <div className="small muted">{t(g.count === 1 ? '{n} transaction' : '{n} transactions', { n: g.count })}</div></div>
                     </button>

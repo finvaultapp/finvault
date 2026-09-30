@@ -69,12 +69,12 @@ export default function Accounts() {
                     <div className="actions">
                       <Link className="icon-btn" to={`/import?account=${a.id}`} aria-label={t('Import')} title={t('Import a statement')}><Upload /></Link>
                       <button className="icon-btn" onClick={() => setReconcile(a)} aria-label={t('Match statement balance')} title={t("Match your statement's balance")}><Scale /></button>
-                      <button className="icon-btn" onClick={() => setEditing(a)} aria-label={t('Edit')}><Pencil /></button>
+                      <button className="icon-btn" onClick={() => setEditing(a)} aria-label={t('Edit {name}', { name: a.name })}><Pencil /></button>
                       <button className="icon-btn" aria-label={a.is_archived ? t('Unarchive') : t('Archive')} title={a.is_archived ? t('Unarchive') : t('Archive')}
                         onClick={async () => { await api.patch(`/accounts/${a.id}`, { is_archived: !a.is_archived }); bump() }}>
                         {a.is_archived ? <ArchiveRestore /> : <Archive />}
                       </button>
-                      <button className="icon-btn" aria-label={t('Delete')} onClick={() => setConfirm({ title: t('Delete {name}?', { name: a.name }),
+                      <button className="icon-btn" aria-label={t('Delete {name}', { name: a.name })} onClick={() => setConfirm({ title: t('Delete {name}?', { name: a.name }),
                         body: t('This permanently removes the account and its {n} transactions. Archive it instead to keep the history.', { n: a.transaction_count }),
                         onConfirm: async () => { await api.del(`/accounts/${a.id}`); bump() } })}><Trash2 /></button>
                     </div>

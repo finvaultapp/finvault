@@ -136,8 +136,8 @@ function EntryDialog({ plan, onClose, onSaved }) {
     <Dialog title={`${t(plan.label)} ${plan.year}`} onClose={onClose} footer={<><button className="btn" onClick={onClose}>{t('Cancel')}</button><button className="btn primary" onClick={save} disabled={!f.amount}>{t('Add')}</button></>}>
       <div className="form-grid">
         <div className="full segmented" style={{ width: 'fit-content' }}>
-          <button className={kind === 'in' ? 'on' : ''} onClick={() => setKind('in')}>{t('Contribution')}</button>
-          <button className={kind === 'out' ? 'on' : ''} onClick={() => setKind('out')}>{t('Withdrawal')}</button>
+          <button aria-pressed={kind === 'in'} className={kind === 'in' ? 'on' : ''} onClick={() => setKind('in')}>{t('Contribution')}</button>
+          <button aria-pressed={kind === 'out'} className={kind === 'out' ? 'on' : ''} onClick={() => setKind('out')}>{t('Withdrawal')}</button>
         </div>
         <Field label={t('Amount')}><input className="input" type="number" min="0" step="0.01" value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} /></Field>
         <Field label={t('Date')}><input className="input" type="date" min={`${plan.year}-01-01`} max={`${plan.year}-12-31`} value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></Field>

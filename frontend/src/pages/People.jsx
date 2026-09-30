@@ -42,7 +42,7 @@ export default function People() {
                   <Money value={Math.abs(p.balance)} currency={cur} className={`strong ${p.balance > 0 ? 'income' : p.balance < 0 ? 'expense' : 'muted'}`} />
                   <div className="actions" onClick={(e) => e.stopPropagation()}>
                     {p.balance !== 0 && <button className="btn sm" onClick={() => setSettling(p)}><HandCoins />{t('Settle up')}</button>}
-                    <button className="icon-btn" aria-label={t('Delete')} onClick={() => setConfirm({ title: t('Remove {name}?', { name: p.name }), body: t('Their shares and settlements are removed too. Your transactions stay.'), onConfirm: async () => { await api.del(`/people/${p.id}`); if (open === p.id) setOpen(null); bump() } })}><Trash2 /></button>
+                    <button className="icon-btn" aria-label={t('Delete {name}', { name: p.name })} onClick={() => setConfirm({ title: t('Remove {name}?', { name: p.name }), body: t('Their shares and settlements are removed too. Your transactions stay.'), onConfirm: async () => { await api.del(`/people/${p.id}`); if (open === p.id) setOpen(null); bump() } })}><Trash2 /></button>
                   </div>
                 </div>
               ))}

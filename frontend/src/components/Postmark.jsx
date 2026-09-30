@@ -6,7 +6,8 @@ export default function Postmark({ top, date, bottom = 'IMPORTED', className = '
   const label = (top || '').toUpperCase().slice(0, 22)
   const [day, rest] = splitDate(date)
   return (
-    <svg className={className} viewBox="0 0 100 100" aria-label={`${top}, received ${date}`} role="img">
+    // Decorative: every postmark sits next to text that says the same thing.
+    <svg className={className} viewBox="0 0 100 100" aria-hidden="true">
       <defs>
         <path id={`t${id}`} d="M 16 50 A 34 34 0 0 1 84 50" />
         <path id={`b${id}`} d="M 14 52 A 36 36 0 0 0 86 52" />

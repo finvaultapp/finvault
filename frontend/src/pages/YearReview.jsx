@@ -4,7 +4,7 @@ import { ArrowDownRight, ArrowUpRight, FileDown, Gift, Landmark, Repeat, Shoppin
 import { api, qs } from '../api'
 import { useApp } from '../context'
 import { t } from '../i18n'
-import { CategoryTile, Empty, ErrorNote, Loading, Money, useData, Warnings } from '../components/ui'
+import { CategoryTile, ChartTable, Empty, ErrorNote, Loading, Money, useData, usePageTitle, Warnings } from '../components/ui'
 import { date, money, monthLabel, shortMonth, todayISO } from '../lib/format'
 
 export default function YearReview() {
@@ -13,6 +13,7 @@ export default function YearReview() {
   // Early in the year, last year is the one worth reviewing.
   const [year, setYear] = useState(now.getMonth() < 2 ? now.getFullYear() - 1 : now.getFullYear())
   const r = useData(() => api.get(`/reports/year-review${qs({ year })}`), [year, version])
+  usePageTitle(t('Year in review'))
 
   const first = r.data?.first_year ?? now.getFullYear()
   const years = []
@@ -91,6 +92,8 @@ function Review({ d }) {
             </BarChart>
           </ResponsiveContainer>
         </div>
+        <ChartTable caption={t('Month by month')} columns={[t('Month'), t('Money in'), t('Money out')]}
+          rows={d.months.map((m) => [monthLabel(m.month), money(m.income, c), money(m.expense, c)])} />
       </section>
 
       <section className="card yir-block">

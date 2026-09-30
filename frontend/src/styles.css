@@ -9,9 +9,10 @@
   --wall: #E6EFEC;
   --ink: #1B2430;
   --ink-2: #4B5563;
-  --ink-3: #6F7784;
+  --ink-3: #5F6773;
   --rule: #ECE9E3;
   --rule-2: #DCD8D0;
+  --field: #8F8A80;
   --frame: #1F5E57;
   --frame-2: #184B45;
   --frame-soft: #E4F0EC;
@@ -20,9 +21,9 @@
   --side-2: #E1ECE8;
   --post: #5B5496;
   --post-bg: #EFEDF8;
-  --red: #D6455D;
+  --red: #BE3050;
   --red-bg: #FDECEF;
-  --green: #1F8A5B;
+  --green: #187550;
   --green-bg: #E6F5EC;
   --tray: #E3A43A;
   --tray-bg: #FDF4E1;
@@ -67,6 +68,7 @@
   --ink-3: #8E9794;
   --rule: #262E2C;
   --rule-2: #34403D;
+  --field: #66726F;
   --frame: #5FBFA9;
   --frame-2: #7FD0BD;
   --frame-soft: #17302B;
@@ -661,9 +663,9 @@ ol.howto { margin: 0; padding-left: 20px; display: flex; flex-direction: column;
 @media print {
   @page { margin: 14mm; }
   :root, :root[data-theme='dark'] {
-    --ground: #FFFFFF; --sheet: #FFFFFF; --sheet-2: #F7F6F3; --ink: #1B2430; --ink-2: #4B5563; --ink-3: #6F7784;
+    --ground: #FFFFFF; --sheet: #FFFFFF; --sheet-2: #F7F6F3; --ink: #1B2430; --ink-2: #4B5563; --ink-3: #5F6773;
     --rule: #E3E0DA; --rule-2: #CFCBC2; --frame: #1F5E57; --frame-soft: #E4F0EC; --tray: #E3A43A; --tray-bg: #FDF4E1;
-    --tray-ink: #8A5A0C; --green: #1F8A5B; --green-bg: #E6F5EC; --red: #D6455D; --red-bg: #FDECEF; --post: #5B5496;
+    --tray-ink: #8A5A0C; --green: #187550; --green-bg: #E6F5EC; --red: #BE3050; --red-bg: #FDECEF; --post: #5B5496;
     --shadow: none; color-scheme: light;
   }
   body { background: #FFFFFF; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -842,4 +844,89 @@ select.input.move-kind { width: 130px; flex: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .move-link, .move-link:hover { transition: none; transform: none; }
+}
+
+/* ---- Accessibility (WCAG 2.2 AA) ------------------------------------------------ */
+/* Skip link: hidden above the page until it has keyboard focus. */
+.skip-link { position: absolute; left: 12px; top: -80px; z-index: 200; padding: 10px 16px; border-radius: var(--radius); background: var(--frame); color: var(--frame-ink); font-weight: 650; box-shadow: var(--float); }
+.skip-link:focus { top: 12px; text-decoration: none; }
+/* Things that take focus only from script (main, dialog, step headings) show no ring. */
+[tabindex='-1']:focus { outline: none; }
+.sr { white-space: nowrap; margin: -1px; padding: 0; border: 0; }
+.nav-close { display: none; }
+@media (max-width: 860px) { .sidebar-head .nav-close { display: inline-grid; margin-left: auto; } }
+
+/* Focus rings follow each shape instead of the generic 6px corner. */
+.btn:focus-visible, .icon-btn:focus-visible, .nav a:focus-visible, .side-account:focus-visible, .search-trigger:focus-visible { border-radius: var(--radius); }
+.hole:focus-visible { border-radius: 12px; outline-offset: 3px; }
+.envelope:focus-visible, .move-link:focus-visible, .dropzone:focus-visible, .cat-row:focus-visible { border-radius: var(--radius-lg); }
+.sort-chip:focus-visible, .sort-other:focus-visible, .cat-select:focus-visible, .ai-chip-main:focus-visible, .ai-chip-x:focus-visible, .pill .icon-btn:focus-visible, .tag-x:focus-visible { border-radius: 999px; }
+.segmented button:focus-visible, .segmented a:focus-visible { border-radius: 9px; }
+.pockets button:focus-visible { border-radius: 10px 10px 0 0; outline-offset: -2px; }
+
+/* Controls: a boundary of at least 3:1 (the hairline stays for sheets and rows). */
+.input, select.input, textarea.input, .tag-input { border-color: var(--field); }
+.input:hover { border-color: var(--ink-3); }
+.input[aria-invalid='true'], .input[aria-invalid='true']:hover { border-color: var(--red); }
+.switch span { background: var(--field); }
+.field > .field-label { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.field .req { color: var(--ink-3); font-weight: 600; }
+.field .field-error { color: var(--red); font-weight: 600; }
+.field.sr-label > .field-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Dark numerals on the amber count, in both themes. */
+.tray-head .count { color: #1B2430; }
+.tray-sub { opacity: 1; }
+/* Dark rose is too light for white text; dark text instead. */
+:root[data-theme='dark'] .toast.error, :root[data-theme='dark'] .hole .band { color: #101413; }
+/* Row actions stay readable at rest; skipped import rows are quiet, not faded out. */
+.list-row .actions { opacity: 0.8; }
+.table tr.dup td { opacity: 1; color: var(--ink-3); }
+
+/* Headings that were h3 under the page title. */
+.empty h2 { color: var(--ink); font-size: 17px; }
+.hole-body .step-title { font-size: 15.5px; margin-bottom: 6px; }
+
+/* Touch targets: at least 24 by 24 CSS pixels. */
+.table input[type='checkbox'], .check input { width: 18px; height: 18px; }
+.tx-flags .flag, .ai-chip-x { width: 24px; height: 24px; }
+.pill .pill-x { width: 24px; height: 24px; margin: -3px -3px -3px 0; }
+.tag-x { position: relative; }
+.tag-x::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; }
+.link-btn { min-height: 24px; }
+
+/* The numbers behind a chart. */
+.chart-table { margin: 0 20px 16px; font-size: 13.5px; }
+.chart-table summary { width: fit-content; cursor: pointer; color: var(--frame); font-weight: 600; font-size: 13px; border-radius: 6px; }
+.chart-table .table-wrap { margin-top: 10px; max-height: 320px; overflow: auto; border: 1px solid var(--rule); border-radius: var(--radius); }
+.chart-table .table-wrap:focus-visible { border-radius: var(--radius); }
+.chart-table thead th { position: sticky; top: 0; }
+.chart-table tbody th { background: none; color: var(--ink); font-size: 13.5px; font-weight: 550; }
+.chart-table td.amount { font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hole:hover, .hole.flash, .envelope:hover { transform: none; }
+  .btn:active { transform: none; }
+}
+@media (max-width: 860px) {
+  .chart-table { margin: 0 16px 14px; }
+}
+
+/* Reflow at 320px and 400% zoom: nothing forces a sideways scroll outside the tables. */
+.table-wrap { position: relative; } /* keeps screen-reader-only text inside the scroller */
+.grid-2.wide-left { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+@media (max-width: 960px) {
+  .grid-2, .grid-2.wide-left, .strategy-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 860px) {
+  .grid-3 { grid-template-columns: minmax(0, 1fr); }
+  .card-head { flex-wrap: wrap; }
+  /* Tabbing never leaves the focused control under the sticky phone bar. */
+  html { scroll-padding-top: 72px; }
+}
+@media (max-width: 480px) {
+  .row, .list-row, .page-head, .dash-head { flex-wrap: wrap; }
+  .list-row .actions { margin-left: auto; }
+  .btn { white-space: normal; height: auto; min-height: 38px; }
+  .btn.sm { min-height: 32px; }
 }

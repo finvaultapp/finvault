@@ -70,7 +70,7 @@ export default function Budgets() {
                     <div className="grow">
                       <div className="line">
                         <Link className="name" style={{ color: 'inherit' }} to={`/transactions?category=${i.category_id}&month=${month}`}>{i.name}</Link>
-                        <span className="small"><Money value={i.spent} currency={c} className="strong" /> <span className="muted">{t('of')}</span> <button className="link-btn" onClick={() => setEditing(i)}><Money value={rolls ? i.available : i.budget} currency={c} /></button></span>
+                        <span className="small"><Money value={i.spent} currency={c} className="strong" /> <span className="muted">{t('of')}</span> <button className="link-btn" onClick={() => setEditing(i)}><span className="sr">{t('Change the budget for {name}:', { name: i.name })} </span><Money value={rolls ? i.available : i.budget} currency={c} /></button></span>
                         {i.percent > 100 ? <span className="pill red">{t('Over by')} <Money value={-i.remaining} currency={c} /></span>
                           : i.percent > pace + 10 ? <span className="pill amber">{t('Ahead of pace')}</span> : <span className="pill green"><Money value={i.remaining} currency={c} /> {t('left')}</span>}
                       </div>
@@ -85,7 +85,7 @@ export default function Budgets() {
                         </div>
                       )}
                     </div>
-                    <div className="actions"><button className="icon-btn" aria-label={t('Remove budget')} onClick={async () => { await api.del(`/budgets/${i.id}`); bump() }}><Trash2 /></button></div>
+                    <div className="actions"><button className="icon-btn" aria-label={t('Remove the budget for {name}', { name: i.name })} onClick={async () => { await api.del(`/budgets/${i.id}`); bump() }}><Trash2 /></button></div>
                   </div>
                 )
               })}

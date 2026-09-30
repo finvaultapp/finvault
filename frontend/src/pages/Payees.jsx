@@ -19,9 +19,9 @@ export default function Payees() {
   return (
     <>
       <PageHead title={t('Payees')} sub={t('Clean up messy merchant names in one place. Payees are grouped by the merchant in the bank’s description, so store numbers and card digits don’t split them.')}>
-        <div className="segmented" role="tablist" aria-label={t('Payees and tags')}>
-          <button role="tab" aria-selected={tab === 'payees'} className={tab === 'payees' ? 'on' : ''} onClick={() => setTab('payees')}>{t('Payees')}</button>
-          <button role="tab" aria-selected={tab === 'tags'} className={tab === 'tags' ? 'on' : ''} onClick={() => setTab('tags')}>{t('Tags')}</button>
+        <div className="segmented" role="group" aria-label={t('Payees and tags')}>
+          <button aria-pressed={tab === 'payees'} className={tab === 'payees' ? 'on' : ''} onClick={() => setTab('payees')}>{t('Payees')}</button>
+          <button aria-pressed={tab === 'tags'} className={tab === 'tags' ? 'on' : ''} onClick={() => setTab('tags')}>{t('Tags')}</button>
         </div>
       </PageHead>
       {tab === 'tags' ? <TagManager /> : <PayeeList params={params} setParams={setParams} />}

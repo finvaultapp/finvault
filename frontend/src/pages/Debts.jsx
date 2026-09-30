@@ -188,12 +188,12 @@ function Results({ plan, items, extra }) {
       <section className="card">
         <div className="card-head">
           <h2>{t('Month by month')}</h2>
-          <div className="segmented">
-            <button className={pick === 'avalanche' ? 'on' : ''} onClick={() => setPick('avalanche')}>{t('Avalanche')}</button>
-            <button className={pick === 'snowball' ? 'on' : ''} onClick={() => setPick('snowball')}>{t('Snowball')}</button>
+          <div className="segmented" role="group" aria-label={t('Strategy')}>
+            <button aria-pressed={pick === 'avalanche'} className={pick === 'avalanche' ? 'on' : ''} onClick={() => setPick('avalanche')}>{t('Avalanche')}</button>
+            <button aria-pressed={pick === 'snowball'} className={pick === 'snowball' ? 'on' : ''} onClick={() => setPick('snowball')}>{t('Snowball')}</button>
           </div>
         </div>
-        <div className="table-wrap schedule-wrap">
+        <div className="table-wrap schedule-wrap" tabIndex={0} role="region" aria-label={t('Month by month')}>
           <table className="table">
             <thead><tr><th>{t('Month')}</th>{ids.map((id) => <th key={id} className="amount">{names[id]}</th>)}<th className="amount">{t('Interest')}</th><th className="amount">{t('Still owing')}</th></tr></thead>
             <tbody>

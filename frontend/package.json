@@ -21,6 +21,7 @@
     "recharts": "^3.10.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.63.0",
     "@vitejs/plugin-react": "^6.1.1",
     "playwright": "^1.63.0",
