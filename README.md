@@ -1,6 +1,6 @@
 # FinVault
 
-[![CI](https://github.com/henilsarang/finvault/actions/workflows/ci.yml/badge.svg)](https://github.com/henilsarang/finvault/actions/workflows/ci.yml)
+[![CI](https://github.com/finvaultapp/finvault/actions/workflows/ci.yml/badge.svg)](https://github.com/finvaultapp/finvault/actions/workflows/ci.yml)
 
 Private household finance, sorted on your own hardware.
 
@@ -84,7 +84,7 @@ Canadian accounts are blocked from direct sync when the account country is CA, c
 ## Run With Docker
 
 ```bash
-git clone https://github.com/henilsarang/finvault.git
+git clone https://github.com/finvaultapp/finvault.git
 cd finvault
 cp .env.example .env
 docker compose up -d --build
