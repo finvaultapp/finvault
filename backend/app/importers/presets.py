@@ -101,6 +101,12 @@ PRESETS: list[dict] = [
                         "balance": "balance", "currency": "currency"}},
     },
     {
+        "id": "questrade", "name": "Questrade", "country": "CA", "kinds": ["investment"],
+        "formats": ["CSV"], "recommended": "csv",
+        "notes": "Export Account activity from Questrade and save it as CSV. Deposits, trades, dividends and fees are recognised from the Action and Activity Type columns.",
+        "csv": None,
+    },
+    {
         "id": "neo", "name": "Neo Financial", "country": "CA", "kinds": ["credit_card", "bank"],
         "formats": ["CSV"], "recommended": "csv",
         "notes": "Neo exports CSV from the web app. Columns are matched automatically; check the sign in the preview.",

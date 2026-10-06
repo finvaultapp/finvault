@@ -172,4 +172,8 @@ export default {
   "Use a three-letter currency code, like CAD or USD.": "Utilisez un code de devise à trois lettres, comme CAD ou USD.",
   "Choose at least one account to bring in.": "Choisissez au moins un compte à importer.",
   "Choose a FinVault category for each category you're bringing in, or leave it uncategorized.": "Choisissez une catégorie FinVault pour chaque catégorie importée, ou laissez-la sans catégorie.",
+  // Registered-account activity exports (importers/registered.py)
+  "Lines for other accounts in this file were left out.": "Les lignes des autres comptes de ce fichier ont été laissées de côté.",
+  "This file holds lines from more than one account. Check that each belongs here.": "Ce fichier contient des lignes de plus d'un compte. Vérifiez que chacune a sa place ici.",
+  "Lines in another currency were left out. Import them into that currency's account.": "Les lignes dans une autre devise ont été laissées de côté. Importez-les dans le compte de cette devise.",
 }

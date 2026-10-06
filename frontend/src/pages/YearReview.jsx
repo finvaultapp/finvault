@@ -152,7 +152,7 @@ function Review({ d }) {
                   <div className="figure" key={p.kind}>
                     <div className="label">{t(p.label)}</div>
                     <div className="value"><Money value={p.contributed} currency="CAD" /></div>
-                    <div className="foot">{p.withdrawn > 0 ? t('{amount} taken out', { amount: money(p.withdrawn, 'CAD') }) : t('of {amount} room', { amount: money(p.room, 'CAD') })}</div>
+                    <div className="foot">{p.withdrawn > 0 ? t('{amount} taken out', { amount: money(p.withdrawn, 'CAD') }) : p.room == null ? t('room not entered yet') : t('of {amount} room', { amount: money(p.room, 'CAD') })}</div>
                   </div>
                 ))}
               </div>

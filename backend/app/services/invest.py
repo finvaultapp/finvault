@@ -288,6 +288,8 @@ def registration(db: Session, account: Account, info: InvestAccountInfo | None =
     info = info or db.get(InvestAccountInfo, account.id)
     if info:
         return info.registration, True
+    if account.registered_kind:
+        return account.registered_kind, False
     plan = db.scalar(select(RegisteredPlan.kind).where(RegisteredPlan.account_id == account.id).limit(1))
     if plan:
         return plan, False

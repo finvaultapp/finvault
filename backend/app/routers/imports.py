@@ -9,8 +9,9 @@ from ..deps import current_user, owned
 from ..importers import MAX_BYTES, parse_file
 from ..importers.presets import public_presets
 from ..importers.csvfile import ROLES
+from ..importers.registered import PLAN_MOVES, classify_result
 from ..models import Account, Category, ImportBatch, Transaction, User
-from ..services import receipts, transfers
+from ..services import receipts, registered, transfers
 
 from ..services.charge_alerts import run_safely as charge_alerts_after_import
 from ..services.ledger import Categorizer, commit_import, plan_import
@@ -28,11 +29,20 @@ async def _parse(file: UploadFile, account: Account, options: str | None):
     opts = json.loads(options) if options else {}
     raw = await file.read(MAX_BYTES + 1)
     try:
-        return parse_file(file.filename or "", raw, preset_id=opts.get("preset") or account.import_preset,
-                          mapping=opts.get("mapping") or None, date_format=opts.get("date_format") or None,
-                          invert=opts.get("invert"), account_type=account.type, account_currency=account.currency)
+        result = parse_file(file.filename or "", raw, preset_id=opts.get("preset") or account.import_preset,
+                            mapping=opts.get("mapping") or None, date_format=opts.get("date_format") or None,
+                            invert=opts.get("invert"), account_type=account.type, account_currency=account.currency,
+                            registered_kind=account.registered_kind)
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
+    if account.registered_kind:
+        classify_result(result, account.registered_kind)
+        # The member's own choices in the preview, by line number in the file.
+        overrides = opts.get("plan_moves") or {}
+        for key, move in overrides.items() if isinstance(overrides, dict) else ():
+            if move in PLAN_MOVES and str(key).isdigit() and int(key) < len(result.transactions):
+                result.transactions[int(key)].plan_move = move
+    return result
 
 
 @router.post("/preview")
@@ -44,12 +54,12 @@ async def preview(account_id: int = Form(...), options: str | None = Form(None),
     cat = Categorizer(db, user.id)
     names = {c.id: c.name for c in db.scalars(select(Category).where(Category.user_id == user.id))}
     rows = []
-    for p in planned[:300]:
+    for i, p in enumerate(planned[:300]):
         t = p["txn"]
         cid, payee, source = cat.apply(t.description, t.payee, t.amount, account.id)
-        rows.append({"date": t.date.isoformat(), "amount": f2(t.amount), "description": t.description,
+        rows.append({"index": i, "date": t.date.isoformat(), "amount": f2(t.amount), "description": t.description,
                      "duplicate": p["duplicate"], "category": names.get(cid), "category_source": source,
-                     "bank_category": t.bank_category})
+                     "bank_category": t.bank_category, "type_text": t.type_text or None, "plan_move": t.plan_move})
     new = sum(1 for p in planned if not p["duplicate"])
     blocked_note = None
     if result.currency and result.currency.upper() != account.currency:
@@ -62,7 +72,11 @@ async def preview(account_id: int = Form(...), options: str | None = Form(None),
         "date_range": [min(t.date for t in result.transactions).isoformat(),
                        max(t.date for t in result.transactions).isoformat()] if result.transactions else None,
         "statement_balance": f2(result.statement_balance) if result.statement_balance is not None else None,
-        "rows": rows, "warnings": result.warnings[:20], "note": blocked_note,
+        "rows": rows, "warnings": result.warnings[:20], "note": blocked_note, "layout": result.layout,
+        "registered_kind": account.registered_kind,
+        # The file looks like a TFSA/FHSA/RRSP statement but the account isn't marked as one yet.
+        "suggested_kind": result.kind_hint if not account.registered_kind else None,
+        "spousal": result.spousal,
     }
 
 
@@ -74,9 +88,11 @@ async def commit(account_id: int = Form(...), options: str | None = Form(None), 
     if not result.transactions:
         raise HTTPException(422, "Nothing to import. " + " ".join(result.warnings[:3]))
     batch = commit_import(db, user, account, result, file.filename or "upload")
+    plan = registered.import_summary(db, user, account, batch)
     matched = transfers.auto_match(db, user)
     charge_alerts_after_import(db, user)
-    return {"batch_id": batch.id, "imported": batch.imported, "skipped": batch.skipped, "transfers_matched": matched}
+    return {"batch_id": batch.id, "imported": batch.imported, "skipped": batch.skipped, "transfers_matched": matched,
+            "registered": plan}
 
 
 @router.get("/batches")

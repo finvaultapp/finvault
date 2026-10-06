@@ -93,6 +93,8 @@ class Account(Base):
     sync_connection_id: Mapped[int | None] = mapped_column(
         ForeignKey("sync_connections.id", ondelete="SET NULL"), nullable=True)
     external_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # tfsa | fhsa | rrsp when this is a registered account; statements imported into it count toward that plan.
+    registered_kind: Mapped[str | None] = mapped_column(String(10), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
@@ -147,6 +149,9 @@ class Transaction(Base):
     recurring_id: Mapped[int | None] = mapped_column(ForeignKey("recurring.id", ondelete="SET NULL"), nullable=True)
     tax_tag: Mapped[str | None] = mapped_column(String(20), nullable=True)  # overrides the category's tag; 'none' excludes
     transfer_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # the matching leg of a transfer
+    # In a registered account: contribution | withdrawal | transfer_in | transfer_out | rrsp_to_fhsa | growth | fee |
+    # trade | other (see importers/registered.py). None keeps the older rule: money in counts, money out is a withdrawal.
+    plan_move: Mapped[str | None] = mapped_column(String(16), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     account: Mapped[Account] = relationship(lazy="joined")
@@ -259,6 +264,8 @@ class RegisteredPlan(Base):
     kind: Mapped[str] = mapped_column(String(10))  # tfsa | rrsp | fhsa
     year: Mapped[int] = mapped_column(Integer)
     room: Mapped[Decimal] = mapped_column(Money)
+    # False while the member hasn't entered CRA's figure yet (a plan made by a statement import); room is then 0.
+    room_set: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
     account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id", ondelete="SET NULL"), nullable=True)
     notes: Mapped[str] = mapped_column(Text, default="")
 

@@ -218,6 +218,7 @@ def parse_csv(text: str, *, preset_id: str | None = None, mapping: dict | None =
             currency=currency, bank_category=cell(r, "category") or None, row=n,
         ))
         parsed[-1].memo = cell(r, "type")
+        parsed[-1].type_text = cell(r, "type")
 
     # All-positive amounts with a Debit/Credit type column: use the type for the sign.
     if parsed and "type" in cols and all(t.amount >= 0 for t in parsed):

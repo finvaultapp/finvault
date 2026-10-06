@@ -930,3 +930,32 @@ select.input.move-kind { width: 130px; flex: none; }
   .btn { white-space: normal; height: auto; min-height: 38px; }
   .btn.sm { min-height: 32px; }
 }
+
+/* Registered accounts: TFSA / FHSA / RRSP plans, line types and next-year estimates.
+   Neutral sheets only: teal stays on the buttons, amber on unsorted lines, violet on postmarks. */
+.plan-title { font-size: 16.5px; font-weight: 650; letter-spacing: -0.01em; }
+.plan-types { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; margin: 0; }
+.plan-types div { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.plan-types dt { font-size: 12.5px; font-weight: 600; color: var(--ink-3); }
+.plan-types dd { margin: 0; font-weight: 650; font-variant-numeric: tabular-nums; }
+.plan-room-missing { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 12px 14px;
+  border: 1.5px dashed var(--rule-2); border-radius: var(--radius); background: var(--sheet-2); }
+.plan-room-missing p { margin: 0; }
+.plan-estimate { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border: 1px solid var(--rule);
+  border-radius: var(--radius); background: var(--sheet-2); }
+.plan-estimate p { margin: 0; }
+.plan-estimate-figure { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.banner.plan-note { background: var(--sheet-2); border-color: var(--rule-2); color: var(--ink-2); flex-wrap: wrap; }
+.banner.plan-danger { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+.plan-result { flex-basis: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  padding-top: 14px; border-top: 1px solid var(--rule); }
+.plan-result p { margin: 0; max-width: 75ch; }
+select.input.sm.plan-move { width: 150px; }
+.plan-move-source { display: block; margin-top: 2px; font-size: 12px; }
+@media (max-width: 860px) {
+  select.input.sm.plan-move { width: 100%; min-width: 120px; }
+}
+.plan-entry { flex: 1; min-width: 80px; display: flex; flex-direction: column; }
+.plan-entry-note { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plan-entry-move { font-size: 12px; color: var(--ink-3); }
+.plan-card .entries .row > :not(.plan-entry) { white-space: nowrap; }

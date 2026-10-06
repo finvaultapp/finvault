@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from ..deps import current_user, owned
 from ..models import Account, Transaction, User
-from ..services import receipts
+from ..importers.registered import suggest_kind
+from ..services import receipts, registered
 from ..services.currency import Converter
 from ..services.invest import Portfolio
 from ..services.ledger import account_balances
@@ -17,6 +18,7 @@ from ..services.reports import f2
 
 router = APIRouter(prefix="/api/accounts", tags=["accounts"])
 TYPES = "^(checking|savings|credit_card|investment|cash|loan|other)$"
+REGISTERED = "^(tfsa|fhsa|rrsp)$"
 
 
 def account_out(a: Account, balance: Decimal, converted: Decimal | None, tx_count: int = 0, last_date=None) -> dict:
@@ -26,7 +28,9 @@ def account_out(a: Account, balance: Decimal, converted: Decimal | None, tx_coun
             "import_preset": a.import_preset, "is_archived": a.is_archived, "balance": f2(balance),
             "balance_converted": None if converted is None else f2(converted),
             "synced": a.sync_connection_id is not None, "transaction_count": tx_count,
-            "last_transaction": last_date.isoformat() if last_date else None}
+            "last_transaction": last_date.isoformat() if last_date else None,
+            "registered_kind": a.registered_kind,
+            "registered_suggestion": None if a.registered_kind else suggest_kind(a.name, a.institution or "")}
 
 
 @router.get("")
@@ -58,6 +62,7 @@ class AccountIn(BaseModel):
     opening_balance: Decimal = Decimal("0")
     opening_date: date | None = None
     import_preset: str | None = None
+    registered_kind: str | None = Field(default=None, pattern=REGISTERED)
 
 
 class AccountPatch(BaseModel):
@@ -70,6 +75,7 @@ class AccountPatch(BaseModel):
     opening_date: date | None = None
     import_preset: str | None = None
     is_archived: bool | None = None
+    registered_kind: str | None = Field(default=None, pattern=REGISTERED)
 
 
 @router.post("")
@@ -93,10 +99,12 @@ def update_account(account_id: int, body: AccountPatch, user: User = Depends(cur
             data[k] = data[k].upper()
     if data.get("country") == "CA" and a.sync_connection_id:
         a.sync_connection_id, a.external_id = None, None  # Canadian accounts are never synced
+    newly_registered = bool(data.get("registered_kind")) and data["registered_kind"] != a.registered_kind
     for k, v in data.items():
         setattr(a, k, v)
+    typed = registered.backfill(db, a) if newly_registered else 0
     db.commit()
-    return {"ok": True}
+    return {"ok": True, "typed": typed}
 
 
 @router.delete("/{account_id}")

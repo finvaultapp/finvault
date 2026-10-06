@@ -235,7 +235,7 @@ _HEADER_LABELS = [
                         r"(?:\s+(?:de\s+|d')?(?:la\s+|l')?(?:transaction|operation|inscription|l'operation))?"
                         r"|\b(?:trans|post)\b\.?")),
     ("withdraw", re.compile(r"\b(?:cheques?\s*(?:&|and|/)\s*debits?|withdrawals?(?:\s*(?:&|and)\s*debits?)?|withdrawn|"
-                            r"debits?|retraits?|paid\s*out|money\s*out|funds\s*out|sorties?)\b")),
+                            r"debits?|retraits?|paid\s*out|money\s*out|funds\s*out|sorties?|charged)\b")),
     ("deposit", re.compile(r"\b(?:deposits?(?:\s*(?:&|and|/)\s*credits?)?|credits?|depots?|paid\s*in|money\s*in|"
                            r"funds\s*in|entrees?)\b")),
     ("balance", re.compile(r"\b(?:balance|solde)\b")),

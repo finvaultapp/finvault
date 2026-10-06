@@ -45,6 +45,7 @@ def parse_ofx(text: str) -> ParseResult:
     head = _leaves(text.split("<BANKTRANLIST>")[0] if "<BANKTRANLIST>" in text else text[:5000])
     result.currency = head.get("CURDEF")
     result.account_number = head.get("ACCTID")
+    result.text_sample = " ".join(v for k, v in head.items() if k in ("ACCTTYPE", "DESC", "NAME", "ORG", "ACCTID"))
     bal = re.search(r"<LEDGERBAL>.*?<BALAMT>([^<\r\n]+)", text, re.S | re.I)
     if bal:
         result.statement_balance = parse_amount(bal.group(1))
@@ -63,7 +64,7 @@ def parse_ofx(text: str) -> ParseResult:
             description = f"{name} {memo}"
         result.transactions.append(ParsedTxn(
             date=when, amount=amount, description=description.strip(), payee=name.strip(), memo=memo,
-            external_id=f.get("FITID"), currency=result.currency, row=i,
+            external_id=f.get("FITID"), currency=result.currency, type_text=f.get("TRNTYPE", ""), row=i,
         ))
     if not result.transactions:
         result.warnings.append("No transactions found in this OFX/QFX file.")

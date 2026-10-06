@@ -9,6 +9,8 @@ const PAGES = [
   ['/import/move', 'Move from another app'], ['/categories', 'Categories'], ['/rules', 'Rules'], ['/payees', 'Payees'],
   ['/reports', 'Reports'], ['/budgets', 'Budgets'], ['/goals', 'Goals'], ['/bills', 'Bills'], ['/forecast', 'Cash-flow forecast'],
   ['/debts', 'Debt payoff'], ['/investments', 'Investments'], ['/assets', 'Assets'], ['/tax', 'Tax time'],
+  // Empty here; e2e/registered.spec.js scans it again once a TFSA statement has been imported.
+  ['/plans', 'Registered accounts'],
   ['/year-in-review', null], ['/people', 'Shared costs'], ['/settings', 'Settings'],
 ]
 

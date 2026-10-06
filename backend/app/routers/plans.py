@@ -27,7 +27,7 @@ def list_plans(user: User = Depends(current_user), db: Session = Depends(get_db)
 class PlanIn(BaseModel):
     kind: str = Field(pattern="^(tfsa|rrsp|fhsa)$")
     year: int = Field(ge=2009, le=2100)
-    room: Decimal = Field(ge=0)
+    room: Decimal | None = Field(default=None, ge=0)  # None: not entered yet (CRA's figure still to come)
     account_id: int | None = None
     notes: str = Field(default="", max_length=2000)
 
@@ -39,8 +39,8 @@ def create_plan(body: PlanIn, user: User = Depends(current_user), db: Session = 
     if db.scalar(select(RegisteredPlan).where(RegisteredPlan.user_id == user.id, RegisteredPlan.kind == body.kind,
                                               RegisteredPlan.year == body.year)):
         raise HTTPException(409, f"You already have a {body.kind.upper()} entry for {body.year}. Edit that one instead.")
-    p = RegisteredPlan(user_id=user.id, kind=body.kind, year=body.year, room=body.room,
-                       account_id=body.account_id, notes=body.notes)
+    p = RegisteredPlan(user_id=user.id, kind=body.kind, year=body.year, room=body.room or 0,
+                       room_set=body.room is not None, account_id=body.account_id, notes=body.notes)
     db.add(p)
     db.commit()
     return plan_svc.summary(db, p)
@@ -51,7 +51,8 @@ def update_plan(pid: int, body: PlanIn, user: User = Depends(current_user), db: 
     p = owned(db, RegisteredPlan, pid, user)
     if body.account_id:
         owned(db, Account, body.account_id, user)
-    p.kind, p.year, p.room, p.account_id, p.notes = body.kind, body.year, body.room, body.account_id, body.notes
+    p.kind, p.year, p.account_id, p.notes = body.kind, body.year, body.account_id, body.notes
+    p.room, p.room_set = body.room or 0, body.room is not None
     db.commit()
     return plan_svc.summary(db, p)
 

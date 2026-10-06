@@ -6,6 +6,7 @@ import { serverText } from '../lib/serverText'
 import { Dialog, Field, Money, activateOnKey, useData, useToast } from './ui'
 import { todayISO } from '../lib/format'
 import { TAX_TAGS } from '../lib/tax'
+import { PLAN_KINDS, PLAN_MOVES } from '../lib/registered'
 import { TagInput } from './Tags'
 
 // `commitOnLeave`: for selects that act at once (sorting a line, a bulk change). Browsing the options with the
@@ -81,8 +82,9 @@ function Details({ tx, accounts, categories, onClose, onSaved }) {
     account_id: tx?.account_id ?? accounts[0]?.id, date: tx?.date ?? todayISO(),
     kind: tx && tx.amount > 0 ? 'in' : 'out', amount: tx ? Math.abs(tx.amount) : '',
     description: tx?.description ?? '', payee: tx?.payee ?? '', notes: tx?.notes ?? '', category_id: tx?.category_id ?? null,
-    tax_tag: tx?.tax_tag ?? '',
+    tax_tag: tx?.tax_tag ?? '', plan_move: tx?.plan_move ?? '',
   }))
+  const planKind = accounts.find((a) => String(a.id) === String(f.account_id))?.registered_kind ?? null
   const [busy, setBusy] = useState(false)
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
   const tags = TAX_TAGS()
@@ -94,7 +96,8 @@ function Details({ tx, accounts, categories, onClose, onSaved }) {
     e?.preventDefault()
     setBusy(true)
     const body = { account_id: Number(f.account_id), date: f.date, amount: (f.kind === 'out' ? -1 : 1) * Number(f.amount),
-      description: f.description, payee: f.payee, notes: f.notes, category_id: f.category_id }
+      description: f.description, payee: f.payee, notes: f.notes, category_id: f.category_id,
+      ...(planKind || f.plan_move ? { plan_move: f.plan_move || null } : {}) }
     try {
       const saved = editing ? await api.patch(`/transactions/${tx.id}`, body) : await api.post('/transactions', body)
       if ((f.tax_tag || null) !== (tx?.tax_tag ?? null)) await api.put(`/transactions/${saved.id}/tax-tag`, { tax_tag: f.tax_tag || null })
@@ -127,6 +130,15 @@ function Details({ tx, accounts, categories, onClose, onSaved }) {
         <Field group label={t('Tags')} className="full" hint={t('Labels across categories, like “vacation 2026” or “reno”.')}>
           <TagInput value={labels} onChange={setLabels} known={known.data ?? []} />
         </Field>
+        {(planKind || f.plan_move) && (
+          <Field label={t('Registered plan type')} className="full"
+            hint={planKind ? t('How this line counts toward your {kind}. Only contributions and RRSP-to-FHSA transfers use room.', { kind: PLAN_KINDS()[planKind] }) : t('This account is no longer marked as a registered plan.')}>
+            <select className="input" value={f.plan_move} onChange={set('plan_move')}>
+              <option value="">{t('Not set (money in counts as a contribution)')}</option>
+              {Object.entries(PLAN_MOVES()).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </Field>
+        )}
         <Field label={t('Tax time')} className="full" hint={t('Overrides the category\'s tax tag for this one transaction.')}>
           <select className="input" value={f.tax_tag} onChange={set('tax_tag')}>
             <option value="">{t('Use the category\'s tag')}</option>

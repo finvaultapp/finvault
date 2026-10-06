@@ -6,6 +6,7 @@ import { useApp } from '../context'
 import Postmark from '../components/Postmark'
 import { Confirm, Dialog, Empty, Field, Loading, Money, PageHead, useData, useToast, Warnings } from '../components/ui'
 import { ACCOUNT_TYPES, CURRENCIES, date, todayISO } from '../lib/format'
+import { PLAN_KINDS, suggestKind } from '../lib/registered'
 import { t } from '../i18n'
 
 
@@ -49,6 +50,7 @@ export default function Accounts() {
                       <div className="row" style={{ gap: 8 }}>
                         <Link to={`/transactions?account=${a.id}`} className="title" style={{ color: 'inherit' }}>{a.name}</Link>
                         {a.country === 'CA' && <span className="pill" title={t('Canadian account: imported from files, never connected to the bank')}>{t('Import only')}</span>}
+                        {a.registered_kind && <span className="pill">{PLAN_KINDS()[a.registered_kind]}</span>}
                         {a.synced && <span className="pill blue">{t('Synced')}</span>}
                         {a.is_archived && <span className="pill">{t('Archived')}</span>}
                       </div>
@@ -100,14 +102,20 @@ export function AccountDialog({ account, presets, onClose, onSaved }) {
     name: account.name ?? '', institution: account.institution ?? '', type: account.type ?? 'checking',
     currency: account.currency ?? user.base_currency, country: account.country ?? 'CA',
     opening_balance: account.opening_balance ?? 0, opening_date: account.opening_date ?? '', import_preset: account.import_preset ?? '',
+    registered_kind: account.registered_kind ?? '',
   })
+  // A new account named "… TFSA" (or CELI, FHSA, CELIAPP, RRSP, REER) is marked as one until the member picks.
+  const [kindTouched, setKindTouched] = useState(editing)
+  const suggested = suggestKind(f.name, f.institution)
+  const kind = kindTouched ? f.registered_kind : (suggested ?? '')
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
   const pickBank = (e) => {
     const p = presets.find((x) => x.id === e.target.value)
     setF({ ...f, import_preset: e.target.value, institution: p && p.id !== 'generic' ? p.name : f.institution, country: p?.country ?? f.country })
   }
   const save = async () => {
-    const body = { ...f, opening_balance: Number(f.opening_balance) || 0, opening_date: f.opening_date || null, import_preset: f.import_preset || null }
+    const body = { ...f, opening_balance: Number(f.opening_balance) || 0, opening_date: f.opening_date || null, import_preset: f.import_preset || null,
+      registered_kind: kind || null }
     try {
       const saved = editing ? await api.patch(`/accounts/${account.id}`, body) : await api.post('/accounts', body)
       toast(editing ? t('Account updated') : t('Account added'))
@@ -139,6 +147,15 @@ export function AccountDialog({ account, presets, onClose, onSaved }) {
         <Field label={t('Country')}><select className="input" value={f.country} onChange={set('country')}>
           <option value="CA">{t('Canada')}</option><option value="US">{t('United States')}</option><option value="BR">{t('Brazil')}</option><option value="EU">{t('Europe')}</option><option value="">{t('Other')}</option></select></Field>
         <Field label={t('Institution name')} hint={t('Shown under the account name.')}><input className="input" value={f.institution} onChange={set('institution')} /></Field>
+        <Field label={t('Registered plan')} className="full"
+          hint={!kindTouched && suggested ? t('Suggested from the name. Statements imported here count toward this plan on the Registered accounts page.')
+            : editing && !kind && account.registered_suggestion ? t('The name suggests a {kind}. Pick it to count imported statements toward that plan.', { kind: PLAN_KINDS()[account.registered_suggestion] })
+              : t('Statements imported here count toward this plan on the Registered accounts page. RRIFs and other plans stay plain accounts.')}>
+          <select className="input" value={kind} onChange={(e) => { setKindTouched(true); setF({ ...f, registered_kind: e.target.value }) }}>
+            <option value="">{t('Not a registered account')}</option>
+            {Object.entries(PLAN_KINDS()).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </Field>
         {f.country === 'CA' && (
           <div className="full banner ca"><Upload />
             <div className="banner-body">{t('Canadian accounts are')} <strong>{t('import only')}</strong>{t('. FinVault never asks for your online-banking password and never connects to the bank; you download your statement file and import it.')}</div>

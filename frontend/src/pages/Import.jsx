@@ -7,7 +7,8 @@ import { Confirm, Empty, Field, Loading, Money, PageHead, Switch, activateOnKey,
 import { AccountDialog } from './Accounts'
 import Postmark from '../components/Postmark'
 import WatchedFolder from '../components/WatchedFolder'
-import { date } from '../lib/format'
+import { date, money } from '../lib/format'
+import { PLAN_KINDS, PLAN_MOVES } from '../lib/registered'
 import { t } from '../i18n'
 import { serverText } from '../lib/serverText'
 
@@ -16,7 +17,7 @@ const ROLE_LABELS = {
   get date() { return t('Date') }, get description() { return t('Description') }, get description2() { return t('Extra description') },
   get payee() { return t('Payee') }, get amount() { return t('Amount (signed)') },
   get amount_alt() { return t('Amount, 2nd currency') }, get debit() { return t('Money out') }, get credit() { return t('Money in') },
-  get currency() { return t('Currency') }, get type() { return t('Debit/credit type') },
+  get currency() { return t('Currency') }, get type() { return t('Type (debit/credit, contribution…)') },
   get category() { return t('Bank category') }, get balance() { return t('Balance (ignored)') }, get id() { return t('Reference ID') },
 }
 const DATE_FORMATS = [
@@ -69,7 +70,19 @@ export default function Import() {
   }
   useEffect(() => { if (file) setDone(null); runPreview() }, [file, accountId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const change = (patch) => { const next = { ...options, ...patch }; setOptions(next); runPreview(next) }
+  // A new preview can reorder lines, so the per-line plan types chosen so far are dropped with it.
+  const change = (patch) => { const next = { ...options, plan_moves: undefined, ...patch }; setOptions(next); runPreview(next) }
+  const setMove = (index, move) => {
+    setOptions((o) => ({ ...o, plan_moves: { ...(o.plan_moves ?? {}), [index]: move } }))
+    setPreview((p) => ({ ...p, rows: p.rows.map((r) => (r.index === index ? { ...r, plan_move: move } : r)) }))
+  }
+  const markRegistered = async (kind) => {
+    try {
+      await api.patch(`/accounts/${accountId}`, { registered_kind: kind })
+      toast(t('{name} is now marked as a {kind}.', { name: account?.name ?? '', kind: PLAN_KINDS()[kind] }))
+      bump(); runPreview()
+    } catch (e) { toast(e.message, 'error') }
+  }
   const setRole = (col, role) => {
     const mapping = Object.fromEntries(Object.entries(preview.mapping).filter(([, c]) => c !== col))
     if (role) mapping[role] = col
@@ -120,6 +133,7 @@ export default function Import() {
           </div>
           <Link to={`/transactions?uncategorized=1&account=${accountId}`} className="btn">{t('Review uncategorized')}</Link>
           <button className="btn primary" onClick={() => setDone(null)}><Upload />{t('Import another')}</button>
+          {done.registered && <PlanResult r={done.registered} />}
         </section>
       )}
 
@@ -155,7 +169,7 @@ export default function Import() {
               )}
               <div role="status">{busy && !preview && <div className="row muted"><Loader2 className="spin" size={16} />{t('Reading the file…')}</div>}</div>
               {error && <div className="banner warn" role="alert"><AlertTriangle /><div className="banner-body">{error}</div></div>}
-              {preview && <Preview p={preview} account={account} options={options} change={change} setRole={setRole} roleByCol={roleByCol} presets={presetList} busy={busy} commit={commit} />}
+              {preview && <Preview p={preview} account={account} options={options} change={change} setRole={setRole} roleByCol={roleByCol} presets={presetList} busy={busy} commit={commit} setMove={setMove} markRegistered={markRegistered} />}
             </div>
           </section>
         )}
@@ -217,12 +231,15 @@ export default function Import() {
   )
 }
 
-function Preview({ p, account, options, change, setRole, roleByCol, presets, busy, commit }) {
-  const [showMapping, setShowMapping] = useState(p.format === 'csv' && (p.mapping.date === undefined || p.warnings.length > 0))
+function Preview({ p, account, options, change, setRole, roleByCol, presets, busy, commit, setMove, markRegistered }) {
+  const [showMapping, setShowMapping] = useState(p.format === 'csv' && !p.layout && (p.mapping.date === undefined || p.warnings.length > 0))
+  const kinds = PLAN_KINDS()
+  const moves = PLAN_MOVES()
+  const planKind = p.registered_kind
   return (
     <>
       <div className="stat-strip">
-        <div><small>{t('Format')}</small><strong>{p.format.toUpperCase()}</strong></div>
+        <div><small>{t('Format')}</small><strong>{p.format.toUpperCase()}</strong>{p.layout && <span className="small muted"> · {t(p.layout)}</span>}</div>
         <div><small>{t('Transactions')}</small><strong>{p.total}</strong></div>
         <div><small>{t('New')}</small><strong className="income">{p.new}</strong></div>
         <div><small>{t('Already imported')}</small><strong className="muted">{p.duplicates}</strong></div>
@@ -232,6 +249,19 @@ function Preview({ p, account, options, change, setRole, roleByCol, presets, bus
 
       <p className="sr" role="status">{t('Preview ready: {n} new of {total}.', { n: p.new, total: p.total })}</p>
       {p.warnings.map((w) => <div className="banner warn" key={w}><AlertTriangle /><div className="banner-body">{serverText(w)}</div></div>)}
+      {p.suggested_kind && (
+        <div className="banner plan-note">
+          <Info />
+          <div className="banner-body">
+            {t('This looks like a {kind} statement. Mark {name} as a {kind} so its lines count toward your {kind} room?', { kind: kinds[p.suggested_kind], name: account?.name ?? '' })}
+            {p.spousal && <> {t("Spousal RRSP contributions use the contributing spouse's deduction limit.")}</>}
+          </div>
+          <button className="btn sm primary" onClick={() => markRegistered(p.suggested_kind)}>{t('Mark as {kind}', { kind: kinds[p.suggested_kind] })}</button>
+        </div>
+      )}
+      {planKind && (
+        <p className="small muted">{t('Each line has a {kind} type. Only contributions and RRSP-to-FHSA transfers use room; change any type that is wrong before importing.', { kind: kinds[planKind] })}</p>
+      )}
 
       <div className="row wrap" style={{ gap: 18 }}>
         {p.format === 'csv' && (
@@ -276,13 +306,22 @@ function Preview({ p, account, options, change, setRole, roleByCol, presets, bus
 
       <div className="table-wrap card" style={{ boxShadow: 'none', maxHeight: 460, overflowY: 'auto' }} tabIndex={0} role="region" aria-label={t('Preview')}>
         <table className="table">
-          <thead><tr><th scope="col">{t('Date')}</th><th scope="col">{t('Description')}</th><th scope="col" className="hide-sm">{t('Category')}</th><th scope="col" className="amount">{t('Amount')}</th><th scope="col"><span className="sr">{t('Status')}</span></th></tr></thead>
+          <thead><tr><th scope="col">{t('Date')}</th><th scope="col">{t('Description')}</th><th scope="col" className="hide-sm">{t('Category')}</th>{planKind && <th scope="col">{t('Plan type')}</th>}<th scope="col" className="amount">{t('Amount')}</th><th scope="col"><span className="sr">{t('Status')}</span></th></tr></thead>
           <tbody>
             {p.rows.map((r, i) => (
               <tr key={i} className={r.duplicate ? 'dup' : ''}>
                 <td className="num" style={{ whiteSpace: 'nowrap' }}>{date(r.date)}</td>
                 <td className="desc"><div>{r.description}</div>{r.bank_category && <small>{t('Bank: {category}', { category: r.bank_category })}</small>}</td>
                 <td className="hide-sm">{r.category ? <span className="row" style={{ gap: 6 }}>{r.category}<span className="pill">{r.category_source === 'history' ? t('remembered') : t('rule')}</span></span> : <span className="muted">—</span>}</td>
+                {planKind && (
+                  <td>
+                    <select className="input sm plan-move" value={r.plan_move ?? 'other'} disabled={r.duplicate} onChange={(e) => setMove(r.index, e.target.value)}
+                      aria-label={t('Plan type for {description}, {date}', { description: r.description, date: date(r.date) })}>
+                      {Object.entries(moves).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                    </select>
+                    {r.type_text && <small className="muted plan-move-source">{t('Statement: {type}', { type: r.type_text })}</small>}
+                  </td>
+                )}
                 <td className="amount"><Money value={r.amount} currency={account?.currency} sign colored /></td>
                 <td>{r.duplicate && <span className="pill">{t('already imported')}</span>}</td>
               </tr>
@@ -301,5 +340,30 @@ function Preview({ p, account, options, change, setRole, roleByCol, presets, bus
         </button>
       </div>
     </>
+  )
+}
+
+// After importing into a TFSA, FHSA or RRSP account: what counted toward the plan and what didn't.
+function PlanResult({ r }) {
+  const kind = PLAN_KINDS()[r.kind]
+  const cad = (v) => money(v, 'CAD')
+  const list = (parts) => (parts.length < 2 ? parts.join('') : `${parts.slice(0, -1).join(', ')}${t(' and ')}${parts[parts.length - 1]}`)
+  return (
+    <div className="plan-result full" role="group" aria-label={t('{kind} summary', { kind })}>
+      {r.years.map((y) => {
+        const parts = []
+        if (y.contribution.n) parts.push(y.contribution.n === 1 ? t('1 contribution ({amount})', { amount: cad(y.contribution.amount) }) : t('{n} contributions ({amount})', { n: y.contribution.n, amount: cad(y.contribution.amount) }))
+        if (y.rrsp_to_fhsa.n) parts.push(y.rrsp_to_fhsa.n === 1 ? t('1 RRSP to FHSA transfer ({amount})', { amount: cad(y.rrsp_to_fhsa.amount) }) : t('{n} RRSP to FHSA transfers ({amount})', { n: y.rrsp_to_fhsa.n, amount: cad(y.rrsp_to_fhsa.amount) }))
+        if (y.withdrawal.n) parts.push(y.withdrawal.n === 1 ? t('1 withdrawal ({amount})', { amount: cad(y.withdrawal.amount) }) : t('{n} withdrawals ({amount})', { n: y.withdrawal.n, amount: cad(y.withdrawal.amount) }))
+        return (
+          <p key={y.year}>
+            {parts.length ? t('{lines} counted toward your {year} {kind}.', { lines: list(parts), year: y.year, kind }) : t('Nothing counted toward your {year} {kind}.', { year: y.year, kind })}
+            {y.not_counted > 0 && <> {y.not_counted === 1 ? t("1 line of growth, fees, trades or transfers doesn't use room.") : t("{n} lines of growth, fees, trades or transfers don't use room.", { n: y.not_counted })}</>}
+            {y.room_missing && <> <strong>{t('Enter your {year} {kind} room from CRA My Account to see what is left.', { year: y.year, kind })}</strong></>}
+          </p>
+        )
+      })}
+      <Link to="/plans" className="btn sm">{t('Open registered accounts')}<ArrowRight size={14} /></Link>
+    </div>
   )
 }

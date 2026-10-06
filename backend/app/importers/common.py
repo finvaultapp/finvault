@@ -17,6 +17,9 @@ class ParsedTxn:
     currency: str | None = None
     bank_category: str | None = None
     row: int | None = None  # source row number, for error messages
+    type_text: str = ""  # the statement's own type column (CONT, Dividend, DEBIT...), when it has one
+    account_label: str = ""  # account column in multi-account exports ("Individual TFSA")
+    plan_move: str | None = None  # registered accounts only: see importers/registered.py
 
 
 @dataclass
@@ -34,6 +37,10 @@ class ParseResult:
     account_number: str | None = None
     statement_balance: Decimal | None = None
     sample_rows: list[list[str]] = field(default_factory=list)
+    layout: str | None = None  # a named layout that isn't a bank preset ("Questrade activity")
+    text_sample: str = ""  # the start of a PDF's text, to recognise TFSA/FHSA/RRSP statements
+    kind_hint: str | None = None  # tfsa | fhsa | rrsp when the file says which plan it is for
+    spousal: bool = False  # the file mentions a spousal RRSP
 
 
 def decode_bytes(raw: bytes) -> str:

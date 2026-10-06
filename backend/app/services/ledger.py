@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..importers import ParsedTxn, ParseResult, normalize_merchant
+from ..importers.registered import classify, strict_layout
 from ..models import Account, Category, ImportBatch, Rule, Transaction, TransactionTag, User
 
 DEFAULT_CATEGORIES = [
@@ -174,6 +175,7 @@ def commit_import(db: Session, user: User, account: Account, result: ParseResult
     db.add(batch)
     db.flush()
     cat = Categorizer(db, user.id)
+    strict = strict_layout(result)
     imported = skipped = 0
     tagged: list[tuple[Transaction, set[int]]] = []
     for p in planned:
@@ -186,6 +188,8 @@ def commit_import(db: Session, user: User, account: Account, result: ParseResult
             user_id=user.id, account_id=account.id, date=t.date, amount=t.amount,
             description=t.description[:500], payee=(new_payee or t.payee or "")[:200],
             category_id=category_id, import_hash=p["hash"], external_id=t.external_id, import_batch_id=batch.id,
+            plan_move=(t.plan_move or classify(account.registered_kind, t.amount, [x for x in t.type_text.split(" | ") if x],
+                                               t.description, strict=strict)) if account.registered_kind else None,
         )
         db.add(row)
         tags = cat.tags(t.description, t.payee, t.amount, account.id)

@@ -299,6 +299,7 @@ def parse_pdf(raw: bytes, *, date_format: str | None = None, invert: bool | None
     if not texts:
         result.warnings.append(NO_TEXT)
         return result
+    result.text_sample = (plain_text or layout_text)[:4000]
     try:
         _parse(result, texts, date_format=date_format, invert=invert, account_type=account_type)
     except Exception:  # noqa: BLE001 - an odd PDF must not break the import page

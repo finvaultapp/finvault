@@ -51,7 +51,7 @@ Reports show income vs expenses, net worth, category breakdowns, budgets, goals,
 - Built-in CSV presets for RBC, TD, CIBC, BMO, Scotiabank, Tangerine, Simplii, Wealthsimple, Rogers Bank, PC Financial, American Express Canada, and more.
 - Categorization rules, remembered merchants, bulk editing, and one-click sorting.
 - Budgets, recurring bills, bill reminders, goals, assets, debts, and net worth.
-- TFSA, RRSP, and FHSA contribution-room tracking.
+- TFSA, RRSP, and FHSA contribution-room tracking. Mark an account as a TFSA, FHSA or RRSP and its imported statements count toward that plan: every line is typed (contribution, withdrawal, transfer, RRSP-to-FHSA, growth, fee, trade), and next year's TFSA and FHSA room is estimated until you enter CRA's figure.
 - Tax-time summaries for medical, child care, donations, moving, home office, and other deductible categories.
 - Shared expenses, people balances, and settle-up tracking.
 - Receipt attachments with optional local OCR through Tesseract.
@@ -80,6 +80,10 @@ The flow is:
 5. Sort any uncategorized lines.
 
 Canadian accounts are blocked from direct sync when the account country is CA, currency is CAD, or the provider institution looks Canadian.
+
+### TFSA, FHSA and RRSP statements
+
+Mark an account as a TFSA, FHSA or RRSP in its settings (FinVault suggests it from names like CELI, CELIAPP or REER; RRIFs stay plain accounts) and import its statements as usual: bank exports (OFX/QFX/QBO, QIF, CSV, PDF), the Wealthsimple monthly statement CSV, activity export and statement PDF, the Questrade activity export saved as CSV, or any brokerage CSV through the column mapper with a type column. Each line gets a type from the statement's own wording, in English or French, and you can change it in the preview or later. Each year gets a plan on the Registered accounts page; enter the room from CRA My Account and FinVault counts contributions against it and estimates next year's TFSA and FHSA room. The Wealthsimple and Questrade layouts are matched by column names and have not been checked against every real file, so look at the preview.
 
 ## Run With Docker
 

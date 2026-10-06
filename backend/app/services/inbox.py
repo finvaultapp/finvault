@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from .. import config, settings_store
 from ..importers import parse_file
 from ..models import Account, User
-from . import transfers
+from . import registered, transfers
 from .ledger import commit_import
 
 log = logging.getLogger("finvault.inbox")
@@ -93,10 +93,12 @@ def scan(db: Session, user_id: int | None = None) -> int:
                 if f.stat().st_size > MAX_BYTES:
                     raise ValueError("File is larger than 15 MB.")
                 result = parse_file(f.name, f.read_bytes(), preset_id=account.import_preset,
-                                    account_type=account.type, account_currency=account.currency)
+                                    account_type=account.type, account_currency=account.currency,
+                                    registered_kind=account.registered_kind)
                 if not result.transactions:
                     raise ValueError("No transactions found. " + " ".join(result.warnings[:3]))
                 batch = commit_import(db, user, account, result, f"{f.name} (watched folder)")
+                registered.import_summary(db, user, account, batch)  # a TFSA/FHSA/RRSP year gets its plan
                 transfers.auto_match(db, user)
                 _move(f, folder / "imported")
                 imported += batch.imported

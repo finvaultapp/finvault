@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from ..db import get_db
 from ..deps import current_user, owned
+from ..importers.registered import PLAN_MOVE_PATTERN, classify
 from ..models import Account, Attachment, Category, Share, Transaction, TransactionSplit, TransactionTag, User
 from ..services import receipts
 from ..services.tags import add_tags, names_by_transaction
@@ -30,7 +31,8 @@ def tx_out(t: Transaction) -> dict:
             "category_name": t.category.name if t.category else None,
             "category_color": t.category.color if t.category else None,
             "recurring_id": t.recurring_id, "import_batch_id": t.import_batch_id,
-            "transfer_id": t.transfer_id, "tax_tag": t.tax_tag}
+            "transfer_id": t.transfer_id, "tax_tag": t.tax_tag, "plan_move": t.plan_move,
+            "registered_kind": t.account.registered_kind}
 
 
 def add_flags(db: Session, items: list[dict]) -> list[dict]:
@@ -122,6 +124,7 @@ class TxIn(BaseModel):
     payee: str = Field(default="", max_length=200)
     notes: str = ""
     category_id: int | None = None
+    plan_move: str | None = Field(default=None, pattern=PLAN_MOVE_PATTERN)
 
 
 class TxPatch(BaseModel):
@@ -132,6 +135,7 @@ class TxPatch(BaseModel):
     payee: str | None = Field(default=None, max_length=200)
     notes: str | None = None
     category_id: int | None = None
+    plan_move: str | None = Field(default=None, pattern=PLAN_MOVE_PATTERN)
 
 
 def _check_refs(db: Session, user: User, account_id: int | None, category_id: int | None):
@@ -145,6 +149,9 @@ def _check_refs(db: Session, user: User, account_id: int | None, category_id: in
 def create_transaction(body: TxIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
     _check_refs(db, user, body.account_id, body.category_id)
     t = Transaction(user_id=user.id, **body.model_dump(exclude={"amount"}), amount=body.amount)
+    account = db.get(Account, body.account_id)
+    if account.registered_kind and not t.plan_move:  # a line added by hand to a TFSA/FHSA/RRSP gets a type too
+        t.plan_move = classify(account.registered_kind, body.amount, (), body.description)
     db.add(t)
     db.commit()
     db.refresh(t)
