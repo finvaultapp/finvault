@@ -2,10 +2,10 @@
 # One-time setup of the FinVault landing site on a Mac (Apple silicon or Intel) with Homebrew.
 # Installs Caddy and cloudflared, publishes the site on port 8080, starts Caddy at login,
 # and refreshes the site from GitHub every night.
-#   curl -fsSL https://raw.githubusercontent.com/henilsarang/finvault/main/deploy/site/install-mac.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/finvaultapp/finvault/main/deploy/site/install-mac.sh | bash
 set -euo pipefail
 
-RAW="https://raw.githubusercontent.com/henilsarang/finvault/main/deploy/site"
+RAW="https://raw.githubusercontent.com/finvaultapp/finvault/main/deploy/site"
 
 if ! command -v brew >/dev/null 2>&1; then
   echo "Homebrew is needed first. Install it from https://brew.sh, then run this again." >&2
