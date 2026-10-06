@@ -11,7 +11,7 @@ These scripts serve it with [Caddy](https://caddyserver.com) on port 8080 and re
 You need [Homebrew](https://brew.sh). Then, in Terminal on the Mac:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/henilsarang/finvault/main/deploy/site/install-mac.sh | bash
+curl -fsSL https://raw.githubusercontent.com/finvaultapp/finvault/main/deploy/site/install-mac.sh | bash
 ```
 
 It does four things:
@@ -31,7 +31,7 @@ Also turn on **automatic login** in **System Settings → Users & Groups**, so C
 ## Raspberry Pi or other Debian/Ubuntu machine
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/henilsarang/finvault/main/deploy/site/install-pi.sh | bash
+curl -fsSL https://raw.githubusercontent.com/finvaultapp/finvault/main/deploy/site/install-pi.sh | bash
 ```
 
 This works the same way. It uses `/var/www/finvault-site`, a systemd service and a nightly systemd timer. To update right away, run `sudo finvault-update-site`.
