@@ -5,7 +5,7 @@
 #   BRANCH=some-branch ./update-site.sh
 set -euo pipefail
 
-REPO="${REPO:-https://github.com/henilsarang/finvault.git}"
+REPO="${REPO:-https://github.com/finvaultapp/finvault.git}"
 BRANCH="${BRANCH:-main}"
 if [ "$(id -u)" -eq 0 ]; then DEFAULT_SRC=/var/cache/finvault-site-src; else DEFAULT_SRC="$HOME/.cache/finvault-site-src"; fi
 SRC="${SRC:-$DEFAULT_SRC}"
