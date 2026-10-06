@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # One-time setup of the FinVault landing site on a Raspberry Pi (Raspberry Pi OS / Debian).
 # Installs Caddy, publishes the site on port 8080 and refreshes it from GitHub every night.
-#   curl -fsSL https://raw.githubusercontent.com/henilsarang/finvault/main/deploy/site/install-pi.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/finvaultapp/finvault/main/deploy/site/install-pi.sh | bash
 set -euo pipefail
 
-RAW="https://raw.githubusercontent.com/henilsarang/finvault/main/deploy/site"
+RAW="https://raw.githubusercontent.com/finvaultapp/finvault/main/deploy/site"
 BIN="/usr/local/bin/finvault-update-site"
 
 echo "==> Installing Caddy, git and rsync"
